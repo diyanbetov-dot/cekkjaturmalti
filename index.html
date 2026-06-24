@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maltese Spell Checker</title>
+
+    <style>
+        :root {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #18202a;
+            background: #f5f7fb;
+        }
+
+        body {
+            margin: 0;
+            padding: 32px;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            margin-top: 0;
+            color: #5d6875;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #dfe5ee;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(24, 32, 42, 0.06);
+            margin-top: 18px;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        textarea,
+        input {
+            box-sizing: border-box;
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font: inherit;
+            padding: 12px;
+            background: #fbfdff;
+        }
+
+        textarea {
+            min-height: 190px;
+            resize: vertical;
+            line-height: 1.45;
+        }
+
+        textarea[readonly] {
+            background: #f8fafc;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            color: #46515f;
+            font-weight: 600;
+        }
+
+        .settings-row label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .settings-row input {
+            width: auto;
+            accent-color: #f97316;
+        }
+
+        .buttons-left,
+        .buttons-right {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .buttons-left {
+            justify-content: flex-start;
+        }
+
+        .buttons-right {
+            justify-content: flex-end;
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            background: #eb4f1f;
+            color: white;
+        }
+
+        button.secondary {
+            background: #e7eef8;
+            color: #18202a;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .status {
+            margin-top: 10px;
+            color: #5d6875;
+            min-height: 1.4em;
+        }
+
+        .error {
+            color: #b42318;
+        }
+
+        .success {
+            color: #027a48;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            max-height: 420px;
+            overflow: auto;
+        }
+
+        .result-box {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 190px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font: inherit;
+            padding: 12px;
+            background: #f8fafc;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .result-box:empty::before {
+            content: attr(data-placeholder);
+            color: #7b8794;
+        }
+
+        .result-box.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            width: 34px;
+            height: 34px;
+            border: 4px solid #dbe3ef;
+            border-top-color: #eb4f1f;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .ambiguous-word {
+            position: relative;
+            display: inline-block;
+            background: #fff3a3;
+            border-radius: 5px;
+            padding: 0 3px;
+            cursor: pointer;
+        }
+
+        .ambiguous-word::before {
+            content: "?";
+            position: absolute;
+            top: -0.75em;
+            left: -0.45em;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            background: #facc15;
+            color: #18202a;
+            font-size: 0.7em;
+            font-weight: 900;
+            line-height: 1em;
+            text-align: center;
+            border: 1px solid #d4a800;
+        }
+
+        .ambiguous-word.crucial-word {
+            background: #fed7aa;
+        }
+
+        .ambiguous-word.crucial-word::before {
+            content: "!";
+            background: #f97316;
+            color: white;
+            border-color: #c2410c;
+        }
+
+        .english-word {
+            position: relative;
+            display: inline-block;
+            background: #bae6fd;
+            border-radius: 5px;
+            padding: 0 3px;
+            cursor: pointer;
+        }
+
+        .english-word::before {
+            content: "i";
+            position: absolute;
+            top: -0.75em;
+            left: -0.45em;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            background: #38bdf8;
+            color: white;
+            font-size: 0.7em;
+            font-weight: 900;
+            line-height: 1em;
+            text-align: center;
+            border: 1px solid #0284c7;
+        }
+
+        .name-like-word {
+            border-bottom: 1px dotted #64748b;
+            padding-bottom: 0.02em;
+        }
+
+        .suggestion-popover {
+            display: none;
+            position: absolute;
+            z-index: 20;
+            left: 0;
+            top: 1.8em;
+            width: max-content;
+            max-width: 90vw;
+            background: white;
+            border: 1px solid #d6b600;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(24, 32, 42, 0.18);
+            padding: 10px;
+            color: #18202a;
+            white-space: normal;
+        }
+
+        .english-word .suggestion-popover {
+            border-color: #0284c7;
+        }
+
+        .ambiguous-word.open .suggestion-popover,
+        .english-word.open .suggestion-popover {
+            display: block;
+        }
+
+
+        .suggestion-row {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 8px;
+            width: 100%;
+            padding: 7px 8px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #18202a;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .suggestion-row:hover {
+            background: #fff3a3;
+        }
+
+        .crucial-word .suggestion-row:hover {
+            background: #fed7aa;
+        }
+
+        .suggestion-row strong {
+            white-space: nowrap;
+        }
+
+        .correction-timer {
+            display: inline-block;
+            margin-left: 8px;
+            color: #64748b;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .dev-tools {
+            display: none;
+            margin-bottom: 18px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .dev-tools-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .edit-distance-options {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .edit-distance-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .edit-distance-option input {
+            width: auto;
+            margin: 0;
+            padding: 0;
+            accent-color: #f97316;
+        }
+
+        .mode-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mode-buttons button {
+            background: #f0f4ff;
+            color: #3b4a6b;
+            border: 1.5px solid #c7d3f0;
+            transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+        }
+
+        .mode-buttons button:hover {
+            background: #e0e9ff;
+            border-color: #a0b4e8;
+            transform: translateY(-1px);
+        }
+
+        .mode-buttons button.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            border-color: #7c3aed;
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+        }
+
+        body.dark-mode .mode-buttons button {
+            background: #1e2a45;
+            color: #93b4ff;
+            border-color: #2e3f6a;
+        }
+
+        body.dark-mode .mode-buttons button:hover {
+            background: #253154;
+            border-color: #4a63a8;
+        }
+
+        body.dark-mode .mode-buttons button.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            border-color: #a855f7;
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.5);
+        }
+
+
+        @media (max-width: 800px) {
+            body {
+                padding: 18px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        body.dark-mode {
+            background: #0f172a;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .panel {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark-mode textarea,
+        body.dark-mode input {
+            background: #0f172a;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode textarea[readonly] {
+            background: #1e293b;
+        }
+
+        body.dark-mode button.secondary {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .subtitle,
+        body.dark-mode .settings-row,
+        body.dark-mode .correction-timer,
+        body.dark-mode .status {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .result-box {
+            background: #1e293b;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .result-box:empty::before {
+            color: #64748b;
+        }
+
+        body.dark-mode .loading-spinner {
+            border-color: #334155;
+            border-top-color: #f97316;
+        }
+
+        body.dark-mode .suggestion-popover {
+            background: #1e293b;
+            color: #f8fafc;
+            border-color: #ca8a04;
+        }
+
+        body.dark-mode .english-word .suggestion-popover {
+            border-color: #0369a1;
+        }
+
+        body.dark-mode .suggestion-row {
+            color: #f8fafc;
+        }
+
+        body.dark-mode .suggestion-row:hover {
+            background: #713f12;
+        }
+
+        body.dark-mode .crucial-word .suggestion-row:hover {
+            background: #9a3412;
+        }
+
+        body.dark-mode .ambiguous-word {
+            background: #713f12;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .ambiguous-word::before {
+            background: #ca8a04;
+            color: #0f172a;
+            border-color: #a16207;
+        }
+
+        body.dark-mode .ambiguous-word.crucial-word {
+            background: #9a3412;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .ambiguous-word.crucial-word::before {
+            background: #ea580c;
+            color: white;
+            border-color: #c2410c;
+        }
+
+        body.dark-mode .english-word {
+            background: #0c4a6e;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .english-word::before {
+            background: #0284c7;
+            color: white;
+            border-color: #0369a1;
+        }
+
+        body.dark-mode pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+        }
+
+        body.dark-mode label {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode #labelEditDistance {
+            color: #60a5fa !important;
+        }
+
+        /* .pastizzi physics and rendering handled entirely by devtoy.js */
+    </style>
+</head>
+
+<body>
+    <main>
+        <div class="top-bar">
+            <button id="darkModeToggle" class="secondary" type="button">🌙 Dark Mode</button>
+            <button id="langToggle" class="secondary" type="button">Swiċċja għall-Malti</button>
+        </div>
+
+        <h1 id="mainTitle">Maltese Spell Checker</h1>
+        <p id="mainSubtitle" class="subtitle">
+            Flask-backed Maltese correction with vowel-slot scoring, strict priorities, and safer għ/h candidate
+            handling.
+        </p>
+
+        <section class="panel">
+            <div class="grid">
+                <div>
+                    <label id="labelInput" for="textInput">Input text</label>
+                    <textarea id="textInput" placeholder="Paste Maltese here..."></textarea>
+                </div>
+
+                <div>
+                    <label id="labelResults" for="results">
+                        <span id="labelResultsText">Corrected text</span>
+                        <span id="correctionTimer" class="correction-timer"></span>
+                    </label>
+                    <div id="results" class="result-box" data-placeholder="Results will appear here."
+                        aria-live="polite"></div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <div class="buttons-left">
+                    <button id="checkButton" type="button">Check spelling</button>
+                    <button id="clearButton" class="secondary" type="button">Clear</button>
+                </div>
+
+                <div class="buttons-right">
+                    <button id="showSuggestionsButton" class="secondary" type="button">Show suggestions</button>
+                    <button id="copyButton" class="secondary" type="button">Copy result</button>
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <label for="alwaysShowCrucialSuggestions">
+                    <input id="alwaysShowCrucialSuggestions" type="checkbox" />
+                    <span id="labelAlwaysShowCrucial">Always show crucial suggestions</span>
+                </label>
+            </div>
+
+            <div class="settings-row">
+                <label for="allowEnglishSuggestions">
+                    <input id="allowEnglishSuggestions" type="checkbox" />
+                    <span id="labelAllowEnglishSuggestions">Allow English suggestions</span>
+                </label>
+            </div>
+
+
+            <div id="status" class="status">Checking server...</div>
+
+        </section>
+
+        <section id="devPanel" class="panel">
+            <div id="editDistanceContainer" class="dev-tools">
+                <div class="dev-tools-row">
+                    <div>
+                        <label id="labelEditDistance" for="editDistance1">Edit distance tolerance</label>
+                        <div class="edit-distance-options">
+                            <label class="edit-distance-option">
+                                <input id="editDistance1" type="radio" name="editDistance" value="1" checked>
+                                <span id="labelEditDistance1">1 tick</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="2">
+                                <span id="labelEditDistance2">2 ticks</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="3">
+                                <span id="labelEditDistance3">3 ticks</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="4">
+                                <span id="labelEditDistance4">4 ticks</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mode-buttons">
+                        <button id="pastizziModeButton" type="button">🥟 Waqqa' l-pastizzi</button>
+                        <button id="fireworksButton" type="button">🎆 Festa llejla</button>
+                        <button id="partyModeButton" type="button">🎉 Ġib il-party</button>
+                        <button id="gravityModeButton" type="button">⬇ Gravity</button>
+                    </div>
+                </div>
+            </div>
+
+            <label id="labelDebug" for="wordInput">Single-word suggestions/debug</label>
+            <input id="wordInput" placeholder="Enter a Maltese word..." />
+
+            <div class="buttons">
+                <button id="suggestButton" class="secondary" type="button">Suggest word</button>
+                <button id="debugButton" class="secondary" type="button">Debug word</button>
+            </div>
+            <div id="editDistanceContainer" class="dev-tools">
+                <div class="dev-tools-row">
+                    <div>
+                        <label id="labelEditDistance" for="editDistance1">Edit distance tolerance</label>
+                        <div class="edit-distance-options">
+                            <label class="edit-distance-option">
+                                <input id="editDistance1" type="radio" name="editDistance" value="1" checked>
+                                <span id="labelEditDistance1">1 tick</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="2">
+                                <span id="labelEditDistance2">2 ticks</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="3">
+                                <span id="labelEditDistance3">3 ticks</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="4">
+                                <span id="labelEditDistance4">4 ticks</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mode-buttons">
+                        <button id="pastizziModeButton" type="button">🥟 Waqqa' l-pastizzi</button>
+                        <button id="fireworksButton" type="button">🎆 Festa llejla</button>
+                        <button id="partyModeButton" type="button">🎉 Ġib il-party</button>
+                        <button id="gravityModeButton" type="button">⬇ Gravity</button>
+                    </div>
+                </div>
+            </div>
+
+            <label id="labelDebug" for="wordInput">Single-word suggestions/debug</label>
+            <input id="wordInput" placeholder="Enter a Maltese word..." />
+
+            <div class="buttons">
+                <button id="suggestButton" class="secondary" type="button">Suggest word</button>
+                <button id="debugButton" class="secondary" type="button">Debug word</button>
+            </div>
+
+            <pre id="debugOutput">Debug output will appear here.</pre>
+        </section>
+    </main>
+
+    <script src="/devtoy.js"></script>
+    <script>
+        // These config variables will be replaced dynamically by the backend in app.py
+        const ENABLE_DEV_TOOLS = "REPLACE_ME_ENABLE_DEV_TOOLS" === "True";
+        const SHOW_STATUS_MESSAGES = "REPLACE_ME_SHOW_STATUS_MESSAGES" === "True";
+        const SHOW_EDIT_DISTANCE_SETTINGS = true;
+        const EDIT_DISTANCE_TOLERANCE = 2;
+        const ENABLE_PASTIZZI_MODE = false;
+        const SHOW_PASTIZZI_DEVTOOLS_BUTTON = true;
+        const SHOW_FIREWORKS_DEVTOOLS_BUTTON = true;
+        const SHOW_PARTY_DEVTOOLS_BUTTON = true;
+        const SHOW_GRAVITY_DEVTOOLS_BUTTON = true;
+        const API_BASE = window.location.origin;
+        const ENABLE_CORRECTION_TIMER = true;
+
+        const elements = {
+            darkModeToggle: document.getElementById("darkModeToggle"),
+            langToggle: document.getElementById("langToggle"),
+            mainTitle: document.getElementById("mainTitle"),
+            mainSubtitle: document.getElementById("mainSubtitle"),
+            labelInput: document.getElementById("labelInput"),
+            textInput: document.getElementById("textInput"),
+            labelResults: document.getElementById("labelResults"),
+            labelResultsText: document.getElementById("labelResultsText"),
+            correctionTimer: document.getElementById("correctionTimer"),
+            results: document.getElementById("results"),
+            checkButton: document.getElementById("checkButton"),
+            showSuggestionsButton: document.getElementById("showSuggestionsButton"),
+            copyButton: document.getElementById("copyButton"),
+            clearButton: document.getElementById("clearButton"),
+            alwaysShowCrucialSuggestions: document.getElementById("alwaysShowCrucialSuggestions"),
+            labelAlwaysShowCrucial: document.getElementById("labelAlwaysShowCrucial"),
+            allowEnglishSuggestions: document.getElementById("allowEnglishSuggestions"),
+            labelAllowEnglishSuggestions: document.getElementById("labelAllowEnglishSuggestions"),
+            status: document.getElementById("status"),
+            labelDebug: document.getElementById("labelDebug"),
+            wordInput: document.getElementById("wordInput"),
+            suggestButton: document.getElementById("suggestButton"),
+            debugButton: document.getElementById("debugButton"),
+            debugOutput: document.getElementById("debugOutput"),
+            editDistanceContainer: document.getElementById("editDistanceContainer"),
+            devPanel: document.getElementById("devPanel"),
+            labelEditDistance: document.getElementById("labelEditDistance"),
+            labelEditDistance1: document.getElementById("labelEditDistance1"),
+            labelEditDistance2: document.getElementById("labelEditDistance2"),
+            labelEditDistance3: document.getElementById("labelEditDistance3"),
+            labelEditDistance4: document.getElementById("labelEditDistance4"),
+            pastizziModeButton: document.getElementById("pastizziModeButton"),
+            fireworksButton: document.getElementById("fireworksButton"),
+            partyModeButton: document.getElementById("partyModeButton"),
+            gravityModeButton: document.getElementById("gravityModeButton"),
+        };
+
+        const translations = {
+            en: {
+                htmlLang: "en",
+                toggleBtn: '<img src="https://flagcdn.com/w20/mt.png" alt="MT" style="width:18px; margin-right:6px; vertical-align:-2px;"> Aqleb ghall-Malti',
+                darkModeBtn: "🌙 Change to Dark Mode",
+                lightModeBtn: "☀️ Change to Light Mode",
+                title: "Maltese Spell Checker",
+                subtitle: "",
+                labelInput: "Input text",
+                labelResults: "Corrected text",
+                checkBtn: "Check spelling",
+                copyBtn: "Copy result",
+                showSuggestionsOn: "Don't show suggestions",
+                showSuggestionsOff: "Show suggestions",
+                alwaysShowCrucial: "Always show crucial suggestions",
+                allowEnglishSuggestions: "Allow English suggestions",
+                showStatusMessages: "Show status messages",
+                clearBtn: "Clear",
+                labelDebug: "Single-word suggestions/debug",
+                suggestBtn: "Suggest word",
+                debugBtn: "Debug word",
+                editDistanceLabel: "Edit distance tolerance",
+                editDistance1: "1 tick",
+                editDistance2: "2 ticks",
+                editDistance3: "3 ticks",
+                editDistance4: "4 ticks",
+                pastizziModeOn: "🥟 Pastizzi rain",
+                pastizziModeOff: "🥟 Pastizzi rain",
+                fireworksButton: "🎆 Fireworks",
+                partyModeOn: "🛑 Stop the party",
+                partyModeOff: "🎉 Start the party",
+                gravityModeOn: "🛑 Stop gravity",
+                gravityModeOff: "⬇ Gravity",
+                placeholderInput: "Paste Maltese here...",
+                placeholderResults: "Results will appear here.",
+                placeholderWord: "Enter a Maltese word...",
+                debugDefault: "Debug output will appear here.",
+                writeTextFirst: "Write something first.",
+                writeWordFirst: "Write a word first.",
+                checking: "Checking...",
+                copied: "Result copied.",
+                cleared: "Cleared.",
+                correctionsApplied: "Corrections applied.",
+                noChanges: "No changes needed.",
+                serverChecking: "Checking server...",
+                serverReady: "Ready. Loaded {words} words and {paradigms} paradigms.",
+                serverError: "Could not reach the Flask server. Run python app.py, then open http://127.0.0.1:5000/."
+            },
+
+            mt: {
+                htmlLang: "mt",
+                toggleBtn: '<img src="https://flagcdn.com/w20/gb.png" alt="GB" style="width:18px; margin-right:6px; vertical-align: 0px;"> Switch to English',
+                darkModeBtn: "🌙 Aqleb għall-Mudlam",
+                lightModeBtn: "☀️ Aqleb għall-Mudwal",
+                title: "Ċekkjatur tal-Malti",
+                subtitle: "",
+                labelInput: "Test oriġinali",
+                labelResults: "Test ikkoreġut",
+                checkBtn: "Iċċekkja l-ortografija",
+                copyBtn: "Ikkopja l-korezzjoni",
+                showSuggestionsOn: "Turix suġġerimenti",
+                showSuggestionsOff: "Uri suġġerimenti",
+                alwaysShowCrucial: "Dejjem uri suġġerimenti kruċjali",
+                allowEnglishSuggestions: "Ippermetti suġġerimenti bl-Ingliż",
+                showStatusMessages: "Uri messaġġi tal-istatus",
+                clearBtn: "Ħassar kollox",
+                labelDebug: "Suġġerimenti għal kelma partikolari",
+                suggestBtn: "Issuġġerixxi kelma",
+                debugBtn: "Għamel debugging tal-kelma",
+                editDistanceLabel: "Tolleranza tad-distanza tal-editjar",
+                editDistance1: "grad 1",
+                editDistance2: "grad 2",
+                editDistance3: "grad 3",
+                editDistance4: "grad 4",
+                pastizziModeOn: "🥟 Waqqa' l-pastizzi",
+                pastizziModeOff: "🥟 Waqqa' l-pastizzi",
+                fireworksButton: "🎆 Festa llejla",
+                partyModeOn: "🛑 Waqqaf il-party",
+                partyModeOff: "🎉 Ġib il-party",
+                gravityModeOn: "🛑 Gravità",
+                gravityModeOff: "⬇ Gravità",
+                placeholderInput: "Itfa' test bil-Malti hawn...",
+                placeholderResults: "Ir-riżultat se jidher hawn.",
+                placeholderWord: "Itfa' kelma Maltija...",
+                debugDefault: "Ir-riżultat tad-debugging jidher hawn.",
+                writeTextFirst: "L-ewwel ikteb xi ħaġa.",
+                writeWordFirst: "L-ewwel ikteb kelma.",
+                checking: "Tibdil fil-progress...",
+                copied: "Ir-riżultat ġie kkopjat.",
+                cleared: "It-test ġie mħassar.",
+                correctionsApplied: "Il-korrezzjonijiet ġew applikati.",
+                noChanges: "M'hemmx bżonn bidliet.",
+                serverChecking: "Qed jiġi ċċekkjat is-server...",
+                serverReady: "Bil-lest.  {words} kliem u {paradigms} mudelli ġew illowdjati.",
+                serverError: "Is-server tal-Flask ma qabadx. Ikteb python app.py, imbagħad iftaħ http://127.0.0.1:5000/."
+            }
+        };
+
+        let currentLang = localStorage.getItem("spellcheckerLang") || "en";
+
+        let showSuggestions = localStorage.getItem("showSuggestions") !== "false";
+        let alwaysShowCrucialSuggestions = localStorage.getItem("alwaysShowCrucialSuggestions") !== "false";
+        let allowEnglishSuggestions = localStorage.getItem("allowEnglishSuggestions") !== "false";
+        let latestTokens = [];
+        let latestCorrectedText = "";
+        let pastizziMode = false;
+        let pastizziInterval = null;
+        let partyMode = false;
+        let devToy = null;
+
+        let lastStatus = {
+            key: "serverChecking",
+            type: "",
+            data: {}
+        };
+
+        let healthInfo = {
+            loaded: false,
+            words: 0,
+            paradigms: 0
+        };
+
+        function t(key, data = {}) {
+            let text = translations[currentLang][key] || key;
+
+            for (const [name, value] of Object.entries(data)) {
+                text = text.replace(`{${name}}`, value);
+            }
+
+            return text;
+        }
+
+        function setStatusByKey(key, type = "", data = {}) {
+            lastStatus = { key, type, data };
+            elements.status.textContent = t(key, data);
+            elements.status.className = `status ${type}`.trim();
+            updateStatusVisibility();
+        }
+
+        function setRawStatus(message, type = "") {
+            lastStatus = { key: null, type, data: {}, raw: message };
+            elements.status.textContent = message;
+            elements.status.className = `status ${type}`.trim();
+            updateStatusVisibility();
+        }
+
+        function updateStatusVisibility() {
+            const shouldShow = SHOW_STATUS_MESSAGES || lastStatus.type === "error";
+            elements.status.classList.toggle("hidden", !shouldShow);
+        }
+
+        function updateDevPanelVisibility() {
+            elements.devPanel.classList.toggle("hidden", !ENABLE_DEV_TOOLS);
+        }
+
+        function setOutputLoading(loading) {
+            elements.results.classList.toggle("loading", loading);
+            if (loading) {
+                elements.results.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span>';
+            }
+        }
+
+        function setButtonsDisabled(disabled) {
+            elements.checkButton.disabled = disabled;
+            elements.suggestButton.disabled = disabled;
+            elements.debugButton.disabled = disabled;
+        }
+
+        function applyLanguage() {
+            const labels = translations[currentLang];
+
+            document.documentElement.lang = labels.htmlLang;
+
+            elements.langToggle.innerHTML = labels.toggleBtn;
+            elements.mainTitle.textContent = labels.title;
+            elements.mainSubtitle.textContent = labels.subtitle;
+
+            elements.labelInput.textContent = labels.labelInput;
+            elements.labelResultsText.textContent = labels.labelResults;
+            elements.labelDebug.textContent = labels.labelDebug;
+            elements.labelEditDistance.textContent = labels.editDistanceLabel;
+            elements.labelEditDistance1.textContent = labels.editDistance1;
+            elements.labelEditDistance2.textContent = labels.editDistance2;
+            elements.labelEditDistance3.textContent = labels.editDistance3;
+            elements.labelEditDistance4.textContent = labels.editDistance4;
+
+            elements.checkButton.textContent = labels.checkBtn;
+            elements.copyButton.textContent = labels.copyBtn;
+            elements.clearButton.textContent = labels.clearBtn;
+            elements.labelAlwaysShowCrucial.textContent = labels.alwaysShowCrucial;
+            elements.labelAllowEnglishSuggestions.textContent = labels.allowEnglishSuggestions;
+            elements.suggestButton.textContent = labels.suggestBtn;
+            elements.debugButton.textContent = labels.debugBtn;
+
+            const isDark = document.body.classList.contains("dark-mode");
+            elements.darkModeToggle.textContent = isDark ? labels.lightModeBtn : labels.darkModeBtn;
+
+            updateShowSuggestionsButton();
+            updateDevPanelVisibility();
+            if (devToy) {
+                devToy.updateModeButtons();
+            } else {
+                updateModeButtons();
+            }
+
+            elements.textInput.placeholder = labels.placeholderInput;
+            elements.results.dataset.placeholder = labels.placeholderResults;
+            elements.wordInput.placeholder = labels.placeholderWord;
+
+            if (
+                elements.debugOutput.textContent === translations.en.debugDefault ||
+                elements.debugOutput.textContent === translations.mt.debugDefault
+            ) {
+                elements.debugOutput.textContent = labels.debugDefault;
+            }
+
+            if (lastStatus.key) {
+                elements.status.textContent = t(lastStatus.key, lastStatus.data);
+                elements.status.className = `status ${lastStatus.type}`.trim();
+            } else if (lastStatus.raw) {
+                elements.status.textContent = lastStatus.raw;
+                elements.status.className = `status ${lastStatus.type}`.trim();
+            }
+            updateStatusVisibility();
+
+            if (SHOW_EDIT_DISTANCE_SETTINGS) {
+                elements.editDistanceContainer.style.display = 'block';
+            }
+        }
+
+        function getEditDistanceTolerance() {
+            if (ENABLE_DEV_TOOLS) {
+                const selected = document.querySelector('input[name="editDistance"]:checked');
+                return selected ? parseInt(selected.value, 10) : EDIT_DISTANCE_TOLERANCE;
+            }
+            return EDIT_DISTANCE_TOLERANCE;
+        }
+
+        async function postJson(path, body) {
+            const response = await fetch(`${API_BASE}${path}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.error || `Request failed with status ${response.status}`);
+            }
+
+            return data;
+        }
+
+        async function checkHealth() {
+            setButtonsDisabled(true);
+            setStatusByKey("serverChecking");
+
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+
+                if (!response.ok || !data.ok) {
+                    throw new Error("Server is not ready.");
+                }
+
+                healthInfo = {
+                    loaded: true,
+                    words: data.dictionary_words,
+                    paradigms: data.paradigms
+                };
+
+                setButtonsDisabled(false);
+                setStatusByKey("serverReady", "success", {
+                    words: healthInfo.words,
+                    paradigms: healthInfo.paradigms
+                });
+            } catch (error) {
+                healthInfo = {
+                    loaded: false,
+                    words: 0,
+                    paradigms: 0
+                };
+
+                setButtonsDisabled(true);
+                setStatusByKey("serverError", "error");
+            }
+        }
+
+
+        const PERSON_TAGS = new Set([
+            "1S", "2S", "3SM", "3SF", "1P", "2P", "3P",
+            "12S", "12P"
+        ]);
+
+        const SIMPLE_POS_TAG_RE = /^(?:SINGNOUN(?:M|F|FM)?|PLUNOUN|PAUCNOUN|COLLNOUN|DUALNOUN|SINGADJM|SINGADJF|PLUADJ|SINGADJM\+SINGNOUN|ADVERB(?:-\d(?:S|P|SM|SF))?|PRON(?:-\d(?:S|P|SM|SF))?)$/i;
+
+        function cleanMeaningText(value) {
+            return String(value || "")
+                .replace(/\s+/g, " ")
+                .replace(/^[\s:;,\-]+|[\s:;,]+$/g, "")
+                .trim();
+        }
+
+        function extractMeaningFromDictionaryPayload(payload) {
+            /*
+             * Accepted examples:
+             *   SINGNOUNM-abacus
+             *   SINGADJM-ugly
+             *   T-ksr-PERF-3SM-to break or divert
+             *   T-ksr-PERF-3SM-to not break or not divert-N
+             *   kiser/T-ksr-PERF-3SM-to break or divert
+             *
+             * A negative verb's final N is a grammatical marker, not its meaning.
+             * Meanings may themselves contain hyphens, so this parser finds the
+             * end of the morphological tag rather than taking only one dash-part.
+             */
+            let raw = String(payload || "").trim();
+            if (!raw) {
+                return "";
+            }
+
+            if (raw.includes("/")) {
+                raw = raw.slice(raw.indexOf("/") + 1);
+            }
+
+            const negative = /-N$/i.test(raw);
+            if (negative) {
+                raw = raw.replace(/-N$/i, "");
+            }
+
+            const parts = raw.split("-");
+            if (parts.length < 2) {
+                return "";
+            }
+
+            // Nouns, adjectives, adverbs and pronouns:
+            // meaning begins immediately after the POS tag.
+            for (let i = 0; i < parts.length; i += 1) {
+                if (SIMPLE_POS_TAG_RE.test(parts[i])) {
+                    return cleanMeaningText(parts.slice(i + 1).join("-"));
+                }
+            }
+
+            // Verbs: meaning begins immediately after the person tag.
+            // This supports both:
+            //   T-root-TENSE-PERSON-meaning
+            // and
+            //   FORM-T-root-TENSE-PERSON-meaning
+            for (let i = 0; i < parts.length; i += 1) {
+                if (PERSON_TAGS.has(parts[i].toUpperCase())) {
+                    return cleanMeaningText(parts.slice(i + 1).join("-"));
+                }
+            }
+
+            // Compatibility fallback requested by the dictionary convention:
+            // last field normally; penultimate field when the original ended -N.
+            const originalParts = String(payload || "").split("-");
+            const fallbackIndex = /-N$/i.test(String(payload || ""))
+                ? originalParts.length - 2
+                : originalParts.length - 1;
+
+            return cleanMeaningText(originalParts[fallbackIndex] || "");
+        }
+
+        function getChoiceWord(choice) {
+            if (typeof choice === "string") {
+                return choice;
+            }
+
+            return choice.word
+                || choice.corrected
+                || choice.candidate
+                || choice.surface
+                || "";
+        }
+
+        function getChoiceMeaning(choice) {
+            if (!choice || typeof choice === "string") {
+                return "";
+            }
+
+            const directMeaning = cleanMeaningText(
+                choice.meaning
+                || choice.gloss
+                || choice.definition
+                || ""
+            );
+
+            if (directMeaning) {
+                return directMeaning;
+            }
+
+            const possiblePayloads = [
+                choice.entry,
+                choice.dictionary_entry,
+                choice.raw_entry,
+                choice.full_tag,
+                choice.raw_tag,
+                choice.tag,
+            ];
+
+            if (Array.isArray(choice.tags)) {
+                possiblePayloads.push(choice.tags.join("-"));
+            } else if (choice.tags) {
+                possiblePayloads.push(choice.tags);
+            }
+
+            for (const payload of possiblePayloads) {
+                const meaning = extractMeaningFromDictionaryPayload(payload);
+                if (meaning) {
+                    return meaning;
+                }
+            }
+
+            return "";
+        }
+
+        function createSuggestionPopover(choices, tokenIndex) {
+            const popover = document.createElement("span");
+            popover.className = "suggestion-popover";
+
+            for (const choice of choices) {
+                const row = document.createElement("button");
+                row.type = "button";
+                row.className = "suggestion-row";
+
+                const choiceWord = getChoiceWord(choice);
+                const choiceMeaning = getChoiceMeaning(choice);
+
+                const word = document.createElement("strong");
+                word.textContent = choiceWord;
+
+                const meaning = document.createElement("span");
+                meaning.textContent = choiceMeaning
+                    ? `: ${choiceMeaning}`
+                    : ": meaning unavailable";
+
+                row.appendChild(word);
+                row.appendChild(meaning);
+
+                row.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    chooseSuggestion(tokenIndex, choiceWord);
+                });
+
+                popover.appendChild(row);
+            }
+
+            return popover;
+        }
+
+        function renderCorrectedText(tokens, fallbackText = "") {
+            elements.results.classList.remove("loading");
+            elements.results.innerHTML = "";
+
+            if (!tokens || tokens.length === 0) {
+                elements.results.textContent = fallbackText;
+                return;
+            }
+
+            tokens.forEach((token, tokenIndex) => {
+                if (token.type === "text") {
+                    elements.results.appendChild(
+                        document.createTextNode(token.text)
+                    );
+                    return;
+                }
+
+                if (token.type === "english_phrase") {
+                    if (
+                        allowEnglishSuggestions
+                        && token.maltese_suggestion
+                        && (Array.isArray(token.maltese_suggestion) ? token.maltese_suggestion.length > 0 : true)
+                    ) {
+                        const span = document.createElement("span");
+                        span.className = "english-word";
+                        span.tabIndex = 0;
+
+                        const wordText = document.createElement("span");
+                        wordText.textContent = token.corrected;
+                        span.appendChild(wordText);
+
+                        const popover = document.createElement("span");
+                        popover.className = "suggestion-popover";
+
+                        const suggestionsList = Array.isArray(token.maltese_suggestion) ? token.maltese_suggestion : [token.maltese_suggestion];
+                        const originalWord = token.inner_text || token.original.replace(/^['\u2018\u2019]+|['\u2018\u2019]+$/g, "");
+
+                        if (token.corrected !== originalWord && suggestionsList.includes(token.corrected)) {
+                            const row = document.createElement("button");
+                            row.type = "button";
+                            row.className = "suggestion-row";
+                            row.innerHTML = `<span>Biddel lura f'<strong>${originalWord}</strong></span>`;
+
+                            row.addEventListener("click", (event) => {
+                                event.stopPropagation();
+                                chooseSuggestion(tokenIndex, originalWord);
+                            });
+                            popover.appendChild(row);
+                        } else {
+                            suggestionsList.forEach(sugg => {
+                                const row = document.createElement("button");
+                                row.type = "button";
+                                row.className = "suggestion-row";
+                                row.innerHTML = `<span>Bil-Malti nistgħu nigħdu: <strong>${sugg}</strong></span>`;
+
+                                row.addEventListener("click", (event) => {
+                                    event.stopPropagation();
+                                    chooseSuggestion(tokenIndex, sugg);
+                                });
+
+                                popover.appendChild(row);
+                            });
+                        }
+
+
+                        span.appendChild(popover);
+
+                        span.addEventListener("click", (event) => {
+                            event.stopPropagation();
+                            document.querySelectorAll(".ambiguous-word.open, .english-word.open").forEach((item) => {
+                                if (item !== span) {
+                                    item.classList.remove("open");
+                                }
+                            });
+                            span.classList.toggle("open");
+                        });
+
+                        elements.results.appendChild(span);
+                    } else {
+                        elements.results.appendChild(
+                            document.createTextNode(token.corrected)
+                        );
+                    }
+                    return;
+                }
+
+                const corrected = token.corrected || token.text || "";
+                const isCrucial = Boolean(token.crucial);
+                const isNameLike = Boolean(token.name_like);
+                const shouldShowSuggestions = showSuggestions
+                    || (isCrucial && alwaysShowCrucialSuggestions);
+
+                if (
+                    shouldShowSuggestions
+                    && token.ambiguous
+                    && token.choices
+                    && token.choices.length >= (isCrucial ? 1 : 2)
+                ) {
+                    const span = document.createElement("span");
+                    span.className = isCrucial
+                        ? "ambiguous-word crucial-word"
+                        : "ambiguous-word";
+                    if (isNameLike) {
+                        span.classList.add("name-like-word");
+                    }
+                    span.tabIndex = 0;
+
+                    const wordText = document.createElement("span");
+                    wordText.textContent = corrected;
+
+                    span.appendChild(wordText);
+
+                    span.appendChild(
+                        createSuggestionPopover(token.choices, tokenIndex)
+                    );
+
+                    span.addEventListener("click", (event) => {
+                        event.stopPropagation();
+
+                        document
+                            .querySelectorAll(".ambiguous-word.open")
+                            .forEach((item) => {
+                                if (item !== span) {
+                                    item.classList.remove("open");
+                                }
+                            });
+
+                        span.classList.toggle("open");
+                    });
+
+                    elements.results.appendChild(span);
+                } else {
+                    if (isNameLike) {
+                        const span = document.createElement("span");
+                        span.className = "name-like-word";
+                        span.textContent = corrected;
+                        elements.results.appendChild(span);
+                    } else {
+                        elements.results.appendChild(
+                            document.createTextNode(corrected)
+                        );
+                    }
+                }
+            });
+        }
+
+        document.addEventListener("click", () => {
+            document.querySelectorAll(".ambiguous-word.open").forEach((item) => {
+                item.classList.remove("open");
+            });
+        });
+
+        function updateShowSuggestionsButton() {
+            elements.showSuggestionsButton.textContent = showSuggestions
+                ? t("showSuggestionsOn")
+                : t("showSuggestionsOff");
+        }
+
+        function updateModeButtons() {
+            elements.pastizziModeButton.style.display =
+                ENABLE_PASTIZZI_MODE && SHOW_PASTIZZI_DEVTOOLS_BUTTON ? "" : "none";
+            elements.fireworksButton.style.display = SHOW_FIREWORKS_DEVTOOLS_BUTTON ? "" : "none";
+            elements.partyModeButton.style.display = SHOW_PARTY_DEVTOOLS_BUTTON ? "" : "none";
+            elements.gravityModeButton.style.display = SHOW_GRAVITY_DEVTOOLS_BUTTON ? "" : "none";
+
+            elements.pastizziModeButton.textContent = t("pastizziModeOff");
+            elements.fireworksButton.textContent = t("fireworksButton");
+            elements.partyModeButton.textContent = partyMode
+                ? t("partyModeOn")
+                : t("partyModeOff");
+            elements.gravityModeButton.textContent = t("gravityModeOff");
+
+            elements.pastizziModeButton.classList.remove("active");
+            elements.fireworksButton.classList.remove("active");
+            elements.partyModeButton.classList.toggle("active", partyMode);
+            elements.gravityModeButton.classList.remove("active");
+        }
+
+        function launchPastizzi(count = 50) {
+            if (!ENABLE_PASTIZZI_MODE) {
+                return;
+            }
+
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const p = document.createElement("img");
+                    p.className = "pastizzi";
+                    p.src = "https://static.wixstatic.com/media/842b50_9882633c342b45869c996a2ec817c0f1~mv2.png/v1/fill/w_600,h_450,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/pastizzi.png";
+                    p.style.left = Math.random() * 100 + "vw";
+                    p.style.width = Math.random() * 60 + 20 + "px";
+                    p.style.animationDuration = Math.random() * 4 + 2 + "s";
+                    const randomRotation = (Math.random() - 0.5) * 1440;
+                    p.style.setProperty("--end-rotation", `${randomRotation}deg`);
+                    document.body.appendChild(p);
+                    setTimeout(() => p.remove(), 7000);
+                }, Math.random() * 2000);
+            }
+        }
+
+        function togglePastizziMode() {
+            if (!ENABLE_PASTIZZI_MODE) {
+                return;
+            }
+
+            launchPastizzi();
+        }
+
+        function randomColor() {
+            return `hsl(${Math.floor(Math.random() * 360)} ${55 + Math.random() * 35}% ${35 + Math.random() * 45}%)`;
+        }
+
+        function rememberPartyStyle(element) {
+            if (element.dataset.partyStored === "1") {
+                return;
+            }
+
+            element.dataset.partyStored = "1";
+            element.dataset.partyColor = element.style.color || "";
+            element.dataset.partyBackgroundColor = element.style.backgroundColor || "";
+            element.dataset.partyBorderColor = element.style.borderColor || "";
+            element.dataset.partyBoxShadow = element.style.boxShadow || "";
+        }
+
+        function restorePartyStyle(element) {
+            if (element.dataset.partyStored !== "1") {
+                return;
+            }
+
+            element.style.color = element.dataset.partyColor || "";
+            element.style.backgroundColor = element.dataset.partyBackgroundColor || "";
+            element.style.borderColor = element.dataset.partyBorderColor || "";
+            element.style.boxShadow = element.dataset.partyBoxShadow || "";
+            delete element.dataset.partyStored;
+            delete element.dataset.partyColor;
+            delete element.dataset.partyBackgroundColor;
+            delete element.dataset.partyBorderColor;
+            delete element.dataset.partyBoxShadow;
+        }
+
+        function paintPartyGroup(selector, painter) {
+            document.querySelectorAll(selector).forEach((element) => {
+                rememberPartyStyle(element);
+                painter(element);
+            });
+        }
+
+        function setPartyMode(enabled) {
+            partyMode = enabled;
+
+            if (!enabled) {
+                document.querySelectorAll("[data-party-stored='1']").forEach(restorePartyStyle);
+                updateModeButtons();
+                return;
+            }
+
+            const pageText = randomColor();
+            rememberPartyStyle(document.body);
+            document.body.style.color = pageText;
+            document.body.style.backgroundColor = randomColor();
+
+            paintPartyGroup(".panel", (element) => {
+                element.style.backgroundColor = randomColor();
+                element.style.borderColor = randomColor();
+                element.style.color = randomColor();
+                element.style.boxShadow = `0 8px 24px ${randomColor()}`;
+            });
+
+            paintPartyGroup("textarea, input, .result-box, pre, .suggestion-popover", (element) => {
+                element.style.backgroundColor = randomColor();
+                element.style.borderColor = randomColor();
+                element.style.color = randomColor();
+            });
+
+            paintPartyGroup("button", (element) => {
+                element.style.backgroundColor = randomColor();
+                element.style.borderColor = randomColor();
+                element.style.color = randomColor();
+            });
+
+            paintPartyGroup("h1, p, label, .status, .correction-timer", (element) => {
+                element.style.color = randomColor();
+            });
+
+            paintPartyGroup(".ambiguous-word, .english-word", (element) => {
+                element.style.backgroundColor = randomColor();
+                element.style.color = randomColor();
+            });
+
+            updateModeButtons();
+        }
+
+        function togglePartyMode() {
+            setPartyMode(!partyMode);
+        }
+
+        function setCorrectionTimer(milliseconds = null) {
+            if (!ENABLE_CORRECTION_TIMER) {
+                elements.correctionTimer.textContent = "";
+                elements.correctionTimer.style.display = "none";
+                return;
+            }
+
+            elements.correctionTimer.style.display = "";
+
+            if (milliseconds === null) {
+                elements.correctionTimer.textContent = "";
+                return;
+            }
+
+            const seconds = milliseconds / 1000;
+            elements.correctionTimer.textContent = `(${seconds.toFixed(3)}s)`;
+        }
+
+        function rebuildCorrectedTextFromTokens(tokens) {
+            return tokens.map((token) => {
+                if (token.type === "text") {
+                    return token.text || "";
+                }
+
+                return token.corrected || "";
+            }).join("");
+        }
+
+        function chooseSuggestion(tokenIndex, chosenWord) {
+            if (!latestTokens[tokenIndex]) {
+                return;
+            }
+
+            latestTokens[tokenIndex].corrected = chosenWord;
+
+            latestCorrectedText = rebuildCorrectedTextFromTokens(latestTokens);
+
+            renderCorrectedText(latestTokens, latestCorrectedText);
+        }
+
+        async function checkText() {
+            const text = elements.textInput.value;
+
+            if (!text.trim()) {
+                setStatusByKey("writeTextFirst", "error");
+                return;
+            }
+
+            elements.checkButton.disabled = true;
+            setStatusByKey("checking");
+            setCorrectionTimer(null);
+            setOutputLoading(true);
+            const timerStartedAt = performance.now();
+
+            try {
+                const edit_distance_tolerance = getEditDistanceTolerance();
+                const data = await postJson("/check-text", { text, edit_distance_tolerance });
+
+                latestTokens = data.tokens || [];
+                latestCorrectedText = data.corrected_text || "";
+
+                renderCorrectedText(latestTokens, latestCorrectedText);
+                setCorrectionTimer(performance.now() - timerStartedAt);
+
+                setStatusByKey(
+                    data.changed ? "correctionsApplied" : "noChanges",
+                    "success"
+                );
+            } catch (error) {
+                elements.results.classList.remove("loading");
+                elements.results.innerHTML = "";
+                setRawStatus(error.message, "error");
+            } finally {
+                elements.checkButton.disabled = false;
+            }
+        }
+
+        async function suggestWord() {
+            const word = elements.wordInput.value.trim();
+
+            if (!word) {
+                elements.debugOutput.textContent = t("writeWordFirst");
+                return;
+            }
+
+            try {
+                const edit_distance_tolerance = getEditDistanceTolerance();
+                const data = await postJson("/suggest-word", { word, edit_distance_tolerance });
+                elements.debugOutput.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                elements.debugOutput.textContent = error.message;
+            }
+        }
+
+        async function debugWord() {
+            const word = elements.wordInput.value.trim();
+
+            if (!word) {
+                elements.debugOutput.textContent = t("writeWordFirst");
+                return;
+            }
+
+            try {
+                const edit_distance_tolerance = getEditDistanceTolerance();
+                const data = await postJson("/debug-word", { word, edit_distance_tolerance });
+                elements.debugOutput.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                elements.debugOutput.textContent = error.message;
+            }
+        }
+
+        async function copyResult() {
+            if (!latestCorrectedText) {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(latestCorrectedText);
+                setStatusByKey("copied", "success");
+            } catch (error) {
+                setRawStatus("Could not copy result.", "error");
+            }
+        }
+
+        function clearAll() {
+            elements.textInput.value = "";
+            elements.results.classList.remove("loading");
+            elements.results.innerHTML = "";
+            latestTokens = [];
+            latestCorrectedText = "";
+            elements.wordInput.value = "";
+            elements.debugOutput.textContent = t("debugDefault");
+            setCorrectionTimer(null);
+            setStatusByKey("cleared");
+        }
+
+        elements.langToggle.addEventListener("click", () => {
+            currentLang = currentLang === "en" ? "mt" : "en";
+            localStorage.setItem("spellcheckerLang", currentLang);
+            applyLanguage();
+        });
+
+        elements.darkModeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("darkMode", isDark ? "1" : "0");
+
+            const labels = translations[currentLang];
+            elements.darkModeToggle.textContent = isDark ? labels.lightModeBtn : labels.darkModeBtn;
+        });
+
+        elements.showSuggestionsButton.addEventListener("click", () => {
+            showSuggestions = !showSuggestions;
+            localStorage.setItem("showSuggestions", String(showSuggestions));
+            updateShowSuggestionsButton();
+            renderCorrectedText(latestTokens, latestCorrectedText);
+        });
+
+        elements.alwaysShowCrucialSuggestions.addEventListener("change", () => {
+            alwaysShowCrucialSuggestions = elements.alwaysShowCrucialSuggestions.checked;
+            localStorage.setItem(
+                "alwaysShowCrucialSuggestions",
+                String(alwaysShowCrucialSuggestions)
+            );
+            renderCorrectedText(latestTokens, latestCorrectedText);
+        });
+
+        elements.allowEnglishSuggestions.addEventListener("change", () => {
+            allowEnglishSuggestions = elements.allowEnglishSuggestions.checked;
+            localStorage.setItem("allowEnglishSuggestions", String(allowEnglishSuggestions));
+            renderCorrectedText(latestTokens, latestCorrectedText);
+        });
+
+        elements.checkButton.addEventListener("click", checkText);
+        elements.copyButton.addEventListener("click", copyResult);
+        elements.clearButton.addEventListener("click", clearAll);
+        elements.suggestButton.addEventListener("click", suggestWord);
+        elements.debugButton.addEventListener("click", debugWord);
+        if (window.createDevToy) {
+            devToy = window.createDevToy({
+                elements,
+                t,
+                flags: {
+                    enablePastizziMode: ENABLE_PASTIZZI_MODE,
+                    showPastizziDevtoolsButton: SHOW_PASTIZZI_DEVTOOLS_BUTTON,
+                    showFireworksDevtoolsButton: SHOW_FIREWORKS_DEVTOOLS_BUTTON,
+                    showPartyDevtoolsButton: SHOW_PARTY_DEVTOOLS_BUTTON,
+                    showGravityDevtoolsButton: SHOW_GRAVITY_DEVTOOLS_BUTTON,
+                },
+            });
+            devToy.bind();
+        } else {
+            elements.pastizziModeButton.addEventListener("click", togglePastizziMode);
+            elements.fireworksButton.style.display = "none";
+            elements.partyModeButton.addEventListener("click", togglePartyMode);
+        }
+
+        updateShowSuggestionsButton();
+        updateModeButtons();
+        elements.alwaysShowCrucialSuggestions.checked = alwaysShowCrucialSuggestions;
+        elements.allowEnglishSuggestions.checked = allowEnglishSuggestions;
+        updateDevPanelVisibility();
+        updateStatusVisibility();
+        setCorrectionTimer(null);
+        applyLanguage();
+
+        if (localStorage.getItem("darkMode") === "1" || (!localStorage.getItem("darkMode") && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            document.body.classList.add("dark-mode");
+        }
+        checkHealth();
+    </script>
+</body>
+
+</html>

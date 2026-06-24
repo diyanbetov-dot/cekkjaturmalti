@@ -1,0 +1,2894 @@
+import os
+import re
+import unicodedata
+from dictionary_meanings import MeaningIndex, extract_meaning_from_payload
+from collections import defaultdict
+from dataclasses import asdict, dataclass
+from functools import lru_cache
+from pathlib import Path
+from typing import Callable, Iterable
+from helpers.article_phrase_rules import MalteseArticlePhraseRules, WordToken
+from helpers.fused_preposition_rules import MalteseFusedPrepositionRules
+from helpers.suffix_generator import MalteseSuffixGenerator
+from helpers.orthographic_generator import MalteseOrthographicGenerator
+from helpers.doubled_letter_generator import MalteseDoubledLetterGenerator
+from flask import Flask, jsonify, request, send_from_directory
+
+try:
+    from flask_cors import CORS
+except ImportError:  # The app still works when the HTML is served by Flask.
+    CORS = None
+
+
+# -----------------------------------------------------------------------------
+# Configuration
+# -----------------------------------------------------------------------------
+
+BASE_DIR = Path(__file__).resolve().parent
+
+FINAL_DICS_DIR = BASE_DIR / "finaldics"
+
+DICTIONARY_FILES = sorted(FINAL_DICS_DIR.glob("*.dic"))
+
+MAX_TEXT_LENGTH = 10_000
+MAX_WORD_LENGTH = 100
+
+@dataclass
+class ScoreRow:
+    candidate: str
+    score: float
+    edit_distance: int
+    consonant_score: float
+    vowel_slot_score: float
+    vowel_count_score: float
+    length_score: float
+    stage: str
+    matched_typo_form: str
+
+
+class UniversalMalteseSpellchecker:
+    """
+    Maltese spellchecker with strict priority stages plus soft scoring.
+
+    Main design decisions:
+    - għ is treated as one logical Maltese letter for distance and anchors.
+    - gh -> għ is NOT globally applied to the whole text. It is only used as a
+      candidate lookup variant, so English words and names are not blindly changed.
+    - Vowel count/vector is important, but it is not the only truth. It is used
+      as a priority filter first, then as part of a score.
+    - Special stages handle missing/extra għ and h near vowels.
+    """
+
+    VOWELS = set("aeiouàèìòù")
+
+    # Maltese-like word tokens, including apostrophes and hyphens inside words.
+    WORD_PATTERN = re.compile(
+        r"[^\W\d_]+(?:[-'\u2019\u02bc][^\W\d_]+)*(?:['\u2019\u02bc])?",
+        re.UNICODE,
+    )
+
+    # Example custom verb tags:
+    #   ibgħat/T-bgħt-F1-IMP-2S
+    # Hunspell affix flags such as /AB are ignored as tags.
+    PARADIGM_TAG_PATTERN = re.compile(r"^[^-\s/]+-[^-\s/]+-F\d+(?:-|$)")
+
+    # Conservative suffix repairs. These are variants, not global replacements.
+    # Keep longer suffixes before shorter ones.
+    SUFFIX_REPAIRS = {
+        "ulhom": "hulhom",
+        "ulkom": "hulkom",
+        "ulna": "hulna",
+        "ulek": "hulek",
+        "uli": "huli",
+        "ila": "ilha",
+        "ilom": "hielhom",
+        "ulom": "hulhom",
+        "ija": "iha",
+        "ja": "ha",
+        "ijom": "ihom",
+        "jom": "hom",
+        "iju": "ihu",
+        "jul": "hul",
+        "uwom": "uhom",
+    }
+
+    # Last-resort whole-word exceptions only. Prefer dictionary data or
+    # orthographic/suffix rules for anything that can be modelled generally.
+    MANUAL_WORD_REPAIRS = {
+        "atijulu": "agħtihulu",
+        "edd": "qed",
+        "laqi": "lagħaqi",
+        "minom": "minnhom",
+        "possiblil": "possibbli",
+        "qas": "lanqas",
+        "tikbi": "tikbi",
+        "nikbi": "nikbi",
+        "jikbi": "jikbi",
+        "tikbu": "tikbu",
+        "nikbu": "nikbu",
+        "jikbu": "jikbu",
+        "uwx": "hux",
+    }
+    
+    MANUAL_WORD_SUGGESTIONS = {
+        "edd": ("qed", "għedt"),
+    }
+
+    MANUAL_EJD_AJD_TAILS = (
+        "",
+        "u",
+        "x",
+        "ux",
+        "li",
+        "lu",
+        "la",
+        "lek",
+        "lok",
+        "lkom",
+        "lna",
+        "lhom",
+        "uli",
+        "ulu",
+        "ula",
+    )
+
+    MANUAL_ENDING_REPAIRS = (
+        ("ejd", "għid"),
+        ("ajd", "għid"),
+        ("ijgha", "iegħe"),
+        ("ijgħa", "iegħe"),
+        ("ijej", "iegħi"),
+        ("ijaj", "iegħi"),
+        ("ijew", "iegħu"),
+        ("ijaw", "iegħu"),
+        ("ije", "iegħe"),
+    )
+
+    MANUAL_SEQUENCE_REPAIRS = (
+        ("ijgha", "iegħe"),
+        ("ijgħa", "iegħe"),
+    )
+
+    MANUAL_VERB_GH_ENDING_REPAIRS = (
+        ("ahhom", "agħhom"),
+    )
+
+    def __init__(
+        self,
+        dictionary_words: Iterable[str] | None = None,
+        dictionary_files: Iterable[Path] | None = None,
+    ) -> None:
+        self.dictionary: list[str] = []
+        self.dictionary_set: set[str] = set()
+
+        # surface form -> all paradigm keys for that surface form
+        self.word_tags: dict[str, set[str]] = defaultdict(set)
+
+        # paradigm key -> all surface forms in that paradigm
+        self.paradigm_forms: dict[str, list[str]] = defaultdict(list)
+
+        # consonant anchor -> surface forms
+        self.anchor_map: dict[str, list[str]] = defaultdict(list)
+
+        # Cached metadata
+        self.word_tokens: dict[str, list[str]] = {}
+        self.word_lengths: dict[str, int] = {}
+        self.word_vowel_counts: dict[str, int] = {}
+        self.word_vowel_slots: dict[str, list[tuple[int, str]]] = {}
+        self.word_anchors: dict[str, str] = {}
+        self._missing_h_verb_repairs: dict[str, str] | None = None
+
+        raw_entries: list[tuple[str, str | None]] = []
+
+        if dictionary_words:
+            raw_entries.extend((word, None) for word in dictionary_words)
+
+        if dictionary_files:
+            raw_entries.extend(self._load_dictionary_files(list(dictionary_files)))
+
+        seen_words: set[str] = set()
+        seen_paradigm_forms: dict[str, set[str]] = defaultdict(set)
+
+        for word, tag in raw_entries:
+            normalized = self._normalize_word(word)
+            if not normalized:
+                continue
+
+            if normalized not in seen_words:
+                self.dictionary.append(normalized)
+                seen_words.add(normalized)
+
+            if tag:
+                self.word_tags[normalized].add(tag)
+                if normalized not in seen_paradigm_forms[tag]:
+                    self.paradigm_forms[tag].append(normalized)
+                    seen_paradigm_forms[tag].add(normalized)
+
+        self.dictionary_set = set(self.dictionary)
+        self._build_word_metadata()
+        self._build_anchor_index()
+
+        print(
+            f"Loaded {len(self.dictionary)} dictionary words, "
+            f"{len(self.paradigm_forms)} paradigms."
+        )
+
+    # ------------------------------------------------------------------
+    # Normalisation/tokenisation
+    # ------------------------------------------------------------------
+
+    def _normalize_word(self, word: str) -> str:
+        """Lower-case, NFC-normalise, and unify apostrophe variants."""
+        return (
+            unicodedata.normalize("NFC", str(word).strip().lower())
+            .replace("\u2019", "'")
+            .replace("\u02bc", "'")
+        )
+
+    def _graphemes(self, word: str) -> list[str]:
+        """Split a word into rough graphemes, keeping għ as one item."""
+        return list(self._graphemes_cached(self._normalize_word(word)))
+
+    @staticmethod
+    @lru_cache(maxsize=32768)
+    def _graphemes_cached(word: str) -> tuple[str, ...]:
+        out: list[str] = []
+        i = 0
+        while i < len(word):
+            if word.startswith("għ", i):
+                out.append("għ")
+                i += 2
+            else:
+                out.append(word[i])
+                i += 1
+        return tuple(out)
+
+    def _from_graphemes(self, graphemes: Iterable[str]) -> str:
+        return "".join(graphemes)
+
+    def _letter_tokens_raw(self, word: str) -> list[str]:
+        """
+        Splits a Maltese word into logical spelling tokens.
+        għ is represented internally as ʕ so it has token length 1.
+        Apostrophes and hyphens are ignored for distance/anchor purposes.
+        """
+        tokens: list[str] = []
+        for g in self._graphemes(word):
+            if g == "għ":
+                tokens.append("ʕ")
+            elif len(g) == 1 and g.isalpha():
+                tokens.append(g)
+        return tokens
+
+    def _letter_tokens(self, word: str) -> list[str]:
+        normalized = self._normalize_word(word)
+        return self.word_tokens.get(normalized) or self._letter_tokens_raw(normalized)
+
+    def _build_word_metadata(self) -> None:
+        for word in self.dictionary:
+            tokens = self._letter_tokens_raw(word)
+            self.word_tokens[word] = tokens
+            self.word_lengths[word] = len(tokens)
+            self.word_vowel_counts[word] = sum(1 for t in tokens if t in self.VOWELS)
+            self.word_vowel_slots[word] = [
+                (i, t) for i, t in enumerate(tokens) if t in self.VOWELS
+            ]
+            self.word_anchors[word] = self._extract_consonant_anchor_from_tokens(tokens)
+
+    def _build_anchor_index(self) -> None:
+        for word in self.dictionary:
+            self.anchor_map[self.word_anchors[word]].append(word)
+
+    def _starts_vowel_gh_or_h(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if not normalized:
+            return False
+        return normalized.startswith(
+            (
+                "a",
+                "e",
+                "i",
+                "o",
+                "u",
+                "à",
+                "è",
+                "ì",
+                "ò",
+                "ù",
+                "għ",
+                "gh",
+                "h",
+                "ħ",
+            )
+        )
+
+    def _is_verb_tagged_word(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        tags = self.word_tags.get(normalized, set())
+        return any(tag.startswith(("T-", "Q-", "S-")) for tag in tags)
+
+    def _is_probable_noun(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if not normalized:
+            return False
+
+        tags = self.word_tags.get(normalized)
+        if not tags:
+            return True
+
+        return not any(tag.startswith(("T-", "Q-", "S-")) for tag in tags)
+
+    # ------------------------------------------------------------------
+    # Dictionary loading
+    # ------------------------------------------------------------------
+
+    def _load_dictionary_files(self, file_paths: list[Path]) -> list[tuple[str, str | None]]:
+        entries: list[tuple[str, str | None]] = []
+
+        for file_path in file_paths:
+            try:
+                with open(file_path, encoding="utf-8") as fp:
+                    lines = fp.read().splitlines()
+            except FileNotFoundError:
+                print(f"Warning: dictionary file not found: {file_path}")
+                continue
+
+            if lines and lines[0].strip().isdigit():
+                lines = lines[1:]
+
+            for line in lines:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+
+                # Keep only the first whitespace field:
+                #   word/FLAGS po:noun -> word/FLAGS
+                first_field = line.split()[0]
+
+                if "/" in first_field:
+                    word, raw_tag = first_field.split("/", 1)
+                    word = word.strip()
+                    raw_tag = raw_tag.strip()
+                    if self._is_paradigm_tag(raw_tag):
+                        entries.append((word, self._parse_paradigm_key(raw_tag)))
+                    else:
+                        entries.append((word, None))
+                else:
+                    entries.append((first_field, None))
+
+        return entries
+
+    def _is_paradigm_tag(self, tag: str) -> bool:
+        return bool(self.PARADIGM_TAG_PATTERN.match(tag))
+
+    def _parse_paradigm_key(self, tag: str) -> str:
+        # T-bgħt-F1-IMP-2S -> T-bgħt-F1
+        parts = tag.split("-")
+        return "-".join(parts[:3]) if len(parts) >= 3 else tag
+
+    # ------------------------------------------------------------------
+    # Anchors/vowels
+    # ------------------------------------------------------------------
+
+    def _extract_consonant_anchor_from_tokens(self, tokens: list[str]) -> str:
+        """Consonant skeleton with doubled consonants collapsed."""
+        consonants = [token for token in tokens if token not in self.VOWELS]
+        collapsed: list[str] = []
+        for token in consonants:
+            if not collapsed or collapsed[-1] != token:
+                collapsed.append(token)
+        return "".join(collapsed)
+
+    def _extract_consonant_anchor(self, word: str) -> str:
+        normalized = self._normalize_word(word)
+        if normalized in self.word_anchors:
+            return self.word_anchors[normalized]
+        return self._extract_consonant_anchor_from_tokens(self._letter_tokens_raw(normalized))
+
+    def _vowel_slots(self, word: str) -> list[tuple[int, str]]:
+        normalized = self._normalize_word(word)
+        if normalized in self.word_vowel_slots:
+            return self.word_vowel_slots[normalized]
+        tokens = self._letter_tokens_raw(normalized)
+        return [(i, t) for i, t in enumerate(tokens) if t in self.VOWELS]
+
+    def _count_vowels(self, word: str) -> int:
+        normalized = self._normalize_word(word)
+        if normalized in self.word_vowel_counts:
+            return self.word_vowel_counts[normalized]
+        return sum(1 for t in self._letter_tokens_raw(normalized) if t in self.VOWELS)
+
+    def _vowel_sequence(self, word: str) -> str:
+        return "".join(v for _, v in self._vowel_slots(word))
+
+    # ------------------------------------------------------------------
+    # Distance/scoring
+    # ------------------------------------------------------------------
+
+    def _damerau_levenshtein_distance(self, a: list, b: list) -> int:
+        """Optimal-string-alignment Damerau-Levenshtein distance."""
+        n, m = len(a), len(b)
+        if n == 0:
+            return m
+        if m == 0:
+            return n
+
+        dp = [[0] * (m + 1) for _ in range(n + 1)]
+        for i in range(n + 1):
+            dp[i][0] = i
+        for j in range(m + 1):
+            dp[0][j] = j
+
+        for i in range(1, n + 1):
+            for j in range(1, m + 1):
+                cost = 0 if a[i - 1] == b[j - 1] else 1
+                dp[i][j] = min(
+                    dp[i - 1][j] + 1,
+                    dp[i][j - 1] + 1,
+                    dp[i - 1][j - 1] + cost,
+                )
+                if (
+                    i > 1
+                    and j > 1
+                    and a[i - 1] == b[j - 2]
+                    and a[i - 2] == b[j - 1]
+                ):
+                    dp[i][j] = min(dp[i][j], dp[i - 2][j - 2] + 1)
+
+        return dp[n][m]
+
+    def _word_distance(self, word1: str, word2: str) -> int:
+        return self._damerau_levenshtein_distance(
+            self._letter_tokens(word1),
+            self._letter_tokens(word2),
+        )
+
+    def _vowel_slot_vector_score(
+        self,
+        typo_slots: list[tuple[int, str]],
+        candidate_slots: list[tuple[int, str]],
+    ) -> float:
+        """0..1 score for matching vowel identity and approximate slot position."""
+        if not typo_slots and not candidate_slots:
+            return 1.0
+        if not typo_slots or not candidate_slots:
+            return 0.0
+
+        max_pos = max(typo_slots[-1][0], candidate_slots[-1][0], 1)
+        used: set[int] = set()
+        matched = 0.0
+
+        for t_pos, t_vowel in typo_slots:
+            best = 0.0
+            best_idx = -1
+            for idx, (c_pos, c_vowel) in enumerate(candidate_slots):
+                if idx in used or c_vowel != t_vowel:
+                    continue
+                pos_score = max(0.0, 1.0 - abs(t_pos - c_pos) / max_pos)
+                if pos_score > best:
+                    best = pos_score
+                    best_idx = idx
+            if best_idx >= 0:
+                used.add(best_idx)
+                matched += best
+
+        count_ratio = min(len(typo_slots), len(candidate_slots)) / max(
+            len(typo_slots), len(candidate_slots)
+        )
+        return max(0.0, (matched / len(typo_slots)) * count_ratio)
+
+    def _score_once(self, typo_form: str, candidate: str, stage: str) -> ScoreRow:
+        typo_tokens = self._letter_tokens(typo_form)
+        candidate_tokens = self._letter_tokens(candidate)
+        max_len = max(1, max(len(typo_tokens), len(candidate_tokens)))
+
+        edit_distance = self._word_distance(typo_form, candidate)
+        edit_score = edit_distance / max_len
+
+        typo_anchor = self._extract_consonant_anchor(typo_form)
+        candidate_anchor = self._extract_consonant_anchor(candidate)
+        consonant_dist = self._damerau_levenshtein_distance(
+            list(typo_anchor), list(candidate_anchor)
+        )
+        consonant_score = consonant_dist / max(1, max(len(typo_anchor), len(candidate_anchor)))
+
+        vowel_slot_score = self._vowel_slot_vector_score(
+            self._vowel_slots(typo_form), self._vowel_slots(candidate)
+        )
+
+        typo_vowels = self._count_vowels(typo_form)
+        candidate_vowels = self._count_vowels(candidate)
+        vowel_count_score = abs(typo_vowels - candidate_vowels) / max(
+            1, max(typo_vowels, candidate_vowels)
+        )
+
+        length_score = abs(len(typo_tokens) - len(candidate_tokens)) / max_len
+
+        final_score = (
+            (1.0 - vowel_slot_score) * 0.40
+            + edit_score * 0.25
+            + consonant_score * 0.20
+            + vowel_count_score * 0.10
+            + length_score * 0.05
+        )
+
+        return ScoreRow(
+            candidate=candidate,
+            score=final_score,
+            edit_distance=edit_distance,
+            consonant_score=consonant_score,
+            vowel_slot_score=vowel_slot_score,
+            vowel_count_score=vowel_count_score,
+            length_score=length_score,
+            stage=stage,
+            matched_typo_form=typo_form,
+        )
+
+    def _candidate_score(self, typo: str, candidate: str, stage: str) -> ScoreRow:
+        """
+        Score candidate against the best safe orthographic form of the typo.
+        This lets ibaght be compared through ibgħat without rewriting the text first.
+        """
+        typo_forms = self._strict_lookup_variants(typo)
+        rows = [self._score_once(form, candidate, stage) for form in typo_forms]
+        return min(rows, key=lambda row: row.score)
+
+    def _max_distance(self, word: str) -> int:
+        length = len(self._letter_tokens(word))
+        if length <= 4:
+            return 1
+        if length <= 8:
+            return 2
+        return 3
+
+    def _is_acceptable_match(
+        self,
+        row: ScoreRow,
+        max_distance: int,
+        score_limit: float = 0.55,
+    ) -> bool:
+        if row.score > score_limit:
+            return False
+        if row.edit_distance <= max_distance:
+            return True
+        return (
+            row.edit_distance <= max_distance + 1
+            and row.vowel_slot_score >= 0.70
+            and row.score <= min(score_limit, 0.48)
+        )
+
+    # ------------------------------------------------------------------
+    # Variant generation
+    # ------------------------------------------------------------------
+
+    def _strict_lookup_variants(self, word: str) -> list[str]:
+        """
+        Ordered safe high-priority variants for exact lookup and scoring.
+
+        The real generation lives in helpers/orthographic_generator.py.
+        This fallback exists only so the class still works if the helper
+        has not yet been attached during startup.
+        """
+        if hasattr(self, "orthographic_generator"):
+            return self.orthographic_generator.strict_lookup_variants(word)
+
+        normalized = self._normalize_word(word)
+        variants: list[str] = []
+
+        def add(candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+            if candidate and candidate not in variants:
+                variants.append(candidate)
+
+        add(normalized)
+        add(normalized.replace("gh", "għ"))
+
+        return variants
+
+
+    def _remove_token(self, word: str, token: str) -> list[str]:
+        """
+        Ordered removal variants.
+
+        The real generation lives in helpers/orthographic_generator.py.
+        """
+        if hasattr(self, "orthographic_generator"):
+            return self.orthographic_generator.remove_token(word, token)
+
+        g = self._graphemes(word)
+        variants: list[str] = []
+        for i, ch in enumerate(g):
+            if ch == token:
+                candidate = self._from_graphemes(g[:i] + g[i + 1:])
+                if candidate not in variants:
+                    variants.append(candidate)
+        return variants
+
+    def _suffix_repair_variants(self, word: str) -> set[str]:
+        normalized = self._normalize_word(word)
+        variants: set[str] = set()
+        for suffix, replacement in sorted(
+            self.SUFFIX_REPAIRS.items(), key=lambda item: len(item[0]), reverse=True
+        ):
+            if normalized.endswith(suffix):
+                variants.add(normalized[: -len(suffix)] + replacement)
+        return variants
+
+    def _validated_liex_to_lix_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+
+        if not normalized.endswith("liex"):
+            return None
+
+        candidate = normalized[:-4] + "lix"
+        suffix_generator = getattr(self, "suffix_generator", None)
+
+        if (
+            suffix_generator is not None
+            and suffix_generator.exact_suffix_matches(candidate)
+        ):
+            return candidate
+
+        return None
+
+    def _manual_repair_variants(self, word: str) -> list[str]:
+        normalized = self._normalize_word(word)
+        variants: list[str] = []
+
+        def add(candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+            if candidate and candidate != normalized and candidate not in variants:
+                variants.append(candidate)
+
+        if normalized in self.MANUAL_WORD_REPAIRS:
+            add(self.MANUAL_WORD_REPAIRS[normalized])
+
+        for candidate in self.MANUAL_WORD_SUGGESTIONS.get(normalized, ()):
+            add(candidate)
+
+        if normalized.endswith("x") and normalized[:-1] in self.MANUAL_WORD_REPAIRS:
+            add(self.MANUAL_WORD_REPAIRS[normalized[:-1]] + "x")
+
+        for typo_core in ("ejd", "ajd"):
+            index = normalized.rfind(typo_core)
+            if index < 0:
+                continue
+
+            tail = normalized[index + len(typo_core):]
+            prefix = normalized[:index]
+            if tail in self.MANUAL_EJD_AJD_TAILS:
+                add(prefix + "għid" + tail)
+            elif tail == "ila":
+                add(prefix + "għidilha")
+            elif tail.startswith(("il", "l")):
+                add(prefix + "għid" + tail)
+
+        for sequence, replacement in self.MANUAL_SEQUENCE_REPAIRS:
+            if sequence in normalized:
+                add(normalized.replace(sequence, replacement, 1))
+
+        for suffix, replacement in self.MANUAL_ENDING_REPAIRS:
+            if normalized.endswith(suffix):
+                add(normalized[: -len(suffix)] + replacement)
+
+        for suffix, replacement in self.MANUAL_VERB_GH_ENDING_REPAIRS:
+            if not normalized.endswith(suffix):
+                continue
+
+            candidate = normalized[: -len(suffix)] + replacement
+            if self._supports_verb_final_gh_repair(candidate):
+                add(candidate)
+
+        return variants
+
+    def _supports_verb_final_gh_repair(self, candidate: str) -> bool:
+        normalized = self._normalize_word(candidate)
+        if not normalized.endswith("agħhom"):
+            return False
+
+        if normalized in self.dictionary_set:
+            return True
+
+        for lookup in self._strict_lookup_variants(normalized):
+            if lookup in self.dictionary_set:
+                return True
+
+        suffix_generator = getattr(self, "suffix_generator", None)
+        if suffix_generator is None:
+            return False
+
+        generated = suffix_generator.correct_suffix(normalized)
+        return bool(generated and self._normalize_word(generated) == normalized)
+
+    def _correct_d_t_then_double(self, word: str) -> str | None:
+        orthographic_generator = getattr(self, "orthographic_generator", None)
+        doubled_letter_generator = getattr(self, "doubled_letter_generator", None)
+
+        if orthographic_generator is None or doubled_letter_generator is None:
+            return None
+
+        for dt_variant in orthographic_generator.substitute_d_t(word):
+            variants = [dt_variant]
+            variants.extend(
+                doubled_letter_generator.missing_double_variants(dt_variant)
+            )
+
+            exact = self._try_exact_variants(word, variants)
+            if exact:
+                return exact
+
+        return None
+
+    # ------------------------------------------------------------------
+    # Candidate retrieval
+    # ------------------------------------------------------------------
+
+    def _lookup_anchors(self, word: str) -> set[str]:
+        variants = self._strict_lookup_variants(word)
+        return {self._extract_consonant_anchor(v) for v in variants if v}
+
+    def _get_paradigm_candidates_for_anchor(self, anchor: str) -> list[str]:
+        forms = self.anchor_map.get(anchor, [])
+        keys: set[str] = set()
+        for form in forms:
+            keys.update(self.word_tags.get(form, set()))
+
+        candidates: list[str] = []
+        for key in keys:
+            candidates.extend(self.paradigm_forms.get(key, []))
+
+        return self._deduplicate(candidates)
+
+    def _near_anchor_candidates(
+        self, anchors: set[str], max_anchor_distance: int = 1
+    ) -> list[str]:
+        candidates: list[str] = []
+
+        for known_anchor, words in self.anchor_map.items():
+            for anchor in anchors:
+                if abs(len(known_anchor) - len(anchor)) > max_anchor_distance:
+                    continue
+                dist = self._damerau_levenshtein_distance(list(anchor), list(known_anchor))
+                if dist <= max_anchor_distance:
+                    candidates.extend(words)
+                    break
+
+        return candidates
+    
+
+    @lru_cache(maxsize=32768)
+    def _get_candidates_cached(self, normalized: str) -> tuple[str, ...]:
+        anchors = self._lookup_anchors(normalized)
+        candidates: list[str] = []
+        seen: set[str] = set()
+
+        def add(candidate: str) -> None:
+            if candidate not in seen:
+                candidates.append(candidate)
+                seen.add(candidate)
+
+        def extend(items: Iterable[str]) -> None:
+            for item in items:
+                add(item)
+
+        # 1. Same paradigm as exact-anchor words.
+        for anchor in anchors:
+            extend(self._get_paradigm_candidates_for_anchor(anchor))
+
+        # 2. Exact-anchor surface forms, including untagged words.
+        for anchor in anchors:
+            extend(self.anchor_map.get(anchor, []))
+
+        # 3. Near-anchor candidates for consonant mistakes.
+        if len(candidates) < 8:
+            extend(self._near_anchor_candidates(anchors, max_anchor_distance=1))
+
+        # 4. Length fallback, kept narrow and capped hard to avoid
+        # whole-dictionary scans dominating one bad guess.
+        if len(candidates) < 8:
+            word_len = len(self._letter_tokens(normalized))
+            max_length_gap = max(1, self._max_distance(normalized))
+            initial = normalized[:1]
+            fallback_limit = 96
+
+            for candidate in self.dictionary:
+                if len(candidates) >= fallback_limit:
+                    break
+                if abs(self.word_lengths[candidate] - word_len) > max_length_gap:
+                    continue
+                if initial and candidate[:1] != initial:
+                    continue
+                add(candidate)
+
+        return tuple(candidates)
+
+    def _get_candidates(self, word: str) -> list[str]:
+        normalized = self._normalize_word(word)
+        return list(self._get_candidates_cached(normalized))
+
+    @staticmethod
+    def _deduplicate(items: Iterable[str]) -> list[str]:
+        seen: set[str] = set()
+        out: list[str] = []
+        for item in items:
+            if item not in seen:
+                out.append(item)
+                seen.add(item)
+        return out
+
+    # ------------------------------------------------------------------
+    # Correction stages
+    # ------------------------------------------------------------------
+
+    def _best_ranked_candidate(
+        self,
+        typo: str,
+        stage: str,
+        candidate_filter: Callable[[str], bool] | None = None,
+        score_limit: float = 0.55,
+        max_distance: int | None = None,
+    ) -> ScoreRow | None:
+        normalized = self._normalize_word(typo)
+        max_distance = self._max_distance(normalized) if max_distance is None else max_distance
+        typo_len = len(self._letter_tokens(normalized))
+
+        rows: list[ScoreRow] = []
+        for candidate in self._get_candidates(normalized):
+            if candidate_filter and not candidate_filter(candidate):
+                continue
+            if abs(self.word_lengths.get(candidate, len(self._letter_tokens(candidate))) - typo_len) > max_distance + 2:
+                continue
+            rows.append(self._candidate_score(normalized, candidate, stage))
+
+        if not rows:
+            return None
+
+        rows.sort(key=lambda row: (row.score, row.edit_distance, row.candidate))
+        best = rows[0]
+        if self._is_acceptable_match(best, max_distance, score_limit=score_limit):
+            return best
+        return None
+
+    def _try_exact_variants(self, original_word: str, variants: Iterable[str]) -> str | None:
+        for variant in variants:
+            for lookup in self._strict_lookup_variants(variant):
+                if lookup in self.dictionary_set:
+                    return self._match_capitalisation(original_word, lookup)
+        return None
+
+    def _try_ranked_from_variants(
+        self,
+        original_word: str,
+        variants: Iterable[str],
+        stage: str,
+        score_limit: float,
+    ) -> str | None:
+        max_distance = self._max_distance(original_word)
+        rows: list[ScoreRow] = []
+        for variant in variants:
+            best = self._best_ranked_candidate(
+                variant,
+                stage=stage,
+                score_limit=score_limit,
+                max_distance=max_distance,
+            )
+            if best:
+                rows.append(best)
+
+        if not rows:
+            return None
+
+        rows.sort(key=lambda row: (row.score, row.edit_distance, row.candidate))
+        return self._match_capitalisation(original_word, rows[0].candidate)
+
+    def _match_capitalisation(self, original: str, corrected: str) -> str:
+        if original.isupper():
+            return corrected.upper()
+        if len(original) > 1 and original[0].isupper() and original[1:].islower():
+            return corrected[:1].upper() + corrected[1:]
+        return corrected
+
+    def _word_ends_with_consonant(self, word: str | None) -> bool:
+        if not word:
+            return False
+
+        graphemes = self._graphemes(self._normalize_word(word))
+        for token in reversed(graphemes):
+            if not token or not any(ch.isalpha() for ch in token):
+                continue
+            return token not in self.VOWELS
+        return False
+
+    def _word_starts_with_two_consonants(self, word: str) -> bool:
+        graphemes = self._graphemes(self._normalize_word(word))
+        letters = [token for token in graphemes if token and any(ch.isalpha() for ch in token)]
+        if len(letters) < 2:
+            return False
+        return letters[0] not in self.VOWELS and letters[1] not in self.VOWELS
+
+    def _has_empathetic_i_shape(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if not normalized.startswith("i") or len(normalized) < 3:
+            return False
+        return self._word_starts_with_two_consonants(normalized[1:])
+
+    def _apply_empathetic_i(
+        self,
+        previous_word: str | None,
+        corrected_word: str,
+    ) -> str:
+        normalized = self._normalize_word(corrected_word)
+        if (
+            not previous_word
+            or not normalized
+            or " " in corrected_word
+            or "-" in corrected_word
+            or "'" in corrected_word
+            or normalized.startswith("i")
+            or not self._word_ends_with_consonant(previous_word)
+            or not self._word_starts_with_two_consonants(normalized)
+        ):
+            return corrected_word
+
+        return self._match_capitalisation(corrected_word, f"i{normalized}")
+
+    def _build_missing_h_verb_repairs(self) -> dict[str, str]:
+        suffix_generator = getattr(self, "suffix_generator", None)
+        verb_index = getattr(suffix_generator, "verb_index", None)
+
+        if verb_index is None:
+            return {}
+
+        repairs: dict[str, str] = {}
+
+        for record in verb_index.records:
+            if record.form_class != "F1" or record.tense not in {"IMP", "MPERF"}:
+                continue
+
+            radicals = verb_index.root_radicals(record)
+            if len(radicals) < 3 or radicals[1] != "h":
+                continue
+
+            graphemes = self._graphemes(record.word)
+
+            for index, token in enumerate(graphemes):
+                if token != "h" or index == 0 or index + 1 >= len(graphemes):
+                    continue
+
+                if not (
+                    graphemes[index - 1].isalpha()
+                    and graphemes[index + 1].isalpha()
+                ):
+                    continue
+
+                typo = self._from_graphemes(
+                    graphemes[:index] + graphemes[index + 1:]
+                )
+
+                if typo != record.word and typo not in repairs:
+                    repairs[typo] = record.word
+
+                break
+
+        return repairs
+
+    def _missing_h_verb_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+
+        if self._missing_h_verb_repairs is None:
+            self._missing_h_verb_repairs = self._build_missing_h_verb_repairs()
+
+        return self._missing_h_verb_repairs.get(normalized)
+
+    def correct_word(self, word: str) -> str:
+        if not word:
+            return word
+
+        normalized = self._normalize_word(word)
+        if not normalized or len(normalized) > MAX_WORD_LENGTH:
+            return word
+
+        # ------------------------------------------------------------------
+        # STRICT PRIORITY PIPELINE
+        # ------------------------------------------------------------------
+
+        fused_preposition_rules = getattr(self, "fused_preposition_rules", None)
+        if fused_preposition_rules is not None:
+            fused_match = fused_preposition_rules.match(normalized)
+            if fused_match is not None:
+                return self._match_capitalisation(word, fused_match.corrected)
+
+        article_rules = getattr(self, "article_phrase_rules", None)
+        if article_rules is not None:
+            compact_article = article_rules.match_compact_preposition_article(
+                normalized,
+            )
+            if compact_article is not None:
+                return self._match_capitalisation(
+                    word,
+                    compact_article.corrected,
+                )
+
+        # Stage 0: Exact dictionary word
+        if normalized in self.dictionary_set:
+            missing_h_verb_match = self._missing_h_verb_repair(normalized)
+            if missing_h_verb_match:
+                return self._match_capitalisation(word, missing_h_verb_match)
+            return word
+
+        if article_rules is not None:
+            collapsed = article_rules.collapse_three_same_consonants(normalized)
+            if collapsed != normalized:
+                return self._match_capitalisation(word, collapsed)
+        
+        # Retrieve the helper safely once.
+        orthographic_generator = getattr(
+            self,
+            "orthographic_generator",
+            None,
+        )
+
+        # Stage 1: High-priority għ repairs before shortcut letters or
+        # broad dictionary scoring can compete.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_gh_priority",
+            )
+        ):
+            gh_priority_match = (
+                orthographic_generator
+                .correct_gh_priority(word)
+            )
+
+            if gh_priority_match:
+                return self._match_capitalisation(
+                    word,
+                    gh_priority_match,
+                )
+
+        # Keyboard shortcuts for Maltese letters:
+        # h -> ħ, c -> ċ, z -> ż, g -> ġ
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_shortcut_letters",
+            )
+        ):
+            shortcut_match = (
+                orthographic_generator
+                .correct_shortcut_letters(word)
+            )
+
+            if shortcut_match:
+                return self._match_capitalisation(
+                    word,
+                    shortcut_match,
+                )
+
+            if hasattr(orthographic_generator, "shortcut_letter_variants"):
+                for shortcut_variant in (
+                    orthographic_generator
+                    .shortcut_letter_variants(normalized)
+                ):
+                    gh_after_shortcut = (
+                        orthographic_generator
+                        .correct_gh_priority(shortcut_variant)
+                    )
+
+                    if gh_after_shortcut:
+                        return self._match_capitalisation(
+                            word,
+                            gh_after_shortcut,
+                        )
+
+        # d/t confusion for an invalid word.
+        # Examples:
+        #   rqatt -> rqadt
+        #   rmiet remains unchanged here because it was accepted above.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_d_t_confusion",
+            )
+        ):
+            dt_match = (
+                orthographic_generator
+                .correct_d_t_confusion(word)
+            )
+
+            if dt_match:
+                return self._match_capitalisation(
+                    word,
+                    dt_match,
+                )
+
+        # b/p confusion for an invalid word.
+        # This can cooperate with strict gh -> għ expansion.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_b_p_confusion",
+            )
+        ):
+            bp_match = (
+                orthographic_generator
+                .correct_b_p_confusion(word)
+            )
+
+            if bp_match:
+                return self._match_capitalisation(
+                    word,
+                    bp_match,
+                )
+
+        dt_double_match = self._correct_d_t_then_double(word)
+        if dt_double_match:
+            return dt_double_match
+
+        if hasattr(self, "doubled_letter_generator"):
+            j_priority_match = self.doubled_letter_generator.correct_j_priority(word)
+            if j_priority_match:
+                return j_priority_match
+
+        manual_repairs = self._manual_repair_variants(normalized)
+        if manual_repairs:
+            return self._match_capitalisation(word, manual_repairs[0])
+
+        if (
+            hasattr(self, "suffix_generator")
+            and self.suffix_generator.exact_suffix_matches(word)
+        ):
+            return word
+
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_extra_double",
+            )
+        ):
+            extra_double_match = (
+                orthographic_generator
+                .correct_extra_double(word)
+            )
+
+            if extra_double_match:
+                return self._match_capitalisation(
+                    word,
+                    extra_double_match,
+                )
+
+        missing_h_verb_match = self._missing_h_verb_repair(normalized)
+        if missing_h_verb_match:
+            return self._match_capitalisation(word, missing_h_verb_match)
+
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_missing_h_after_d",
+            )
+        ):
+            missing_h_after_d_match = (
+                orthographic_generator
+                .correct_missing_h_after_d(word)
+            )
+
+            if missing_h_after_d_match:
+                return self._match_capitalisation(
+                    word,
+                    missing_h_after_d_match,
+                )
+
+        # d/t confusion for an invalid word after whole-word exceptions.
+        # This is retained below only for compatibility with older helpers.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_d_t_confusion",
+            )
+            and not hasattr(
+                orthographic_generator,
+                "correct_b_p_confusion",
+            )
+        ):
+            dt_match = (
+                orthographic_generator
+                .correct_d_t_confusion(word)
+            )
+
+            if dt_match:
+                return self._match_capitalisation(
+                    word,
+                    dt_match,
+                )
+
+        # i/ie confusion for an invalid word.
+        # Example:
+        #   jin -> jien
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_i_ie_confusion",
+            )
+        ):
+            i_ie_match = (
+                orthographic_generator
+                .correct_i_ie_confusion(word)
+            )
+
+            if i_ie_match:
+                return self._match_capitalisation(
+                    word,
+                    i_ie_match,
+                )
+
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_final_aw_to_ghu",
+            )
+        ):
+            aw_ghu_match = (
+                orthographic_generator
+                .correct_final_aw_to_ghu(word)
+            )
+
+            if aw_ghu_match:
+                return self._match_capitalisation(
+                    word,
+                    aw_ghu_match,
+                )
+
+        # Final għ/h/ħ confusion for an invalid word only.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "correct_final_gh_h_hbar_confusion",
+            )
+        ):
+            final_gh_h_hbar_match = (
+                orthographic_generator
+                .correct_final_gh_h_hbar_confusion(word)
+            )
+
+            if final_gh_h_hbar_match:
+                return self._match_capitalisation(
+                    word,
+                    final_gh_h_hbar_match,
+                )
+
+        # Stage 0.5: Missing doubled-letter repair.
+        # Example:
+        #   basejt -> bassejt
+        if hasattr(self, "doubled_letter_generator"):
+            doubled_letter = self.doubled_letter_generator.correct_missing_double(word)
+            if doubled_letter:
+                return doubled_letter
+
+        # Stage 2: Exact safe orthographic variants from helper.
+        # Example:
+        #   ibghatu -> ibgħatu
+        #   ibaght  -> ibgħat
+        if hasattr(self, "orthographic_generator"):
+            exact_ortho = self.orthographic_generator.correct_strict(word)
+        else:
+            exact_ortho = self._try_exact_variants(word, self._strict_lookup_variants(normalized))
+
+        if exact_ortho:
+            return exact_ortho
+
+        suffix_parse_guard = False
+
+        # Stage 1.5: Real-time generated DO/IDO suffix forms.
+        # This uses the fast ending-first parser in helpers/suffix_generator.py.
+        # Example:
+        #   għamilni   -> parsed as possible -ni
+        #   għamlilkom -> parsed as possible -lkom / -ilkom
+        #   jgħamilhom -> parsed as possible -hom / -lhom
+        if hasattr(self, "suffix_generator"):
+            liex_lix_match = self._validated_liex_to_lix_repair(normalized)
+            if liex_lix_match:
+                return self._match_capitalisation(word, liex_lix_match)
+
+            generated_suffix = self.suffix_generator.correct_suffix(word)
+
+            if generated_suffix:
+                generated_norm = self._normalize_word(generated_suffix)
+                if generated_norm not in self.dictionary_set:
+                    generated_row = self._candidate_score(
+                        normalized,
+                        generated_norm,
+                        stage="generated_suffix_compare",
+                    )
+
+                    # Strong suffix parses are already narrow and expensive
+                    # to produce. Only consult broad dictionary scoring when
+                    # the generated form is weak enough to be suspicious.
+                    if generated_row.score > 0.36:
+                        lexical_best = self._best_ranked_candidate(
+                            normalized,
+                            stage="pre_suffix_dictionary",
+                            score_limit=0.20,
+                            max_distance=self._max_distance(normalized),
+                        )
+                        if (
+                            lexical_best
+                            and lexical_best.edit_distance <= 1
+                            and lexical_best.score + 0.10 < generated_row.score
+                        ):
+                            return self._match_capitalisation(
+                                word,
+                                lexical_best.candidate,
+                            )
+                return self._match_capitalisation(word, generated_suffix)
+
+            # Suffix-looking words can otherwise fall through into broad
+            # whole-dictionary scoring, which is slow and usually misleading.
+            if self.suffix_generator.has_suffix_parse(word):
+                suffix_parse_guard = True
+
+        # Stage 2: Suffix repairs.
+        # If exact match fails, we REPLACE the base word with the repaired version.
+        # This ensures Stages 3+ (like inserting għ) apply directly to the new suffix!
+        suffix_vars = self._suffix_repair_variants(normalized)
+        if suffix_vars:
+            exact_suffix = self._try_exact_variants(word, suffix_vars)
+            if exact_suffix:
+                return exact_suffix
+            
+            # Find the longest matching suffix to use as our new base word
+            for suffix, replacement in sorted(self.SUFFIX_REPAIRS.items(), key=lambda x: len(x[0]), reverse=True):
+                if normalized.endswith(suffix):
+                    normalized = normalized[: -len(suffix)] + replacement
+                    break  # Stop at the longest match to prevent double-applying
+
+        # Pre-compute metrics needed for the remaining stages 
+        # (Now using the potentially updated 'normalized' word!)
+        max_distance = self._max_distance(normalized)
+        target_vowel_count = self._count_vowels(normalized)
+        target_vowel_sequence = self._vowel_sequence(normalized)
+
+        # Stage 7: Remove h and check again
+        remove_h = self._remove_token(normalized, "h")
+        exact_rm_h = self._try_exact_variants(word, remove_h)
+        if exact_rm_h:
+            return exact_rm_h
+
+        # Stage 2.5: Remove q and check again
+        remove_q = self._remove_token(normalized, "q")
+        exact_rm_q = self._try_exact_variants(word, remove_q)
+        if exact_rm_q:
+            return exact_rm_q
+
+        # Stage 3: Insert għ next to vowels (Exact & Ranked)
+        insert_gh = self._insert_token_next_to_vowels(normalized, "għ")
+        exact_gh = self._try_exact_variants(word, insert_gh)
+        if exact_gh:
+            return exact_gh
+
+        # Stage 4: Insert h next to vowels (Exact & Ranked)
+        insert_h = self._insert_token_next_to_vowels(normalized, "h")
+        exact_h = self._try_exact_variants(word, insert_h)
+        if exact_h:
+            return exact_h
+
+        if suffix_parse_guard:
+            return word
+
+        ranked_rm_h = self._try_ranked_from_variants(word, remove_h, stage="remove_h", score_limit=0.42)
+        if ranked_rm_h:
+            return ranked_rm_h
+
+        ranked_gh = self._try_ranked_from_variants(word, insert_gh, stage="insert_gh_near_vowel", score_limit=0.42)
+        if ranked_gh:
+            return ranked_gh
+        
+        ranked_h = self._try_ranked_from_variants(word, insert_h, stage="insert_h_near_vowel", score_limit=0.42)
+        if ranked_h:
+            return ranked_h
+
+        # Stage 5: Closest dictionary words with same vowel count
+        same_vowel_best = self._best_ranked_candidate(
+            normalized,
+            stage="same_vowel_count",
+            candidate_filter=lambda c: self.word_vowel_counts[c] == target_vowel_count,
+            score_limit=0.48,
+            max_distance=max_distance,
+        )
+        if same_vowel_best:
+            return self._match_capitalisation(word, same_vowel_best.candidate)
+
+        # Stage 6: Remove għ and check again
+        remove_gh = self._remove_token(normalized, "għ")
+        exact_rm_gh = self._try_exact_variants(word, remove_gh)
+        if exact_rm_gh:
+            return exact_rm_gh
+            
+        ranked_rm_gh = self._try_ranked_from_variants(word, remove_gh, stage="remove_gh", score_limit=0.42)
+        if ranked_rm_gh:
+            return ranked_rm_gh
+            
+        ranked_rm_q = self._try_ranked_from_variants(word, remove_q, stage="remove_q", score_limit=0.42)
+        if ranked_rm_q:
+            return ranked_rm_q
+
+        # Stage 8: Broader but still conservative composite score
+        broad_best = self._best_ranked_candidate(
+            normalized,
+            stage="broad_score",
+            score_limit=0.52,
+            max_distance=max_distance,
+        )
+        if broad_best:
+            candidate_seq = self._vowel_sequence(broad_best.candidate)
+            if candidate_seq == target_vowel_sequence or broad_best.score <= 0.38:
+                return self._match_capitalisation(word, broad_best.candidate)
+
+        return word
+        
+    def _insert_token_next_to_vowels(self, word: str, token: str) -> list[str]:
+        """
+        Ordered insertion variants.
+
+        The real generation lives in helpers/orthographic_generator.py.
+        """
+        if hasattr(self, "orthographic_generator"):
+            return self.orthographic_generator.insert_token_next_to_vowels(word, token)
+
+        normalized = self._normalize_word(word)
+        variants: list[str] = []
+        g = self._graphemes(normalized)
+
+        def add(candidate: str) -> None:
+            if candidate and candidate not in variants:
+                variants.append(candidate)
+
+        for i, ch in enumerate(g):
+            if ch not in self.VOWELS:
+                continue
+
+            before = self._from_graphemes(g[:i] + [token] + g[i:])
+            after = self._from_graphemes(g[: i + 1] + [token] + g[i + 1:])
+
+            if i == 0 or g[i - 1] != token:
+                add(before)
+            if i + 1 >= len(g) or g[i + 1] != token:
+                add(after)
+
+        return variants
+
+    def suggest(self, word: str, limit: int = 8) -> list[str]:
+        normalized = self._normalize_word(word)
+
+        if not normalized:
+            return []
+
+        suggestions: list[str] = []
+
+        if normalized in {"tal", "fil", "bil", "xil", "lill"}:
+            suggestions.append(f"{normalized}-")
+
+        fused_preposition_rules = getattr(self, "fused_preposition_rules", None)
+        if fused_preposition_rules is not None:
+            fused_match = fused_preposition_rules.match(normalized)
+            if fused_match is not None:
+                for choice in fused_match.choices:
+                    word_choice = choice.get("word")
+                    if word_choice and word_choice not in suggestions:
+                        suggestions.append(word_choice)
+                if fused_match.corrected not in suggestions:
+                    suggestions.insert(0, fused_match.corrected)
+                return suggestions[:limit]
+
+        def add_generated(candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+
+            if candidate and candidate not in suggestions:
+                suggestions.append(candidate)
+
+        force_pre_exact_repair = (
+            normalized in self.dictionary_set
+            and self._missing_h_verb_repair(normalized) is not None
+        )
+
+        if normalized in self.dictionary_set and not force_pre_exact_repair:
+            add_generated(normalized)
+
+        correction_changed = False
+        corrected_word = self.correct_word(word)
+        corrected_norm = self._normalize_word(corrected_word)
+        if corrected_norm != normalized:
+            add_generated(corrected_word)
+            correction_changed = True
+
+        def add(candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+
+            if (
+                candidate
+                and candidate in self.dictionary_set
+                and candidate not in suggestions
+            ):
+                if (
+                    len(self._letter_tokens(candidate)) == 1
+                    and len(self._letter_tokens(normalized)) > 1
+                ):
+                    return
+                suggestions.append(candidate)
+
+        # Preserve the original word first when it is already valid.
+        if normalized in self.dictionary_set and not force_pre_exact_repair:
+            add(normalized)
+
+        for candidate in self._manual_repair_variants(normalized):
+            add_generated(candidate)
+
+            if len(suggestions) >= limit:
+                return suggestions[:limit]
+
+        orthographic_generator = getattr(
+            self,
+            "orthographic_generator",
+            None,
+        )
+
+        # Add high-priority għ dictionary matches. Suggestions may include the
+        # reverse għ movement used for alternatives such as għamlu -> agħmlu;
+        # automatic correction does not use that reverse movement.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_gh_suggestion_variants",
+            )
+        ):
+            for source in (normalized, corrected_norm):
+                for candidate in (
+                    orthographic_generator
+                    .dictionary_gh_suggestion_variants(source)
+                ):
+                    add(candidate)
+
+                    if len(suggestions) >= limit:
+                        return suggestions[:limit]
+
+        # Add h/ħ, c/ċ, z/ż and g/ġ dictionary matches.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_shortcut_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_shortcut_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        # Add d/t dictionary matches.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_d_t_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_d_t_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        # Add accidental extra-double fixes such as jaffux -> jafux.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_remove_extra_double_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_remove_extra_double_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        # Add missing h after d fixes such as jidru -> jidhru.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_insert_h_after_d_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_insert_h_after_d_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        # Add b/p dictionary matches.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_b_p_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_b_p_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        # Add i/ie dictionary matches.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_i_ie_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_i_ie_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        # Add final ja/ha dictionary matches such as fija -> fiha.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_final_j_h_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_final_j_h_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        # Add final għ/h/ħ dictionary matches.
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_final_gh_h_hbar_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_final_gh_h_hbar_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        # A valid word remains the first result, followed by its possible
+        # shortcut, d/t, i/ie, and final għ/h/ħ alternatives.
+        if normalized in self.dictionary_set and not force_pre_exact_repair:
+            return suggestions[:limit]
+
+        priority_variant_groups = [
+            self._strict_lookup_variants(normalized),
+            self._suffix_repair_variants(normalized),
+            self._insert_token_next_to_vowels(
+                normalized,
+                "għ",
+            ),
+            self._remove_token(normalized, "għ"),
+            self._remove_token(normalized, "h"),
+        ]
+
+        for group in priority_variant_groups:
+            for variant in group:
+                for lookup in self._strict_lookup_variants(
+                    variant
+                ):
+                    add(lookup)
+
+                    if len(suggestions) >= limit:
+                        return suggestions[:limit]
+
+        if correction_changed and corrected_norm in self.dictionary_set:
+            return suggestions[:limit]
+
+        if (
+            orthographic_generator is not None
+            and hasattr(
+                orthographic_generator,
+                "dictionary_final_aw_to_ghu_variants",
+            )
+        ):
+            for candidate in (
+                orthographic_generator
+                .dictionary_final_aw_to_ghu_variants(normalized)
+            ):
+                add(candidate)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        if hasattr(self, "suffix_generator"):
+            liex_lix_match = self._validated_liex_to_lix_repair(normalized)
+            if liex_lix_match:
+                add_generated(liex_lix_match)
+                generated_from_lix = self.suffix_generator.correct_suffix(
+                    liex_lix_match
+                )
+                if generated_from_lix:
+                    add_generated(generated_from_lix)
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+            if self.suffix_generator.exact_suffix_matches(word):
+                add_generated(normalized)
+                return suggestions[:limit]
+
+            generated_suffix = self.suffix_generator.correct_suffix(word)
+
+            if generated_suffix:
+                add_generated(generated_suffix)
+
+                if hasattr(self.suffix_generator, "suggest_suffixes"):
+                    for suffix_suggestion in self.suffix_generator.suggest_suffixes(
+                        word,
+                        limit=limit,
+                    ):
+                        add_generated(suffix_suggestion)
+
+                        if len(suggestions) >= limit:
+                            return suggestions[:limit]
+
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        if correction_changed:
+            return suggestions[:limit]
+
+        rows = [
+            self._candidate_score(
+                normalized,
+                candidate,
+                stage="suggest",
+            )
+            for candidate in self._get_candidates(normalized)
+        ]
+
+        rows.sort(
+            key=lambda row: (
+                row.score,
+                row.edit_distance,
+                row.candidate,
+            )
+        )
+
+        max_distance = self._max_distance(normalized)
+
+        for row in rows:
+            if self._is_acceptable_match(
+                row,
+                max_distance,
+                score_limit=0.58,
+            ):
+                add(row.candidate)
+
+                if len(suggestions) >= limit:
+                    break
+
+        return suggestions[:limit]
+
+    def debug_word(
+        self,
+        word: str,
+        limit: int = 12,
+    ) -> dict:
+        """
+        Return diagnostic information for one word.
+
+        Includes:
+        - shortcut-letter substitutions;
+        - d/t substitutions;
+        - general ranked candidates;
+        - the final selected correction.
+        """
+        normalized = self._normalize_word(word)
+        manual_repair_variants = self._manual_repair_variants(normalized)
+
+        orthographic_generator = getattr(
+            self,
+            "orthographic_generator",
+            None,
+        )
+
+        shortcut_variants: list[str] = []
+        shortcut_dictionary_matches: list[str] = []
+        shortcut_auto_correction: str | None = None
+
+        gh_priority_dictionary_matches: list[str] = []
+        gh_priority_auto_correction: str | None = None
+        d_t_variants: list[str] = []
+        d_t_dictionary_matches: list[str] = []
+        d_t_auto_correction: str | None = None
+        b_p_variants: list[str] = []
+        b_p_dictionary_matches: list[str] = []
+        b_p_auto_correction: str | None = None
+        i_ie_variants: list[str] = []
+        i_ie_dictionary_matches: list[str] = []
+        i_ie_auto_correction: str | None = None
+        final_gh_h_hbar_variants: list[str] = []
+        final_gh_h_hbar_dictionary_matches: list[str] = []
+        final_gh_h_hbar_auto_correction: str | None = None
+
+        if orthographic_generator is not None:
+            if hasattr(
+                orthographic_generator,
+                "shortcut_letter_variants",
+            ):
+                shortcut_variants = (
+                    orthographic_generator
+                    .shortcut_letter_variants(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "dictionary_shortcut_variants",
+            ):
+                shortcut_dictionary_matches = (
+                    orthographic_generator
+                    .dictionary_shortcut_variants(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "correct_shortcut_letters",
+            ):
+                shortcut_auto_correction = (
+                    orthographic_generator
+                    .correct_shortcut_letters(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "dictionary_gh_priority_variants",
+            ):
+                gh_priority_dictionary_matches = (
+                    orthographic_generator
+                    .dictionary_gh_priority_variants(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "correct_gh_priority",
+            ):
+                gh_priority_auto_correction = (
+                    orthographic_generator
+                    .correct_gh_priority(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "substitute_d_t",
+            ):
+                d_t_variants = (
+                    orthographic_generator
+                    .substitute_d_t(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "dictionary_d_t_variants",
+            ):
+                d_t_dictionary_matches = (
+                    orthographic_generator
+                    .dictionary_d_t_variants(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "correct_d_t_confusion",
+            ):
+                d_t_auto_correction = (
+                    orthographic_generator
+                    .correct_d_t_confusion(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "substitute_b_p",
+            ):
+                b_p_variants = (
+                    orthographic_generator
+                    .substitute_b_p(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "dictionary_b_p_variants",
+            ):
+                b_p_dictionary_matches = (
+                    orthographic_generator
+                    .dictionary_b_p_variants(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "correct_b_p_confusion",
+            ):
+                b_p_auto_correction = (
+                    orthographic_generator
+                    .correct_b_p_confusion(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "substitute_i_ie",
+            ):
+                i_ie_variants = (
+                    orthographic_generator
+                    .substitute_i_ie(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "dictionary_i_ie_variants",
+            ):
+                i_ie_dictionary_matches = (
+                    orthographic_generator
+                    .dictionary_i_ie_variants(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "correct_i_ie_confusion",
+            ):
+                i_ie_auto_correction = (
+                    orthographic_generator
+                    .correct_i_ie_confusion(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "substitute_final_gh_h_hbar",
+            ):
+                final_gh_h_hbar_variants = (
+                    orthographic_generator
+                    .substitute_final_gh_h_hbar(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "dictionary_final_gh_h_hbar_variants",
+            ):
+                final_gh_h_hbar_dictionary_matches = (
+                    orthographic_generator
+                    .dictionary_final_gh_h_hbar_variants(normalized)
+                )
+
+            if hasattr(
+                orthographic_generator,
+                "correct_final_gh_h_hbar_confusion",
+            ):
+                final_gh_h_hbar_auto_correction = (
+                    orthographic_generator
+                    .correct_final_gh_h_hbar_confusion(normalized)
+                )
+
+        corrected = self.correct_word(word)
+        suggestions = self.suggest(word, limit=10)
+
+        suggestion_details: list[dict] = []
+
+        for suggestion in suggestions:
+            suggestion_normalized = self._normalize_word(
+                suggestion
+            )
+
+            suggestion_details.append({
+                "word": suggestion,
+                "meaning": self.meaning_for(
+                    suggestion_normalized
+                ),
+                "in_dictionary": (
+                    suggestion_normalized
+                    in self.dictionary_set
+                ),
+                "distance": self._word_distance(
+                    normalized,
+                    suggestion_normalized,
+                ),
+            })
+
+        rows = [
+            self._candidate_score(
+                normalized,
+                candidate,
+                stage="debug",
+            )
+            for candidate in self._get_candidates(normalized)
+        ]
+
+        rows.sort(
+            key=lambda row: (
+                row.score,
+                row.edit_distance,
+                row.candidate,
+            )
+        )
+
+        return {
+            "input": word,
+            "normalized": normalized,
+            "in_dictionary": (
+                normalized in self.dictionary_set
+            ),
+            "corrected": corrected,
+            "changed": (
+                self._normalize_word(corrected)
+                != normalized
+            ),
+
+            "manual_repair_variants": manual_repair_variants,
+
+            "shortcut_variants": shortcut_variants,
+            "shortcut_dictionary_matches": (
+                shortcut_dictionary_matches
+            ),
+            "shortcut_auto_correction": (
+                shortcut_auto_correction
+            ),
+
+            "gh_priority_dictionary_matches": (
+                gh_priority_dictionary_matches
+            ),
+            "gh_priority_auto_correction": (
+                gh_priority_auto_correction
+            ),
+
+            "d_t_variants": d_t_variants,
+            "d_t_dictionary_matches": (
+                d_t_dictionary_matches
+            ),
+            "d_t_auto_correction": (
+                d_t_auto_correction
+            ),
+
+            "b_p_variants": b_p_variants,
+            "b_p_dictionary_matches": (
+                b_p_dictionary_matches
+            ),
+            "b_p_auto_correction": (
+                b_p_auto_correction
+            ),
+
+            "i_ie_variants": i_ie_variants,
+            "i_ie_dictionary_matches": (
+                i_ie_dictionary_matches
+            ),
+            "i_ie_auto_correction": (
+                i_ie_auto_correction
+            ),
+
+            "final_gh_h_hbar_variants": final_gh_h_hbar_variants,
+            "final_gh_h_hbar_dictionary_matches": (
+                final_gh_h_hbar_dictionary_matches
+            ),
+            "final_gh_h_hbar_auto_correction": (
+                final_gh_h_hbar_auto_correction
+            ),
+
+            "suggestions": suggestions,
+            "suggestion_details": suggestion_details,
+
+            "strict_lookup_variants": (
+                self._strict_lookup_variants(normalized)
+            ),
+            "vowel_count": self._count_vowels(
+                normalized
+            ),
+            "vowel_sequence": self._vowel_sequence(
+                normalized
+            ),
+            "consonant_anchor": (
+                self._extract_consonant_anchor(
+                    normalized
+                )
+            ),
+            "top_candidates": [
+                asdict(row)
+                for row in rows[:limit]
+            ],
+        }
+
+    def correct_text(self, text: str) -> str:
+        if not text:
+            return text
+        return self.correct_text_rich(text)["corrected_text"]
+
+    def meaning_for(self, word: str) -> str:
+        direct_meaning = meaning_index.meaning_for(word)
+        if direct_meaning:
+            return direct_meaning
+
+        suffix_generator = getattr(self, "suffix_generator", None)
+        if suffix_generator is None or not hasattr(
+            suffix_generator,
+            "candidates_for_surface",
+        ):
+            return ""
+
+        meanings: list[str] = []
+
+        for candidate in suffix_generator.candidates_for_surface(word):
+            meaning = extract_meaning_from_payload(candidate.raw_tag)
+            if not meaning:
+                meaning = meaning_index.meaning_for(candidate.base)
+
+            if meaning and meaning not in meanings:
+                meanings.append(meaning)
+
+        return " / ".join(meanings)
+
+    def ambiguity_choices(self, original_word: str, corrected_word: str, limit: int = 2) -> list[dict]:
+
+        original_norm = self._normalize_word(original_word)
+        corrected_norm = self._normalize_word(corrected_word)
+
+        suggestions = self.suggest(original_word, limit=8)
+
+        ordered: list[str] = []
+
+        def add(word: str) -> None:
+            norm = self._normalize_word(word)
+            if norm and norm not in ordered:
+                ordered.append(norm)
+
+        add(corrected_norm)
+
+        # Show dictionary-valid Maltese-letter alternatives.
+        if hasattr(self, "orthographic_generator"):
+            if hasattr(
+                self.orthographic_generator,
+                "dictionary_gh_suggestion_variants",
+            ):
+                for alternative in (
+                    self.orthographic_generator
+                    .dictionary_gh_suggestion_variants(corrected_norm)
+                ):
+                    add(alternative)
+
+                    if len(ordered) >= limit:
+                        break
+
+            shortcut_alternatives = (
+                self.orthographic_generator
+                .dictionary_shortcut_variants(original_norm)
+            )
+
+            for alternative in shortcut_alternatives:
+                add(alternative)
+
+                if len(ordered) >= limit:
+                    break
+
+        # A valid word may still be a d/t misspelling of another valid word.
+        # Keep the original as the default, but show exact dictionary alternatives.
+        if hasattr(self, "orthographic_generator"):
+            for alternative in (
+                self.orthographic_generator.dictionary_d_t_variants(original_norm)
+            ):
+                add(alternative)
+
+                if len(ordered) >= limit:
+                    break
+
+        for suggestion in suggestions:
+            suggestion_norm = self._normalize_word(suggestion)
+
+            if suggestion_norm == corrected_norm:
+                continue
+
+        # "Very quickly found" = close edit distance.
+        # This prevents random weak suggestions from appearing.
+            if self._word_distance(original_norm, suggestion_norm) <= self._max_distance(original_norm) + 1:
+                add(suggestion_norm)
+
+            if len(ordered) >= limit:
+                break
+
+        choices = []
+
+        for word in ordered[:limit]:
+            displayed_word = self._match_capitalisation(
+                original_word,
+                word
+            )
+
+            choices.append({
+                "word": displayed_word,
+                "meaning": self.meaning_for(word),
+            })
+
+        return choices
+    
+    def correct_text_rich(self, text: str) -> dict:
+        """
+        Corrects text while also returning token-level ambiguity data for the frontend.
+
+        Returns:
+            {
+                "corrected_text": "...",
+                "tokens": [...]
+            }
+        """
+        if not text:
+            return {
+                "corrected_text": text,
+                "tokens": []
+            }
+
+        tokens: list[dict] = []
+        corrected_parts: list[str] = []
+        matches = list(self.WORD_PATTERN.finditer(text))
+        word_tokens = [
+            WordToken(
+                text=match.group(0),
+                start=match.start(),
+                end=match.end(),
+            )
+            for match in matches
+        ]
+        article_rules = getattr(self, "article_phrase_rules", None)
+        fused_preposition_rules = getattr(self, "fused_preposition_rules", None)
+        previous_surface_word: str | None = None
+
+        def token_choice_state(
+            choices: list[dict],
+            *,
+            force_crucial: bool = False,
+        ) -> tuple[bool, bool]:
+            normalized_words = []
+            has_literal_article_alternative = False
+            for choice in choices:
+                word = self._normalize_word(choice.get("word", ""))
+                if word and word not in normalized_words:
+                    normalized_words.append(word)
+                if word.startswith(("'il ", "'il-", "'l ", "'l-")):
+                    has_literal_article_alternative = True
+            multi = len(normalized_words) >= 2
+            return multi, bool(force_crucial and multi and has_literal_article_alternative)
+
+        last_end = 0
+        index = 0
+
+        while index < len(matches):
+            match = matches[index]
+            # Add punctuation/spacing before the word.
+            if match.start() > last_end:
+                raw_text = text[last_end:match.start()]
+                tokens.append({
+                    "type": "text",
+                    "text": raw_text,
+                })
+                corrected_parts.append(raw_text)
+
+            if article_rules is not None:
+                article_match = article_rules.match_preposition_article_contraction(
+                    word_tokens,
+                    index,
+                )
+
+                if article_match is not None:
+                    original_phrase = text[
+                        matches[index].start():matches[index + 1].end()
+                    ]
+                    is_ambiguous, is_crucial = token_choice_state(
+                        article_match.choices,
+                        force_crucial=True,
+                    )
+
+                    tokens.append({
+                        "type": "phrase",
+                        "original": original_phrase,
+                        "corrected": article_match.corrected,
+                        "ambiguous": is_ambiguous,
+                        "crucial": is_crucial,
+                        "choices": article_match.choices,
+                    })
+
+                    corrected_parts.append(article_match.corrected)
+                    previous_surface_word = self._normalize_word(
+                        article_match.corrected.split()[-1]
+                    )
+                    last_end = matches[index + 1].end()
+                    index += 2
+                    continue
+
+                article_match = article_rules.match_split_article(
+                    word_tokens,
+                    index,
+                )
+
+                if article_match is not None:
+                    original_phrase = text[
+                        matches[index].start():matches[index + 1].end()
+                    ]
+                    is_ambiguous, is_crucial = token_choice_state(
+                        article_match.choices,
+                        force_crucial=True,
+                    )
+
+                    tokens.append({
+                        "type": "phrase",
+                        "original": original_phrase,
+                        "corrected": article_match.corrected,
+                        "ambiguous": is_ambiguous,
+                        "crucial": is_crucial,
+                        "choices": article_match.choices,
+                    })
+
+                    corrected_parts.append(article_match.corrected)
+                    previous_surface_word = self._normalize_word(
+                        article_match.corrected.split()[-1]
+                    )
+                    last_end = matches[index + 1].end()
+                    index += 2
+                    continue
+
+            original_word = match.group(0)
+            # Catch split prefix forms before the generic word fixer runs.
+            if index + 1 < len(matches):
+                next_word = word_tokens[index + 1].text
+                current_norm = self._normalize_word(original_word)
+                next_norm = self._normalize_word(next_word)
+
+                if current_norm == "l" and self._starts_vowel_gh_or_h(next_norm):
+                    corrected_next = self.correct_word(next_word)
+                    corrected_phrase = f"l-{corrected_next}"
+                    phrase_choices = [
+                        {
+                            "word": corrected_phrase,
+                            "meaning": self.meaning_for(corrected_next),
+                        },
+                    ]
+                    is_ambiguous, is_crucial = token_choice_state(
+                        phrase_choices,
+                        force_crucial=True,
+                    )
+                    tokens.append({
+                        "type": "phrase",
+                        "original": text[matches[index].start():matches[index + 1].end()],
+                        "corrected": corrected_phrase,
+                        "ambiguous": is_ambiguous,
+                        "crucial": is_crucial,
+                        "choices": phrase_choices,
+                    })
+                    corrected_parts.append(corrected_phrase)
+                    previous_surface_word = self._normalize_word(
+                        corrected_phrase.split()[-1]
+                    )
+                    last_end = matches[index + 1].end()
+                    index += 2
+                    continue
+
+                if current_norm in {"f", "b"} and next_norm not in {"l", "il"} and not next_norm.startswith(("l-", "il-")):
+                    corrected_next = self.correct_word(next_word)
+                    if self._is_probable_noun(corrected_next):
+                        corrected_phrase = f"{current_norm}'{corrected_next}"
+                        phrase_choices = [
+                            {
+                                "word": corrected_phrase,
+                                "meaning": self.meaning_for(corrected_next),
+                            },
+                            {
+                                "word": f"{current_norm} {corrected_next}",
+                                "meaning": self.meaning_for(corrected_next),
+                            },
+                        ]
+                        is_ambiguous, is_crucial = token_choice_state(
+                            phrase_choices,
+                            force_crucial=True,
+                        )
+                        tokens.append({
+                            "type": "phrase",
+                            "original": text[matches[index].start():matches[index + 1].end()],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
+                            "choices": phrase_choices,
+                        })
+                        corrected_parts.append(corrected_phrase)
+                        previous_surface_word = self._normalize_word(
+                            corrected_phrase.split()[-1]
+                        )
+                        last_end = matches[index + 1].end()
+                        index += 2
+                        continue
+
+                if current_norm in {"xi", "bi", "fi"}:
+                    corrected_next = next_word
+                    if fused_preposition_rules is not None:
+                        remainder_candidates = fused_preposition_rules.strict_remainder_candidates(next_word)
+                        if remainder_candidates:
+                            corrected_next = remainder_candidates[0]
+                    else:
+                        corrected_next = self.correct_word(next_word)
+
+                    if self._normalize_word(corrected_next) != next_norm:
+                        corrected_phrase = f"{current_norm} {corrected_next}"
+                        phrase_choices = [
+                            {
+                                "word": corrected_phrase,
+                                "meaning": self.meaning_for(corrected_next),
+                            },
+                        ]
+                        is_ambiguous, is_crucial = token_choice_state(
+                            phrase_choices,
+                            force_crucial=False,
+                        )
+                        tokens.append({
+                            "type": "phrase",
+                            "original": text[matches[index].start():matches[index + 1].end()],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
+                            "choices": phrase_choices,
+                        })
+                        corrected_parts.append(corrected_phrase)
+                        previous_surface_word = self._normalize_word(
+                            corrected_phrase.split()[-1]
+                        )
+                        last_end = matches[index + 1].end()
+                        index += 2
+                        continue
+
+                if current_norm == "x" and next_norm not in {"l", "il"} and not next_norm.startswith(("l-", "il-")):
+                    corrected_next = self.correct_word(next_word)
+                    if self._is_verb_tagged_word(corrected_next):
+                        corrected_phrase = f"{current_norm}'{corrected_next}"
+                        phrase_choices = [
+                            {
+                                "word": corrected_phrase,
+                                "meaning": self.meaning_for(corrected_next),
+                            },
+                            {
+                                "word": f"{current_norm} {corrected_next}",
+                                "meaning": self.meaning_for(corrected_next),
+                            },
+                        ]
+                        is_ambiguous, is_crucial = token_choice_state(
+                            phrase_choices,
+                            force_crucial=True,
+                        )
+                        tokens.append({
+                            "type": "phrase",
+                            "original": text[matches[index].start():matches[index + 1].end()],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
+                            "choices": phrase_choices,
+                        })
+                        corrected_parts.append(corrected_phrase)
+                        previous_surface_word = self._normalize_word(
+                            corrected_phrase.split()[-1]
+                        )
+                        last_end = matches[index + 1].end()
+                        index += 2
+                        continue
+
+                if current_norm == "m" and next_norm not in {"l", "il"} and not next_norm.startswith(("l-", "il-")):
+                    corrected_next = self.correct_word(next_word)
+                    if self._is_verb_tagged_word(corrected_next):
+                        corrected_phrase = f"{current_norm}'{corrected_next}"
+                        phrase_choices = [
+                            {
+                                "word": corrected_phrase,
+                                "meaning": self.meaning_for(corrected_next),
+                            },
+                            {
+                                "word": f"{current_norm} {corrected_next}",
+                                "meaning": self.meaning_for(corrected_next),
+                            },
+                        ]
+                        is_ambiguous, is_crucial = token_choice_state(
+                            phrase_choices,
+                            force_crucial=True,
+                        )
+                        tokens.append({
+                            "type": "phrase",
+                            "original": text[matches[index].start():matches[index + 1].end()],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
+                            "choices": phrase_choices,
+                        })
+                        corrected_parts.append(corrected_phrase)
+                        previous_surface_word = self._normalize_word(
+                            corrected_phrase.split()[-1]
+                        )
+                        last_end = matches[index + 1].end()
+                        index += 2
+                        continue
+
+            if article_rules is not None:
+                article_match = article_rules.match_compact_preposition_article(
+                    original_word,
+                )
+
+                if article_match is not None:
+                    is_ambiguous, is_crucial = token_choice_state(
+                        article_match.choices,
+                        force_crucial=True,
+                    )
+                    tokens.append({
+                        "type": "phrase",
+                        "original": original_word,
+                        "corrected": article_match.corrected,
+                        "ambiguous": is_ambiguous,
+                        "crucial": is_crucial,
+                        "choices": article_match.choices,
+                    })
+
+                    corrected_parts.append(article_match.corrected)
+                    previous_surface_word = self._normalize_word(
+                        article_match.corrected.split()[-1]
+                    )
+                    last_end = match.end()
+                    index += 1
+                    continue
+
+                previous_word = word_tokens[index - 1].text if index > 0 else None
+                article_match = article_rules.match_hyphenated_article_after(
+                    original_word,
+                    previous=previous_word,
+                )
+
+                if article_match is not None:
+                    is_ambiguous, is_crucial = token_choice_state(
+                        article_match.choices,
+                        force_crucial=True,
+                    )
+                    tokens.append({
+                        "type": "phrase",
+                        "original": original_word,
+                        "corrected": article_match.corrected,
+                        "ambiguous": is_ambiguous,
+                        "crucial": is_crucial,
+                        "choices": article_match.choices,
+                    })
+
+                    corrected_parts.append(article_match.corrected)
+                    previous_surface_word = self._normalize_word(
+                        article_match.corrected.split()[-1]
+                    )
+                    last_end = match.end()
+                    index += 1
+                    continue
+
+            if fused_preposition_rules is not None:
+                fused_match = fused_preposition_rules.match(original_word)
+
+                if fused_match is not None:
+                    is_ambiguous, is_crucial = token_choice_state(
+                        fused_match.choices,
+                        force_crucial=False,
+                    )
+                    tokens.append({
+                        "type": "word",
+                        "original": original_word,
+                        "corrected": fused_match.corrected,
+                        "ambiguous": is_ambiguous,
+                        "crucial": is_crucial,
+                        "choices": fused_match.choices,
+                    })
+
+                    corrected_parts.append(fused_match.corrected)
+                    previous_surface_word = self._normalize_word(
+                        fused_match.corrected.split()[-1]
+                    )
+                    last_end = match.end()
+                    index += 1
+                    continue
+
+            corrected_word = self.correct_word(original_word)
+            preserved_empathetic_i = False
+            if (
+                previous_surface_word
+                and self._word_ends_with_consonant(previous_surface_word)
+                and self._has_empathetic_i_shape(original_word)
+            ):
+                corrected_word = self._match_capitalisation(
+                    original_word,
+                    self._normalize_word(original_word),
+                )
+                preserved_empathetic_i = True
+            surface_word = self._apply_empathetic_i(previous_surface_word, corrected_word)
+
+            choices = self.ambiguity_choices(original_word, corrected_word, limit=2)
+
+            if (
+                preserved_empathetic_i
+                or self._normalize_word(surface_word) != self._normalize_word(corrected_word)
+            ):
+                choices = []
+
+            is_ambiguous = (
+                len(choices) >= 2
+                and self._normalize_word(choices[0]["word"]) != self._normalize_word(choices[1]["word"])
+            )
+
+            tokens.append({
+                "type": "word",
+                "original": original_word,
+                "corrected": surface_word,
+                "ambiguous": is_ambiguous,
+                "choices": choices if is_ambiguous else [],
+            })
+
+            corrected_parts.append(surface_word)
+            previous_surface_word = self._normalize_word(surface_word)
+            last_end = match.end()
+            index += 1
+
+        # Add trailing punctuation/spacing.
+        if last_end < len(text):
+            raw_text = text[last_end:]
+            tokens.append({
+                "type": "text",
+                "text": raw_text,
+            })
+            corrected_parts.append(raw_text)
+
+        corrected_text = "".join(corrected_parts)
+
+        return {
+            "corrected_text": corrected_text,
+            "tokens": tokens,
+        }
+
+# -----------------------------------------------------------------------------
+# Flask app
+# -----------------------------------------------------------------------------
+
+app = Flask(__name__)
+
+if CORS is not None:
+    allowed_origins = os.getenv(
+        "ALLOWED_ORIGINS", "http://localhost:5000,http://127.0.0.1:5000"
+    )
+    CORS(
+        app,
+        resources={r"/*": {"origins": [o.strip() for o in allowed_origins.split(",")]}},
+    )
+
+spellchecker = UniversalMalteseSpellchecker(dictionary_files=DICTIONARY_FILES)
+meaning_index = MeaningIndex(DICTIONARY_FILES)
+article_phrase_rules = MalteseArticlePhraseRules(
+    dictionary_files=DICTIONARY_FILES,
+    meaning_index=meaning_index,
+    normalizer=spellchecker._normalize_word,
+)
+article_phrase_rules.spellchecker = spellchecker
+spellchecker.article_phrase_rules = article_phrase_rules
+
+orthographic_generator = MalteseOrthographicGenerator(spellchecker=spellchecker)
+spellchecker.orthographic_generator = orthographic_generator
+
+doubled_letter_generator = MalteseDoubledLetterGenerator(spellchecker=spellchecker)
+spellchecker.doubled_letter_generator = doubled_letter_generator
+
+suffix_generator = MalteseSuffixGenerator(
+    spellchecker=spellchecker,
+    verbs_file=[
+        BASE_DIR / "finaldics/verbmt_semitic.dic",
+        BASE_DIR / "finaldics/verbmt_nonsemitic.dic",
+    ],
+)
+
+spellchecker.suffix_generator = suffix_generator
+
+fused_preposition_rules = MalteseFusedPrepositionRules(
+    spellchecker=spellchecker,
+    article_rules=article_phrase_rules,
+    meaning_index=meaning_index,
+)
+spellchecker.fused_preposition_rules = fused_preposition_rules
+
+@app.get("/")
+def home():
+    return send_from_directory(BASE_DIR, "index.html")
+
+
+@app.get("/health")
+def health():
+    suffix_info = {}
+
+    if hasattr(spellchecker, "suffix_generator"):
+        suffix_info = {
+            "suffix_parser_mode": "ending-first",
+            "suffix_verb_records": len(
+                spellchecker.suffix_generator.verb_index.records
+            ),
+        }
+
+    return jsonify(
+        {
+            "ok": True,
+            "dictionary_words": len(spellchecker.dictionary),
+            "paradigms": len(spellchecker.paradigm_forms),
+            **suffix_info,
+        }
+    )
+
+
+@app.post("/check-text")
+def check_text():
+    data = request.get_json(silent=True) or {}
+    text = data.get("text", "")
+
+    if not isinstance(text, str):
+        return jsonify({
+            "error": "text must be a string."
+        }), 400
+
+    if not text.strip():
+        return jsonify({
+            "error": "Please write some Maltese text first."
+        }), 400
+
+    if len(text) > MAX_TEXT_LENGTH:
+        return jsonify({
+            "error": (
+                f"Text is too long. Maximum length is "
+                f"{MAX_TEXT_LENGTH} characters."
+            )
+        }), 413
+
+    result = spellchecker.correct_text_rich(text)
+    corrected_text = result["corrected_text"]
+
+    return jsonify({
+        "original_text": text,
+        "corrected_text": corrected_text,
+        "changed": corrected_text != text,
+        "tokens": result["tokens"],
+    })
+
+@app.post("/suggest-word")
+def suggest_word():
+    data = request.get_json(silent=True) or {}
+    word = data.get("word", "")
+
+    if not isinstance(word, str):
+        return jsonify({
+            "error": "word must be a string."
+        }), 400
+
+    if not word.strip():
+        return jsonify({
+            "error": "Please write a word first."
+        }), 400
+
+    if len(word) > MAX_WORD_LENGTH:
+        return jsonify({
+            "error": (
+                f"Word is too long. Maximum length is "
+                f"{MAX_WORD_LENGTH} characters."
+            )
+        }), 413
+
+    suggestions = spellchecker.suggest(
+        word,
+        limit=10,
+    )
+
+    return jsonify({
+        "word": word,
+        "suggestions": (
+            meaning_index.enrich_choices(
+                [
+                    {
+                        "word": suggestion,
+                        "meaning": spellchecker.meaning_for(suggestion),
+                    }
+                    for suggestion in suggestions
+                ]
+            )
+        ),
+    })
+
+@app.post("/debug-word")
+def debug_word():
+    data = request.get_json(silent=True) or {}
+    word = data.get("word", "")
+
+    if not isinstance(word, str):
+        return jsonify({"error": "word must be a string."}), 400
+    if not word.strip():
+        return jsonify({"error": "Please write a word first."}), 400
+    if len(word) > MAX_WORD_LENGTH:
+        return jsonify(
+            {"error": f"Word is too long. Maximum length is {MAX_WORD_LENGTH} characters."}
+        ), 413
+
+    return jsonify(spellchecker.debug_word(word))
+
+
+@app.post("/debug-orthographic")
+def debug_orthographic():
+    data = request.get_json(silent=True) or {}
+    word = data.get("word", "")
+
+    if not isinstance(word, str):
+        return jsonify({"error": "word must be a string."}), 400
+    if not word.strip():
+        return jsonify({"error": "Please write a word first."}), 400
+    if len(word) > MAX_WORD_LENGTH:
+        return jsonify(
+            {"error": f"Word is too long. Maximum length is {MAX_WORD_LENGTH} characters."}
+        ), 413
+
+    return jsonify(orthographic_generator.debug(word))
+
+
+
+@app.post("/debug-suffix")
+def debug_suffix():
+    data = request.get_json(silent=True) or {}
+    word = data.get("word", "")
+
+    if not isinstance(word, str):
+        return jsonify({"error": "word must be a string."}), 400
+
+    if not word.strip():
+        return jsonify({"error": "Please write a word first."}), 400
+
+    if len(word) > MAX_WORD_LENGTH:
+        return jsonify(
+            {"error": f"Word is too long. Maximum length is {MAX_WORD_LENGTH} characters."}
+        ), 413
+
+    if not hasattr(spellchecker, "suffix_generator"):
+        return jsonify({"error": "suffix generator is not attached."}), 500
+
+    return jsonify(spellchecker.suffix_generator.debug_suffix(word))
+
+
+if __name__ == "__main__":
+    debug = os.getenv("FLASK_DEBUG", "0") == "1"
+    app.run(host="127.0.0.1", port=5000, debug=debug)

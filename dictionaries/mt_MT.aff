@@ -1,0 +1,79 @@
+SET UTF-8
+TRY esianrtolcdugmphbyfvkwżġċħ'
+FLAG long
+
+# ==========================================
+# 1. MALTESE DEFINITE ARTICLES (PREFIXES)
+# ==========================================
+PFX AA Y 1
+PFX AA 0 l- .
+
+PFX AB Y 1
+PFX AB 0 il- .
+
+PFX AC Y 9
+PFX AC 0 it- t
+PFX AC 0 id- d
+PFX AC 0 ir- r
+PFX AC 0 is- s
+PFX AC 0 iż- ż
+PFX AC 0 ix- x
+PFX AC 0 iċ- ċ
+PFX AC 0 in- n
+PFX AC 0 iz- z
+
+# ==========================================
+# 2. PREPOSITION + ARTICLE COMBINATIONS
+# ==========================================
+PFX BA Y 5
+PFX BA 0 b' .
+PFX BA 0 f' .
+PFX BA 0 ta' .
+PFX BA 0 ma' .
+PFX BA 0 għal- .
+
+PFX BB Y 4
+PFX BB 0 bil- .
+PFX BB 0 fil- .
+PFX BB 0 tal- .
+PFX BB 0 mal- .
+
+# ==========================================
+# 3. VERB NEGATION (ma + word + x)
+# ==========================================
+PFX NE Y 1
+PFX NE 0 ma\  .
+
+SFX NX Y 1
+SFX NX 0 x .
+
+# ==========================================
+# 4. PRONOMINAL MORPHOLOGY (SUFFIXES)
+# ==========================================
+
+# --- BLOCK A: Suffixes for words ending in a CONSONANT ---
+# Example base words: "dar" (house), "vroma" -> root "vrom", "ġab" (he brought)
+SFX PC Y 6
+SFX PC 0 i .       # my      (dar -> dari)
+SFX PC 0 ek .      # your    (dar -> darek)
+SFX PC 0 u .       # his     (dar -> daru)
+SFX PC 0 ha .      # her     (dar -> darha)
+SFX PC 0 na .      # our     (dar -> darna)
+SFX PC 0 hom .     # their   (dar -> darhom)
+
+# --- BLOCK B: Suffixes for words ending in a VOWEL ---
+# Example base words: "vroma" (drop the 'a' or append), "rajna" (we saw)
+# Rules can strip the trailing vowel using the syntax: SFX flag [strip] [append] [condition]
+SFX PV Y 5
+SFX PV a ja a      # my      (vroma -> vromja)
+SFX PV 0 k [aeiou] # your    (rajna -> rajnak)
+SFX PV 0 h [aeiou] # his     (rajna -> rajnah)
+SFX PV 0 ha [aeiou]# her     (rajna -> rajnaha)
+SFX PV 0 hom [aeiou]# their  (rajna -> rajnahom)
+
+# --- BLOCK C: Double Object Pronoun Suffixes for Verbs ---
+# Example: "ġab" (he brought) + "li" (to me) + "ha" (it) -> "ġabhali"
+SFX VD Y 3
+SFX VD 0 li .      # to me   (ġab -> ġabli)
+SFX VD 0 lha .     # to her  (ġab -> ġablha)
+SFX VD 0 lhom .    # to them (ġab -> ġablhom)
