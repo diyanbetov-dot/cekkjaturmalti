@@ -2,27 +2,20 @@
     "python-envs.defaultEnvManager": "ms-python.python:system",
     "python.defaultInterpreterPath": "c:\\Users\\diyan\\OneDrive\\New folder\\Desktop\\ÄŠekkjatur tal-Kitba\\.venv\\Scripts\\python.exe",
     "files.exclude": {
-        "**/.place-data-temp": true,
-        "**/.ruff_cache": true,
-        "**/.tmp-place-build": true,
-        "**/.venv_broken": true,
+        "**/Other/temp": true,
+        "**/Other/tools_repo/__pycache__": true,
         "**/__pycache__": true
     },
     "files.watcherExclude": {
         "**/.git/objects/**": true,
-        "**/.place-data-temp/**": true,
-        "**/.ruff_cache/**": true,
-        "**/.tmp-place-build/**": true,
         "**/.venv/**": true,
-        "**/.venv_broken/**": true,
+        "**/Other/temp/**": true,
+        "**/Other/tools_repo/__pycache__/**": true,
         "**/__pycache__/**": true
     },
     "search.exclude": {
-        "**/.place-data-temp": true,
-        "**/.ruff_cache": true,
-        "**/.tmp-place-build": true,
         "**/.venv": true,
-        "**/.venv_broken": true,
+        "**/Other/temp": true,
         "**/__pycache__": true
     }
 }
