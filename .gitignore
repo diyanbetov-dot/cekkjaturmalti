@@ -1,0 +1,30 @@
+# Python environments
+.venv/
+venv/
+env/
+
+# Old/broken environments and temp copies
+.venv_broken/
+Other/temp/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Tool caches
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Logs and local runtime state
+*.log
+*.pid
+
+# Local editor/system noise
+.DS_Store
+Thumbs.db
+
+# Build / recovery leftovers
+*.tmp
+*.pyc
