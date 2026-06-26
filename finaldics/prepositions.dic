@@ -41,6 +41,11 @@ fina/PREP-in
 fihom/PREP-in
 flok/PREP-instead of
 fost/PREP-among
+fostu/PREP-among
+fostha/PREP-among
+fostna/PREP-among
+fostkom/PREP-among
+fosthom/PREP-among
 fuq/PREP-on; upon, over; above
 għajr/PREP-other than, except, but
 għal/PREP-to, for (a thing)
@@ -54,20 +59,20 @@ għalihom /PREP-to, for them
 għall-/DEFPREP-to, for (the thing)
 għala/PREP-to, for, to
 għand/PREP-at, to
-għandi/PREP-1S-at, to
-għandek/PREP-2S-at, to
-għandu/PREP-3SM-at, to
-għandha/PREP-3SF-at, to
-għandna/PREP-1P-at, to
-għandkom/PREP-2P-at, to
-għandhom/PREP-3P-at, to
-għandix/PREP-NEG-1S-at, to
-għandekx/PREP-NEG-2S-at, to
-għandux/PREP-NEG-3SM-at, to
-għandhiex/PREP-NEG-3SF-at, to
-għandniex/PREP-NEG-1P-at, to
-għandkomx/PREP-NEG-2P-at, to
-għandhomx/PREP-NEG-3P-at, to
+għandi/PREP-1S-at, to (have)
+għandek/PREP-2S-at, to (have)
+għandu/PREP-3SM-at, to (have)
+għandha/PREP-3SF-at, to (have)
+għandna/PREP-1P-at, to (have)
+għandkom/PREP-2P-at, to (have)
+għandhom/PREP-3P-at, to (have)
+għandix/PREP-1S-at, to (have)-N
+għandekx/PREP-2S-at, to (have)-N
+għandux/PREP-3SM-at, to (have)-N
+għandhiex/PREP-3SF-at, to (have)-N
+għandniex/PREP-1P-at, to (have)-N
+għandkomx/PREP-2P-at, to (have)-N
+għandhomx/PREP-3P-at, to (have)-N
 kelli/VERB-to have had
 kellek/VERB-to have had
 kellu/VERB-to have had
@@ -75,6 +80,13 @@ kellha/VERB-to have had
 kellna/VERB-to have had
 kellkom/VERB-to have had
 kellhom/VERB-to have had
+jkolli/VERB-to have in the future or habitually
+jkollok/VERB-to have in the future or habitually
+jkollu/VERB-to have in the future or habitually
+jkollha/VERB-to have in the future or habitually
+jkollna/VERB-to have in the future or habitually
+jkollkom/VERB-to have in the future or habitually
+jkollhom/VERB-to have in the future or habitually
 imb/PREP-used in a few expressions, with
 kontra/PREP-against
 ladarba/PREP-since
@@ -223,6 +235,10 @@ elf/CARDNUM-thousand
 elfejn/CARDNUM-two thousand
 elef/CARDNUM-thousands
 eluf/CARDNUM-thousands
+miljun/CARDNUM-million
+miljuni/CARDNUM-millions
+biljun/CARDNUM-billion
+biljuni/CARDNUM-billions
 ewwel/ORDNUM-first
 tieni/ORDNUM-second
 tielet/ORDNUM-third

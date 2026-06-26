@@ -120,6 +120,13 @@ class MalteseArticlePhraseRules:
     def is_num(self, word: str) -> bool:
         return self._contains_surface(self.num_words, word)
 
+    def is_adjective(self, word: str) -> bool:
+        spellchecker = getattr(self, "spellchecker", None)
+        return bool(
+            spellchecker is not None
+            and spellchecker._is_adjective_tagged_word(word)
+        )
+
     def _contains_surface(self, surfaces: set[str], word: str) -> bool:
         exact = normalize_word_exact(word)
         if exact in surfaces:
@@ -166,7 +173,60 @@ class MalteseArticlePhraseRules:
             return f"{prefix} {noun_meaning}" if noun_meaning else prefix
 
         definite = self.corrected_article_phrase("il", noun, previous)
+        if self.is_adjective(noun):
+            definite = f"l-{noun}"
+            superlative = self._superlative_meaning(noun_meaning)
+            choices = [
+                {"word": definite, "meaning": superlative or add_runtime_meaning("the")}
+            ]
+            spellchecker = getattr(self, "spellchecker", None)
+            if spellchecker is not None and spellchecker._supports_l_apostrophe_tail(noun):
+                choices.append(
+                    {
+                        "word": f"l'{noun}",
+                        "meaning": f"which is {noun_meaning}"
+                        if noun_meaning
+                        else "which is",
+                    }
+                )
+            return choices
         return [{"word": definite, "meaning": add_runtime_meaning("the")}]
+
+    def _superlative_meaning(self, meaning: str) -> str:
+        irregular = {
+            "better": "best",
+            "bigger": "biggest",
+            "worse": "worst",
+            "less": "least",
+            "more": "most",
+            "farther": "farthest",
+            "further": "furthest",
+            "elder": "eldest",
+        }
+        converted: list[str] = []
+        found_comparative = False
+
+        for raw_part in str(meaning or "").split(","):
+            part = raw_part.strip()
+            lowered = part.casefold()
+            if lowered in irregular:
+                converted.append(irregular[lowered])
+                found_comparative = True
+            elif lowered.startswith("more "):
+                converted.append(f"most {part[5:]}")
+                found_comparative = True
+            elif lowered.startswith("less "):
+                converted.append(f"least {part[5:]}")
+                found_comparative = True
+            elif lowered.endswith("er") and len(part) > 3:
+                converted.append(f"{part[:-2]}est")
+                found_comparative = True
+            else:
+                converted.append(part)
+
+        if not found_comparative:
+            return ""
+        return f"the {', '.join(converted)}"
 
     def literal_article_choices(
         self,
@@ -190,7 +250,20 @@ class MalteseArticlePhraseRules:
         return [{"word": numeral, "meaning": f"the {meaning}" if meaning else "the"}]
 
     def _is_article_target(self, word: str) -> bool:
-        return self.is_noun(word) or self.is_num(word)
+        normalized = self.normalize(word)
+        if normalized in {"hawn", "hemm"}:
+            return False
+        if self.is_noun(word) or self.is_num(word):
+            return True
+        spellchecker = getattr(self, "spellchecker", None)
+        if spellchecker is None:
+            return False
+        if normalized in spellchecker.place_word_set:
+            return True
+        return any(
+            "ADJ" in tag.split("-", 1)[0]
+            for tag in spellchecker.word_tags.get(normalized, set())
+        )
 
     def _starts_vowel_gh_or_h(self, word: str) -> bool:
         normalized = self.normalize(word)
@@ -198,7 +271,7 @@ class MalteseArticlePhraseRules:
             normalized
             and (
                 normalized[0] in VOWELS
-                or normalized.startswith(("għ", "gh", "h", "ħ"))
+                or normalized.startswith(("għ", "gh", "h"))
             )
         )
 
@@ -247,19 +320,36 @@ class MalteseArticlePhraseRules:
         noun = self.normalize(noun)
         if not noun or not self._is_article_target(noun):
             return None
-        first = noun[0]
         starts_vowelish = self._starts_vowel_gh_or_h(noun)
 
-        if prefix == "tal":
-            return f"t{self.assimilate('il-', noun)}{noun}"
-        if prefix == "mal":
-            return f"m{self.assimilate('il-', noun)}{noun}"
-        if prefix == "lill":
-            return f"lill-{noun}" if starts_vowelish else f"lil-{noun}"
-        if prefix in {"bil", "bl"}:
-            return f"bl-{noun}" if starts_vowelish else f"bi{self.assimilate('il-', noun)}{noun}"
-        if prefix in {"fil", "fl"}:
-            return f"fl-{noun}" if starts_vowelish else f"fi{self.assimilate('il-', noun)}{noun}"
+        aliases = {
+            "ta": "tal", "tal": "tal",
+            "ma": "mal", "mal": "mal",
+            "bi": "bil", "bil": "bil", "bl": "bil",
+            "fi": "fil", "fil": "fil", "fl": "fil",
+            "minn": "mill", "mil": "mill", "mid": "mill", "mill": "mill",
+            "mic": "mill", "miċ": "mill",
+            "għal": "għall", "ghal": "għall",
+            "għall": "għall", "ghall": "għall",
+            "sa": "sal", "sal": "sal",
+            "lil": "lill", "lill": "lill",
+        }
+        canonical = aliases.get(prefix)
+        if canonical:
+            vowel_forms = {
+                "tal": "tal", "mal": "mal", "bil": "bl", "fil": "fl",
+                "mill": "mill", "għall": "għall", "sal": "sal", "lill": "lill",
+            }
+            sun_stems = {
+                "tal": "ta", "mal": "ma", "bil": "bi", "fil": "fi",
+                "mill": "mi", "għall": "għa", "sal": "sa", "lill": "li",
+            }
+            if starts_vowelish:
+                return f"{vowel_forms[canonical]}-{noun}"
+            if noun[0] in SUN_LETTERS:
+                return f"{sun_stems[canonical]}{noun[0]}-{noun}"
+            return f"{canonical}-{noun}"
+
         if prefix in {"xil", "x'l"}:
             return f"x'l-{noun}" if starts_vowelish else f"xi{self.assimilate('il-', noun)}{noun}"
         if prefix in {"il", "l"} or prefix in SUN_LETTERS:
@@ -306,14 +396,28 @@ class MalteseArticlePhraseRules:
             corrected = f"għar-{corrected_noun}"
             return ArticlePhraseSuggestion(index, index + 2, corrected, [])
 
-        if article in {"il", "l"} or article in SUN_LETTERS:
-            corrected = self.corrected_article_phrase(article, corrected_noun, previous)
+        if article in {
+            "il", "l", "ic", "iċ", "id", "in", "ir", "is", "it",
+            "ix", "iz", "iż",
+        } or article in SUN_LETTERS:
+            corrected = (
+                f"l-{corrected_noun}"
+                if self.is_adjective(corrected_noun)
+                else self.corrected_article_phrase(
+                    article,
+                    corrected_noun,
+                    previous,
+                )
+            )
             choices = self.phrase_choices(corrected_noun, previous)
             if article == "l":
                 choices.extend(self.literal_article_choices(article, corrected_noun, previous))
             return ArticlePhraseSuggestion(index, index + 2, corrected, choices)
 
-        if article in {"tal", "mal", "bil", "fil", "lill", "xil"}:
+        if article in {
+            "tal", "mal", "bil", "fil", "lill", "xil", "mil", "mid", "mill",
+            "għall", "ghall", "sal", "mic", "miċ",
+        }:
             corrected = self.preposition_article_form(article, corrected_noun)
             if not corrected:
                 return None
@@ -346,6 +450,29 @@ class MalteseArticlePhraseRules:
         if not self._is_article_target(corrected_noun):
             return None
 
+        sun_stems = {
+            "tal": "ta", "mal": "ma", "bil": "bi", "fil": "fi",
+            "mill": "mi", "għall": "għa", "sal": "sa", "lill": "li",
+        }
+        if corrected_noun[0] in SUN_LETTERS:
+            for canonical, stem in sun_stems.items():
+                if prefix == stem + corrected_noun[0]:
+                    corrected = self.preposition_article_form(
+                        canonical,
+                        corrected_noun,
+                    )
+                    if corrected:
+                        return ArticlePhraseSuggestion(
+                            0,
+                            1,
+                            corrected,
+                            self.preposition_article_choices(
+                                canonical,
+                                corrected_noun,
+                                previous,
+                            ),
+                        )
+
         if prefix in SUN_LETTERS:
             return ArticlePhraseSuggestion(
                 0,
@@ -355,11 +482,22 @@ class MalteseArticlePhraseRules:
             )
 
         if prefix in {"il", "l", "din", "dan"} or prefix.startswith("i"):
-            corrected = self.corrected_article_phrase(prefix, corrected_noun, previous)
+            corrected = (
+                f"l-{corrected_noun}"
+                if self.is_adjective(corrected_noun)
+                else self.corrected_article_phrase(
+                    prefix,
+                    corrected_noun,
+                    previous,
+                )
+            )
             choices = self.phrase_choices(corrected_noun, previous)
             return ArticlePhraseSuggestion(0, 1, corrected, choices)
 
-        if prefix in {"tal", "mal", "bil", "fil", "lill", "xil"}:
+        if prefix in {
+            "tal", "mal", "bil", "fil", "lill", "xil", "mil", "mill",
+            "għall", "ghall", "sal", "mic", "miċ",
+        }:
             corrected = self.preposition_article_form(prefix, corrected_noun)
             if corrected:
                 choices = self.preposition_article_choices(prefix, corrected_noun, previous)
@@ -380,28 +518,54 @@ class MalteseArticlePhraseRules:
         prefix_map = {
             "ta": "tal",
             "ma": "mal",
+            "ma'": "mal",
             "bi": "bil",
             "fi": "fil",
             "lil": "lill",
             "għal": "għall",
             "ghal": "għall",
+            "minn": "mill",
+            "sa": "sal",
         }
         canonical_prefix = prefix_map.get(preposition)
         if not canonical_prefix:
             return None
 
-        if next_word.startswith(("il-", "l-")):
+        consumed = 2
+        hyphenated_article_prefixes = {
+            "il", "l", "ic", "iċ", "id", "in", "ir", "is", "it",
+            "ix", "iz", "iż", *SUN_LETTERS,
+        }
+        if (
+            "-" in next_word
+            and next_word.split("-", 1)[0] in hyphenated_article_prefixes
+        ):
             noun = next_word.split("-", 1)[1]
-        elif next_word in {"il", "l"} and index + 2 < len(words):
+        elif next_word in {
+            "il", "l", "ic", "iċ", "id", "in", "ir", "is", "it",
+            "ix", "iz", "iż", *SUN_LETTERS,
+        } and index + 2 < len(words):
             noun = self.normalize(words[index + 2].text)
+            consumed = 3
         else:
             return None
+
+        corrected_noun = self._strict_dictionary_tail(noun)
+        if corrected_noun is None:
+            spellchecker = getattr(self, "spellchecker", None)
+            if spellchecker is not None:
+                corrected_place = spellchecker._correct_place_word(
+                    words[index + consumed - 1].text
+                )
+                if corrected_place:
+                    corrected_noun = self.normalize(corrected_place)
+        noun = corrected_noun or noun
 
         corrected = self.preposition_article_form(canonical_prefix, noun)
         if not corrected:
             return None
         choices = self.preposition_article_choices(canonical_prefix, noun, None)
-        return ArticlePhraseSuggestion(index, index + 2, corrected, choices)
+        return ArticlePhraseSuggestion(index, index + consumed, corrected, choices)
 
     def match_compact_preposition_article(
         self,
@@ -410,7 +574,11 @@ class MalteseArticlePhraseRules:
         normalized = self.normalize(word)
         compact_prefixes = (
             ("għall", "għal"),
+            ("ghall", "għal"),
             ("mill", "mi"),
+            ("mid", "mi"),
+            ("sal", "sa"),
+            ("lill", "lil"),
             ("tal", "ta"),
             ("mal", "ma"),
             ("bil", "bi"),

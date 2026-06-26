@@ -1,0 +1,2660 @@
+{
+  "sources": {
+    "mt": "https://style-guide.europa.eu/o/opportal-service/isg?resource=mt/annex-a5-list-countries-territories-currencies.html",
+    "en": "https://style-guide.europa.eu/o/opportal-service/isg?resource=en/annex-a5-list-countries-territories-currencies.html"
+  },
+  "records": [
+    {
+      "iso": "AF",
+      "english": "Afghanistan",
+      "maltese": "Afganistan",
+      "maltese_official": "l-Afganistan",
+      "demonyms": [
+        "Afgan",
+        "Afgana",
+        "Afgani"
+      ]
+    },
+    {
+      "iso": "AL",
+      "english": "Albania",
+      "maltese": "Albanija",
+      "maltese_official": "l-Albanija",
+      "demonyms": [
+        "Albaniż",
+        "Albaniża",
+        "Albaniżi"
+      ]
+    },
+    {
+      "iso": "DZ",
+      "english": "Algeria",
+      "maltese": "Alġerija",
+      "maltese_official": "l-Alġerija",
+      "demonyms": [
+        "Alġerin",
+        "Alġerina",
+        "Alġerini"
+      ]
+    },
+    {
+      "iso": "AS",
+      "english": "American Samoa",
+      "maltese": "Samoa Amerikana",
+      "maltese_official": "is-Samoa Amerikana",
+      "demonyms": [
+        "Samoa Amerikan",
+        "Samoa Amerikana",
+        "Samoa Amerikani"
+      ]
+    },
+    {
+      "iso": "AD",
+      "english": "Andorra",
+      "maltese": "Andorra",
+      "maltese_official": "Andorra",
+      "demonyms": [
+        "Andorran",
+        "Andorrana",
+        "Andorrani"
+      ]
+    },
+    {
+      "iso": "AO",
+      "english": "Angola",
+      "maltese": "Angola",
+      "maltese_official": "l-Angola",
+      "demonyms": [
+        "Angolan",
+        "Angolana",
+        "Angolani"
+      ]
+    },
+    {
+      "iso": "AI",
+      "english": "Anguilla",
+      "maltese": "Anguilla",
+      "maltese_official": "Anguilla",
+      "demonyms": [
+        "Anguillan",
+        "Anguillana",
+        "Anguillani"
+      ]
+    },
+    {
+      "iso": "AQ",
+      "english": "Antarctica",
+      "maltese": "Antartika",
+      "maltese_official": "l-Antartika",
+      "demonyms": []
+    },
+    {
+      "iso": "AG",
+      "english": "Antigua and Barbuda",
+      "maltese": "Antigua u Barbuda",
+      "maltese_official": "Antigua u Barbuda",
+      "demonyms": [
+        "Antiguo-Barbudjan",
+        "Antiguo-Barbudjana",
+        "Antiguo-Barbudjani"
+      ]
+    },
+    {
+      "iso": "AR",
+      "english": "Argentina",
+      "maltese": "Arġentina",
+      "maltese_official": "l-Arġentina",
+      "demonyms": [
+        "Arġentin",
+        "Arġentina",
+        "Arġentini"
+      ]
+    },
+    {
+      "iso": "AM",
+      "english": "Armenia",
+      "maltese": "Armenja",
+      "maltese_official": "l-Armenja",
+      "demonyms": [
+        "Armen",
+        "Armena",
+        "Armeni"
+      ]
+    },
+    {
+      "iso": "AW",
+      "english": "Aruba",
+      "maltese": "Aruba",
+      "maltese_official": "Aruba",
+      "demonyms": [
+        "Aruban",
+        "Arubana",
+        "Arubani"
+      ]
+    },
+    {
+      "iso": "AU",
+      "english": "Australia",
+      "maltese": "Awstralja",
+      "maltese_official": "l-Awstralja",
+      "demonyms": [
+        "Awstraljan",
+        "Awstraljana",
+        "Awstraljani"
+      ]
+    },
+    {
+      "iso": "AT",
+      "english": "Austria",
+      "maltese": "Awstrija",
+      "maltese_official": "l-Awstrija",
+      "demonyms": [
+        "Awstrijak",
+        "Awstrijaka",
+        "Awstrijaċi"
+      ]
+    },
+    {
+      "iso": "AZ",
+      "english": "Azerbaijan",
+      "maltese": "Ażerbajġan",
+      "maltese_official": "l-Ażerbajġan",
+      "demonyms": [
+        "Ażerbajġani",
+        "Ażerbajġana",
+        "Ażerbajġani"
+      ]
+    },
+    {
+      "iso": "BS",
+      "english": "Bahamas",
+      "maltese": "Bahamas",
+      "maltese_official": "il-Bahamas",
+      "demonyms": [
+        "Bahamjan",
+        "Bahamjana",
+        "Bahamjani"
+      ]
+    },
+    {
+      "iso": "BH",
+      "english": "Bahrain",
+      "maltese": "Bahrain",
+      "maltese_official": "il-Bahrain",
+      "demonyms": [
+        "Bahraini",
+        "Bahrainija",
+        "Bahrainin"
+      ]
+    },
+    {
+      "iso": "BD",
+      "english": "Bangladesh",
+      "maltese": "Bangladesh",
+      "maltese_official": "il-Bangladesh",
+      "demonyms": [
+        "Bangladeshi",
+        "Bangladesha",
+        "Bangladeshi"
+      ]
+    },
+    {
+      "iso": "BB",
+      "english": "Barbados",
+      "maltese": "Barbados",
+      "maltese_official": "Barbados",
+      "demonyms": [
+        "Barbadjan",
+        "Barbadjana",
+        "Barbadjani"
+      ]
+    },
+    {
+      "iso": "BY",
+      "english": "Belarus",
+      "maltese": "Belarussja",
+      "maltese_official": "il-Belarussja",
+      "demonyms": [
+        "Belarussu",
+        "Belarussa",
+        "Belarussi"
+      ]
+    },
+    {
+      "iso": "BE",
+      "english": "Belgium",
+      "maltese": "Belġju",
+      "maltese_official": "il-Belġju",
+      "demonyms": [
+        "Belġjan",
+        "Belġjana",
+        "Belġjani"
+      ]
+    },
+    {
+      "iso": "BZ",
+      "english": "Belize",
+      "maltese": "Belize",
+      "maltese_official": "il-Belize",
+      "demonyms": [
+        "Belizean",
+        "Belizeana",
+        "Belizeani"
+      ]
+    },
+    {
+      "iso": "BJ",
+      "english": "Benin",
+      "maltese": "Benin",
+      "maltese_official": "il-Benin",
+      "demonyms": [
+        "Beniniż",
+        "Beniniża",
+        "Beniniżi"
+      ]
+    },
+    {
+      "iso": "BM",
+      "english": "Bermuda",
+      "maltese": "Bermuda",
+      "maltese_official": "Bermuda",
+      "demonyms": [
+        "Bermudjan",
+        "Bermudjana",
+        "Bermudjani"
+      ]
+    },
+    {
+      "iso": "BT",
+      "english": "Bhutan",
+      "maltese": "Bhutan",
+      "maltese_official": "il-Bhutan",
+      "demonyms": [
+        "Bhutaniż",
+        "Bhutaniża",
+        "Bhutaniżi"
+      ]
+    },
+    {
+      "iso": "BO",
+      "english": "Bolivia",
+      "maltese": "Bolivja",
+      "maltese_official": "il-Bolivja",
+      "demonyms": [
+        "Bolivjan",
+        "Bolivjana",
+        "Bolivjani"
+      ]
+    },
+    {
+      "iso": "BA",
+      "english": "Bosnia and Herzegovina",
+      "maltese": "Bożnija-Ħerzegovina",
+      "maltese_official": "il-Bożnija-Ħerzegovina",
+      "demonyms": [
+        "Bożnijo-Ħerzegovin",
+        "Bożnijo-Ħerzegovina",
+        "Bożnijo-Ħerzegovini"
+      ]
+    },
+    {
+      "iso": "BW",
+      "english": "Botswana",
+      "maltese": "Botswana",
+      "maltese_official": "il-Botswana",
+      "demonyms": [
+        "Botswan",
+        "Botswana",
+        "Botswani"
+      ]
+    },
+    {
+      "iso": "BV",
+      "english": "Bouvet Island",
+      "maltese": "Gżira Bouvet",
+      "maltese_official": "il-Gżira Bouvet",
+      "demonyms": []
+    },
+    {
+      "iso": "BR",
+      "english": "Brazil",
+      "maltese": "Brażil",
+      "maltese_official": "il-Brażil",
+      "demonyms": [
+        "Brażiljan",
+        "Brażiljana",
+        "Brażiljani"
+      ]
+    },
+    {
+      "iso": "IO",
+      "english": "British Indian Ocean Territory",
+      "maltese": "Territorju Brittaniku tal-Oċean Indjan",
+      "maltese_official": "it-Territorju Brittaniku tal-Oċean Indjan",
+      "demonyms": []
+    },
+    {
+      "iso": "VG",
+      "english": "British Virgin Islands",
+      "maltese": "Gżejjer Verġni Brittaniċi",
+      "maltese_official": "il-Gżejjer Verġni Brittaniċi",
+      "demonyms": [
+        "mill-Gżejjer Verġni Brittaniċi"
+      ]
+    },
+    {
+      "iso": "BN",
+      "english": "Brunei",
+      "maltese": "Brunei",
+      "maltese_official": "il-Brunei",
+      "demonyms": [
+        "Brunean",
+        "Bruneana",
+        "Bruneani"
+      ]
+    },
+    {
+      "iso": "BG",
+      "english": "Bulgaria",
+      "maltese": "Bulgarija",
+      "maltese_official": "il-Bulgarija",
+      "demonyms": [
+        "Bulgaru",
+        "Bulgara",
+        "Bulgari"
+      ]
+    },
+    {
+      "iso": "BF",
+      "english": "Burkina Faso",
+      "maltese": "Burkina Faso",
+      "maltese_official": "il-Burkina Faso",
+      "demonyms": [
+        "Burkinjan",
+        "Burkinjana",
+        "Burkinjani"
+      ]
+    },
+    {
+      "iso": "BI",
+      "english": "Burundi",
+      "maltese": "Burundi",
+      "maltese_official": "il-Burundi",
+      "demonyms": [
+        "Burundjan",
+        "Burundjana",
+        "Burundjani"
+      ]
+    },
+    {
+      "iso": "CV",
+      "english": "Cabo Verde",
+      "maltese": "Cabo Verde",
+      "maltese_official": "Cabo Verde",
+      "demonyms": [
+        "Cabo Verdjan",
+        "Cabo Verdjana",
+        "Cabo Verdjani"
+      ]
+    },
+    {
+      "iso": "KH",
+      "english": "Cambodia",
+      "maltese": "Kambodja",
+      "maltese_official": "il-Kambodja",
+      "demonyms": [
+        "Kambodjan",
+        "Kambodjana",
+        "Kambodjani"
+      ]
+    },
+    {
+      "iso": "CM",
+      "english": "Cameroon",
+      "maltese": "Kamerun",
+      "maltese_official": "il-Kamerun",
+      "demonyms": [
+        "Kamerunjan",
+        "Kamerunjana",
+        "Kamerunjani"
+      ]
+    },
+    {
+      "iso": "CA",
+      "english": "Canada",
+      "maltese": "Kanada",
+      "maltese_official": "il-Kanada",
+      "demonyms": [
+        "Kanadiż",
+        "Kanadiża",
+        "Kanadiżi"
+      ]
+    },
+    {
+      "iso": "KY",
+      "english": "Cayman Islands",
+      "maltese": "Gżejjer Cayman",
+      "maltese_official": "il-Gżejjer Cayman",
+      "demonyms": [
+        "Caymanjan",
+        "Caymanjana",
+        "Caymanjani"
+      ]
+    },
+    {
+      "iso": "CF",
+      "english": "Central African Republic",
+      "maltese": "Repubblika Ċentru-Afrikana",
+      "maltese_official": "ir-Repubblika Ċentru-Afrikana",
+      "demonyms": [
+        "Ċentru-Afrikan",
+        "Ċentru-Afrikana",
+        "Ċentru-Afrikani"
+      ]
+    },
+    {
+      "iso": "TD",
+      "english": "Chad",
+      "maltese": "Chad",
+      "maltese_official": "iċ-Chad",
+      "demonyms": [
+        "Chadjan",
+        "Chadjana",
+        "Chadjani"
+      ]
+    },
+    {
+      "iso": "CL",
+      "english": "Chile",
+      "maltese": "Ċilì",
+      "maltese_official": "iċ-Ċilì",
+      "demonyms": [
+        "Ċilen",
+        "Ċilena",
+        "Ċileni"
+      ]
+    },
+    {
+      "iso": "CN",
+      "english": "China",
+      "maltese": "Ċina",
+      "maltese_official": "iċ-Ċina",
+      "demonyms": [
+        "Ċiniż",
+        "Ċiniża",
+        "Ċiniżi"
+      ]
+    },
+    {
+      "iso": "CX",
+      "english": "Christmas Island",
+      "maltese": "Gżira Christmas",
+      "maltese_official": "il-Gżira Christmas",
+      "demonyms": [
+        "mill-Gżira Christmas"
+      ]
+    },
+    {
+      "iso": "CP",
+      "english": "Clipperton",
+      "maltese": "Clipperton",
+      "maltese_official": "Clipperton",
+      "demonyms": []
+    },
+    {
+      "iso": "CC",
+      "english": "Cocos (Keeling) Islands",
+      "maltese": "Gżejjer Cocos (Keeling)",
+      "maltese_official": "il-Gżejjer Cocos (Keeling)",
+      "demonyms": [
+        "Cocosjan",
+        "Cocosjana",
+        "Cocosjani"
+      ]
+    },
+    {
+      "iso": "CO",
+      "english": "Colombia",
+      "maltese": "Kolombja",
+      "maltese_official": "il-Kolombja",
+      "demonyms": [
+        "Kolombjan",
+        "Kolombjana",
+        "Kolombjani"
+      ]
+    },
+    {
+      "iso": "KM",
+      "english": "Comoros",
+      "maltese": "Comoros",
+      "maltese_official": "Comoros",
+      "demonyms": [
+        "Comorjan",
+        "Comorjana",
+        "Comorjani"
+      ]
+    },
+    {
+      "iso": "CG",
+      "english": "Congo",
+      "maltese": "Kongo",
+      "maltese_official": "il-Kongo",
+      "demonyms": [
+        "Kongoliż",
+        "Kongoliża",
+        "Kongoliżi"
+      ]
+    },
+    {
+      "iso": "CK",
+      "english": "Cook Islands",
+      "maltese": "Gżejjer Cook",
+      "maltese_official": "il-Gżejjer Cook",
+      "demonyms": [
+        "Cookjan",
+        "Cookjana",
+        "Cookjani"
+      ]
+    },
+    {
+      "iso": "CR",
+      "english": "Costa Rica",
+      "maltese": "Costa Rica",
+      "maltese_official": "il-Costa Rica",
+      "demonyms": [
+        "Costa Rican",
+        "Costa Ricana",
+        "Costa Ricani"
+      ]
+    },
+    {
+      "iso": "HR",
+      "english": "Croatia",
+      "maltese": "Kroazja",
+      "maltese_official": "il-Kroazja",
+      "demonyms": [
+        "Kroat",
+        "Kroata",
+        "Kroati"
+      ]
+    },
+    {
+      "iso": "CU",
+      "english": "Cuba",
+      "maltese": "Kuba",
+      "maltese_official": "Kuba",
+      "demonyms": [
+        "Kuban",
+        "Kubana",
+        "Kubani"
+      ]
+    },
+    {
+      "iso": "CW",
+      "english": "Curaçao",
+      "maltese": "Curaçao",
+      "maltese_official": "Curaçao",
+      "demonyms": [
+        "Curaçaojan",
+        "Curaçaojana",
+        "Curaçaojani"
+      ]
+    },
+    {
+      "iso": "CY",
+      "english": "Cyprus",
+      "maltese": "Ċipru",
+      "maltese_official": "Ċipru",
+      "demonyms": [
+        "Ċiprijott",
+        "Ċiprijotta",
+        "Ċiprijotti"
+      ]
+    },
+    {
+      "iso": "CZ",
+      "english": "Czechia",
+      "maltese": "Ċekja",
+      "maltese_official": "iċ-Ċekja",
+      "demonyms": [
+        "Ċek",
+        "Ċeka",
+        "Ċeki"
+      ]
+    },
+    {
+      "iso": "CI",
+      "english": "Côte d’Ivoire",
+      "maltese": "Kosta tal-Avorju",
+      "maltese_official": "il-Kosta tal-Avorju",
+      "demonyms": [
+        "Avorjan",
+        "Avorjana",
+        "Avorjani"
+      ]
+    },
+    {
+      "iso": "CD",
+      "english": "Democratic Republic of the Congo",
+      "maltese": "Repubblika Demokratika tal-Kongo",
+      "maltese_official": "ir-Repubblika Demokratika tal-Kongo",
+      "demonyms": [
+        "mir-Repubblika Demokratika tal-Kongo"
+      ]
+    },
+    {
+      "iso": "DK",
+      "english": "Denmark",
+      "maltese": "Danimarka",
+      "maltese_official": "id-Danimarka",
+      "demonyms": [
+        "Daniż",
+        "Daniża",
+        "Daniżi"
+      ]
+    },
+    {
+      "iso": "DJ",
+      "english": "Djibouti",
+      "maltese": "Djibouti",
+      "maltese_official": "il-Djibouti",
+      "demonyms": [
+        "Djiboutjan",
+        "Djiboutjana",
+        "Djiboutjani"
+      ]
+    },
+    {
+      "iso": "DM",
+      "english": "Dominica",
+      "maltese": "Dominica",
+      "maltese_official": "Dominica",
+      "demonyms": [
+        "Dominican",
+        "Dominicana",
+        "Dominicani"
+      ]
+    },
+    {
+      "iso": "DO",
+      "english": "Dominican Republic",
+      "maltese": "Repubblika Dominicana",
+      "maltese_official": "ir-Repubblika Dominicana",
+      "demonyms": [
+        "Dominican",
+        "Dominicana",
+        "Dominicani"
+      ]
+    },
+    {
+      "iso": "EC",
+      "english": "Ecuador",
+      "maltese": "Ekwador",
+      "maltese_official": "l-Ekwador",
+      "demonyms": [
+        "Ekwadorjan",
+        "Ekwadorjana",
+        "Ekwadorjani"
+      ]
+    },
+    {
+      "iso": "EG",
+      "english": "Egypt",
+      "maltese": "Eġittu",
+      "maltese_official": "l-Eġittu",
+      "demonyms": [
+        "Eġizzjan",
+        "Eġizzjana",
+        "Eġizzjani"
+      ]
+    },
+    {
+      "iso": "SV",
+      "english": "El Salvador",
+      "maltese": "El Salvador",
+      "maltese_official": "El Salvador",
+      "demonyms": [
+        "Salvadorjan",
+        "Salvadorjana",
+        "Salvadorjani"
+      ]
+    },
+    {
+      "iso": "GQ",
+      "english": "Equatorial Guinea",
+      "maltese": "Guinea Ekwatorjali",
+      "maltese_official": "il-Guinea Ekwatorjali",
+      "demonyms": [
+        "Guinean Ekwatorjali",
+        "Guineana Ekwatorjali",
+        "Guineani Ekwatorjali"
+      ]
+    },
+    {
+      "iso": "ER",
+      "english": "Eritrea",
+      "maltese": "Eritrea",
+      "maltese_official": "l-Eritrea",
+      "demonyms": [
+        "Eritrean",
+        "Eritreana",
+        "Eritreani"
+      ]
+    },
+    {
+      "iso": "EE",
+      "english": "Estonia",
+      "maltese": "Estonja",
+      "maltese_official": "l-Estonja",
+      "demonyms": [
+        "Estonjan",
+        "Estonjana",
+        "Estonjani"
+      ]
+    },
+    {
+      "iso": "SZ",
+      "english": "Eswatini",
+      "maltese": "Eswatini",
+      "maltese_official": "l-Eswatini",
+      "demonyms": [
+        "Eswatinjan",
+        "Eswatinjana",
+        "Eswatinjani"
+      ]
+    },
+    {
+      "iso": "ET",
+      "english": "Ethiopia",
+      "maltese": "Etjopja",
+      "maltese_official": "l-Etjopja",
+      "demonyms": [
+        "Etjopjan",
+        "Etjopjana",
+        "Etjopjani"
+      ]
+    },
+    {
+      "iso": "FK",
+      "english": "Falkland Islands",
+      "maltese": "Gżejjer Falkland",
+      "maltese_official": "il-Gżejjer Falkland",
+      "demonyms": [
+        "Falklandiż",
+        "Falklandiża",
+        "Falklandiżi"
+      ]
+    },
+    {
+      "iso": "FO",
+      "english": "Faroes",
+      "maltese": "Gżejjer Faeroe",
+      "maltese_official": "il-Gżejjer Faeroe",
+      "demonyms": [
+        "Faeroejan",
+        "Faeroejana",
+        "Faeroejani"
+      ]
+    },
+    {
+      "iso": "FJ",
+      "english": "Fiji",
+      "maltese": "Fiġi",
+      "maltese_official": "Fiġi",
+      "demonyms": [
+        "Fiġijan",
+        "Fiġijana",
+        "Fiġijani"
+      ]
+    },
+    {
+      "iso": "FI",
+      "english": "Finland",
+      "maltese": "Finlandja",
+      "maltese_official": "il-Finlandja",
+      "demonyms": [
+        "Finlandiż",
+        "Finlandiża",
+        "Finlandiżi"
+      ]
+    },
+    {
+      "iso": "FR",
+      "english": "France",
+      "maltese": "Franza",
+      "maltese_official": "Franza",
+      "demonyms": [
+        "Franċiż",
+        "Franċiża",
+        "Franċiżi"
+      ]
+    },
+    {
+      "iso": "GF",
+      "english": "French Guiana",
+      "maltese": "Guyana Franċiża",
+      "maltese_official": "il-Guyana Franċiża",
+      "demonyms": [
+        "Franko-Guyaniż",
+        "Franko-Guyaniża",
+        "Franko-Guyaniżi"
+      ]
+    },
+    {
+      "iso": "PF",
+      "english": "French Polynesia",
+      "maltese": "Polineżja Franċiża",
+      "maltese_official": "il-Polineżja Franċiża",
+      "demonyms": [
+        "Polineżjan",
+        "Polineżjana",
+        "Polineżjani"
+      ]
+    },
+    {
+      "iso": "TF",
+      "english": "French Southern and Antarctic Lands",
+      "maltese": "Territorji Franċiżi tan-Nofsinhar u tal-Antartika",
+      "maltese_official": "it-Territorji Franċiżi tan-Nofsinhar u tal-Antartika",
+      "demonyms": []
+    },
+    {
+      "iso": "GA",
+      "english": "Gabon",
+      "maltese": "Gabon",
+      "maltese_official": "il-Gabon",
+      "demonyms": [
+        "Gaboniż",
+        "Gaboniża",
+        "Gaboniżi"
+      ]
+    },
+    {
+      "iso": "GE",
+      "english": "Georgia",
+      "maltese": "Georgia",
+      "maltese_official": "il-Georgia",
+      "demonyms": [
+        "Georgjan",
+        "Georgjana",
+        "Georgjani"
+      ]
+    },
+    {
+      "iso": "DE",
+      "english": "Germany",
+      "maltese": "Ġermanja",
+      "maltese_official": "il-Ġermanja",
+      "demonyms": [
+        "Ġermaniż",
+        "Ġermaniża",
+        "Ġermaniżi"
+      ]
+    },
+    {
+      "iso": "GH",
+      "english": "Ghana",
+      "maltese": "Ghana",
+      "maltese_official": "il-Ghana",
+      "demonyms": [
+        "Ghanjan",
+        "Ghanjana",
+        "Ghanjani"
+      ]
+    },
+    {
+      "iso": "GI",
+      "english": "Gibraltar",
+      "maltese": "Ġibiltà",
+      "maltese_official": "Ġibiltà",
+      "demonyms": [
+        "Ġibiltan",
+        "Ġibiltana",
+        "Ġibiltani"
+      ]
+    },
+    {
+      "iso": "EL",
+      "english": "Greece",
+      "maltese": "Greċja",
+      "maltese_official": "il-Greċja",
+      "demonyms": [
+        "Grieg",
+        "Griega",
+        "Griegi"
+      ]
+    },
+    {
+      "iso": "GL",
+      "english": "Greenland",
+      "maltese": "Greenland",
+      "maltese_official": "Greenland",
+      "demonyms": [
+        "Greenlandiż",
+        "Greenlandiża",
+        "Greenlandiżi"
+      ]
+    },
+    {
+      "iso": "GD",
+      "english": "Grenada",
+      "maltese": "Grenada",
+      "maltese_official": "Grenada",
+      "demonyms": [
+        "Grenadjan",
+        "Grenadjana",
+        "Grenadjani"
+      ]
+    },
+    {
+      "iso": "GP",
+      "english": "Guadeloupe",
+      "maltese": "Guadeloupe",
+      "maltese_official": "Guadeloupe",
+      "demonyms": [
+        "Guadeloupjan",
+        "Guadeloupjana",
+        "Guadeloupjani"
+      ]
+    },
+    {
+      "iso": "GU",
+      "english": "Guam",
+      "maltese": "Guam",
+      "maltese_official": "Guam",
+      "demonyms": [
+        "Guamjan",
+        "Guamjana",
+        "Guamjani"
+      ]
+    },
+    {
+      "iso": "GT",
+      "english": "Guatemala",
+      "maltese": "Gwatemala",
+      "maltese_official": "il-Gwatemala",
+      "demonyms": [
+        "Gwatemalan",
+        "Gwatemalana",
+        "Gwatemalani"
+      ]
+    },
+    {
+      "iso": "GG",
+      "english": "Guernsey",
+      "maltese": "Guernsey",
+      "maltese_official": "Guernsey",
+      "demonyms": [
+        "Guernseyan",
+        "Guernseyana",
+        "Guernseyani"
+      ]
+    },
+    {
+      "iso": "GN",
+      "english": "Guinea",
+      "maltese": "Guinea",
+      "maltese_official": "il-Guinea",
+      "demonyms": [
+        "Guinean",
+        "Guineana",
+        "Guineani"
+      ]
+    },
+    {
+      "iso": "GW",
+      "english": "Guinea-Bissau",
+      "maltese": "Guinea-Bissau",
+      "maltese_official": "il-Guinea-Bissau",
+      "demonyms": [
+        "Guinean-Bissau",
+        "Guineana-Bissau",
+        "Guineani-Bissau"
+      ]
+    },
+    {
+      "iso": "GY",
+      "english": "Guyana",
+      "maltese": "Guyana",
+      "maltese_official": "il-Guyana",
+      "demonyms": [
+        "Guyaniż",
+        "Guyaniża",
+        "Guyaniżi"
+      ]
+    },
+    {
+      "iso": "HT",
+      "english": "Haiti",
+      "maltese": "Haiti",
+      "maltese_official": "il-Haiti",
+      "demonyms": [
+        "Haitjan",
+        "Haitjana",
+        "Haitjani"
+      ]
+    },
+    {
+      "iso": "HM",
+      "english": "Heard Island and McDonald Islands",
+      "maltese": "Gżira Heard u l-Gżejjer McDonald",
+      "maltese_official": "il-Gżira Heard u l-Gżejjer McDonald",
+      "demonyms": []
+    },
+    {
+      "iso": "HN",
+      "english": "Honduras",
+      "maltese": "Honduras",
+      "maltese_official": "il-Honduras",
+      "demonyms": [
+        "Hondurjan",
+        "Hondurjana",
+        "Hondurjani"
+      ]
+    },
+    {
+      "iso": "HK",
+      "english": "Hong Kong",
+      "maltese": "Hong Kong",
+      "maltese_official": "Hong Kong",
+      "demonyms": [
+        "minn Hong Kong"
+      ]
+    },
+    {
+      "iso": "HU",
+      "english": "Hungary",
+      "maltese": "Ungerija",
+      "maltese_official": "l-Ungerija",
+      "demonyms": [
+        "Ungeriż",
+        "Ungeriża",
+        "Ungeriżi"
+      ]
+    },
+    {
+      "iso": "IS",
+      "english": "Iceland",
+      "maltese": "Iżlanda",
+      "maltese_official": "l-Iżlanda",
+      "demonyms": [
+        "Iżlandiż",
+        "Iżlandiża",
+        "Iżlandiżi"
+      ]
+    },
+    {
+      "iso": "IN",
+      "english": "India",
+      "maltese": "Indja",
+      "maltese_official": "l-Indja",
+      "demonyms": [
+        "Indjan",
+        "Indjana",
+        "Indjani"
+      ]
+    },
+    {
+      "iso": "ID",
+      "english": "Indonesia",
+      "maltese": "Indoneżja",
+      "maltese_official": "l-Indoneżja",
+      "demonyms": [
+        "Indoneżjan",
+        "Indoneżjana",
+        "Indoneżjani"
+      ]
+    },
+    {
+      "iso": "IR",
+      "english": "Iran",
+      "maltese": "Iran",
+      "maltese_official": "l-Iran",
+      "demonyms": [
+        "Iranjan",
+        "Iranjana",
+        "Iranjani"
+      ]
+    },
+    {
+      "iso": "IQ",
+      "english": "Iraq",
+      "maltese": "Iraq",
+      "maltese_official": "l-Iraq",
+      "demonyms": [
+        "Iraqi",
+        "Iraqija",
+        "Iraqin"
+      ]
+    },
+    {
+      "iso": "IE",
+      "english": "Ireland",
+      "maltese": "Irlanda",
+      "maltese_official": "l-Irlanda",
+      "demonyms": [
+        "Irlandiż",
+        "Irlandiża",
+        "Irlandiżi"
+      ]
+    },
+    {
+      "iso": "IM",
+      "english": "Isle of Man",
+      "maltese": "Isle of Man",
+      "maltese_official": "Isle of Man",
+      "demonyms": [
+        "minn Isle of Man"
+      ]
+    },
+    {
+      "iso": "IL",
+      "english": "Israel",
+      "maltese": "Iżrael",
+      "maltese_official": "Iżrael",
+      "demonyms": [
+        "Iżraeljan",
+        "Iżraeljana",
+        "Iżraeljani"
+      ]
+    },
+    {
+      "iso": "IT",
+      "english": "Italy",
+      "maltese": "Italja",
+      "maltese_official": "l-Italja",
+      "demonyms": [
+        "Taljan",
+        "Taljana",
+        "Taljani"
+      ]
+    },
+    {
+      "iso": "JM",
+      "english": "Jamaica",
+      "maltese": "Ġamajka",
+      "maltese_official": "il-Ġamajka",
+      "demonyms": [
+        "Ġamajkan",
+        "Ġamajkana",
+        "Ġamajkani"
+      ]
+    },
+    {
+      "iso": "JP",
+      "english": "Japan",
+      "maltese": "Ġappun",
+      "maltese_official": "il-Ġappun",
+      "demonyms": [
+        "Ġappuniż",
+        "Ġappuniża",
+        "Ġappuniżi"
+      ]
+    },
+    {
+      "iso": "JE",
+      "english": "Jersey",
+      "maltese": "Jersey",
+      "maltese_official": "Jersey",
+      "demonyms": [
+        "Jerseyan",
+        "Jerseyana",
+        "Jerseyani"
+      ]
+    },
+    {
+      "iso": "JO",
+      "english": "Jordan",
+      "maltese": "Ġordan",
+      "maltese_official": "il-Ġordan",
+      "demonyms": [
+        "Ġordaniż",
+        "Ġordaniża",
+        "Ġordaniżi"
+      ]
+    },
+    {
+      "iso": "KZ",
+      "english": "Kazakhstan",
+      "maltese": "Każakistan",
+      "maltese_official": "il-Każakistan",
+      "demonyms": [
+        "Każakistani",
+        "Każakistana",
+        "Każakistani"
+      ]
+    },
+    {
+      "iso": "KE",
+      "english": "Kenya",
+      "maltese": "Kenja",
+      "maltese_official": "il-Kenja",
+      "demonyms": [
+        "Kenjan",
+        "Kenjana",
+        "Kenjani"
+      ]
+    },
+    {
+      "iso": "KI",
+      "english": "Kiribati",
+      "maltese": "Kiribati",
+      "maltese_official": "Kiribati",
+      "demonyms": [
+        "Kiribatjan",
+        "Kiribatjana",
+        "Kiribatjani"
+      ]
+    },
+    {
+      "iso": "KW",
+      "english": "Kuwait",
+      "maltese": "Kuwajt",
+      "maltese_official": "il-Kuwajt",
+      "demonyms": [
+        "Kuwajti",
+        "Kuwajtija",
+        "Kuwajtin"
+      ]
+    },
+    {
+      "iso": "KG",
+      "english": "Kyrgyzstan",
+      "maltese": "Kirgistan",
+      "maltese_official": "il-Kirgistan",
+      "demonyms": [
+        "Kirgistani",
+        "Kirgistana",
+        "Kirgistani"
+      ]
+    },
+    {
+      "iso": "LA",
+      "english": "Laos",
+      "maltese": "Laos",
+      "maltese_official": "il-Laos",
+      "demonyms": [
+        "Laosjan",
+        "Laosjana",
+        "Laosjani"
+      ]
+    },
+    {
+      "iso": "LV",
+      "english": "Latvia",
+      "maltese": "Latvja",
+      "maltese_official": "il-Latvja",
+      "demonyms": [
+        "Latvjan",
+        "Latvjana",
+        "Latvjani"
+      ]
+    },
+    {
+      "iso": "LB",
+      "english": "Lebanon",
+      "maltese": "Libanu",
+      "maltese_official": "il-Libanu",
+      "demonyms": [
+        "Libaniż",
+        "Libaniża",
+        "Libaniżi"
+      ]
+    },
+    {
+      "iso": "LS",
+      "english": "Lesotho",
+      "maltese": "Lesoto",
+      "maltese_official": "il-Lesoto",
+      "demonyms": [
+        "Lesotan",
+        "Lesotana",
+        "Lesotani"
+      ]
+    },
+    {
+      "iso": "LR",
+      "english": "Liberia",
+      "maltese": "Liberja",
+      "maltese_official": "il-Liberja",
+      "demonyms": [
+        "Liberjan",
+        "Liberjana",
+        "Liberjani"
+      ]
+    },
+    {
+      "iso": "LY",
+      "english": "Libya",
+      "maltese": "Libja",
+      "maltese_official": "il-Libja",
+      "demonyms": [
+        "Libjan",
+        "Libjana",
+        "Libjani"
+      ]
+    },
+    {
+      "iso": "LI",
+      "english": "Liechtenstein",
+      "maltese": "Liechtenstein",
+      "maltese_official": "il-Liechtenstein",
+      "demonyms": [
+        "mil-Liechtenstein"
+      ]
+    },
+    {
+      "iso": "LT",
+      "english": "Lithuania",
+      "maltese": "Litwanja",
+      "maltese_official": "il-Litwanja",
+      "demonyms": [
+        "Litwan",
+        "Litwana",
+        "Litwani"
+      ]
+    },
+    {
+      "iso": "LU",
+      "english": "Luxembourg",
+      "maltese": "Lussemburgu",
+      "maltese_official": "il-Lussemburgu",
+      "demonyms": [
+        "Lussemburgiż",
+        "Lussemburgiża",
+        "Lussemburgiżi"
+      ]
+    },
+    {
+      "iso": "MO",
+      "english": "Macao",
+      "maltese": "Macao",
+      "maltese_official": "il-Macao",
+      "demonyms": [
+        "Macaojan",
+        "Macaojana",
+        "Macaojani"
+      ]
+    },
+    {
+      "iso": "MG",
+      "english": "Madagascar",
+      "maltese": "Madagascar",
+      "maltese_official": "Madagascar",
+      "demonyms": [
+        "Madagascarjan",
+        "Madagascarjana",
+        "Madagascarjani"
+      ]
+    },
+    {
+      "iso": "MW",
+      "english": "Malawi",
+      "maltese": "Malawi",
+      "maltese_official": "il-Malawi",
+      "demonyms": [
+        "Malawjan",
+        "Malawjana",
+        "Malawjani"
+      ]
+    },
+    {
+      "iso": "MY",
+      "english": "Malaysia",
+      "maltese": "Malażja",
+      "maltese_official": "il-Malażja",
+      "demonyms": [
+        "Malażjan",
+        "Malażjana",
+        "Malażjani"
+      ]
+    },
+    {
+      "iso": "MV",
+      "english": "Maldives",
+      "maltese": "Maldivi",
+      "maltese_official": "il-Maldivi",
+      "demonyms": [
+        "Maldivjan",
+        "Maldivjana",
+        "Maldivjani"
+      ]
+    },
+    {
+      "iso": "ML",
+      "english": "Mali",
+      "maltese": "Mali",
+      "maltese_official": "il-Mali",
+      "demonyms": [
+        "Maljan",
+        "Maljana",
+        "Maljani"
+      ]
+    },
+    {
+      "iso": "MT",
+      "english": "Malta",
+      "maltese": "Malta",
+      "maltese_official": "Malta",
+      "demonyms": [
+        "Malti",
+        "Maltija",
+        "Maltin"
+      ]
+    },
+    {
+      "iso": "MH",
+      "english": "Marshall Islands",
+      "maltese": "Gżejjer Marshall",
+      "maltese_official": "il-Gżejjer Marshall",
+      "demonyms": [
+        "Marshalljan",
+        "Marshalljana",
+        "Marshalljani"
+      ]
+    },
+    {
+      "iso": "MQ",
+      "english": "Martinique",
+      "maltese": "Martinique",
+      "maltese_official": "Martinique",
+      "demonyms": [
+        "Martiniquejan",
+        "Martiniquejana",
+        "Martiniquejani"
+      ]
+    },
+    {
+      "iso": "MR",
+      "english": "Mauritania",
+      "maltese": "Mauritania",
+      "maltese_official": "il-Mauritania",
+      "demonyms": [
+        "Mauritanjan",
+        "Mauritanjana",
+        "Mauritanjani"
+      ]
+    },
+    {
+      "iso": "MU",
+      "english": "Mauritius",
+      "maltese": "Mauritius",
+      "maltese_official": "Mauritius",
+      "demonyms": [
+        "Mauritiusjan",
+        "Mauritiusjana",
+        "Mauritiusjani"
+      ]
+    },
+    {
+      "iso": "YT",
+      "english": "Mayotte",
+      "maltese": "Mayotte",
+      "maltese_official": "Mayotte",
+      "demonyms": [
+        "Mayottjan",
+        "Mayottjana",
+        "Mayottjani"
+      ]
+    },
+    {
+      "iso": "MX",
+      "english": "Mexico",
+      "maltese": "Messiku",
+      "maltese_official": "il-Messiku",
+      "demonyms": [
+        "Messikan",
+        "Messikana",
+        "Messikani"
+      ]
+    },
+    {
+      "iso": "FM",
+      "english": "Micronesia",
+      "maltese": "Mikroneżja",
+      "maltese_official": "il-Mikroneżja",
+      "demonyms": [
+        "Mikroneżjan",
+        "Mikroneżjana",
+        "Mikroneżjani"
+      ]
+    },
+    {
+      "iso": "MD",
+      "english": "Moldova",
+      "maltese": "Moldova",
+      "maltese_official": "il-Moldova",
+      "demonyms": [
+        "Moldovan",
+        "Moldovana",
+        "Moldovani"
+      ]
+    },
+    {
+      "iso": "MC",
+      "english": "Monaco",
+      "maltese": "Monaco",
+      "maltese_official": "Monaco",
+      "demonyms": [
+        "Monacan",
+        "Monacana",
+        "Monacani"
+      ]
+    },
+    {
+      "iso": "MN",
+      "english": "Mongolia",
+      "maltese": "Mongolja",
+      "maltese_official": "il-Mongolja",
+      "demonyms": [
+        "Mongoljan",
+        "Mongoljana",
+        "Mongoljani"
+      ]
+    },
+    {
+      "iso": "ME",
+      "english": "Montenegro",
+      "maltese": "Montenegro",
+      "maltese_official": "il-Montenegro",
+      "demonyms": [
+        "Montenegrin",
+        "Montenegrina",
+        "Montenegrini"
+      ]
+    },
+    {
+      "iso": "MS",
+      "english": "Montserrat",
+      "maltese": "Montserrat",
+      "maltese_official": "Montserrat",
+      "demonyms": [
+        "Montserratjan",
+        "Montserratjana",
+        "Montserratjani"
+      ]
+    },
+    {
+      "iso": "MA",
+      "english": "Morocco",
+      "maltese": "Marokk",
+      "maltese_official": "il-Marokk",
+      "demonyms": [
+        "Marokkin",
+        "Marokkina",
+        "Marokkini"
+      ]
+    },
+    {
+      "iso": "MZ",
+      "english": "Mozambique",
+      "maltese": "Mozambique",
+      "maltese_official": "il-Mozambique",
+      "demonyms": [
+        "Mozambiquejan",
+        "Mozambiquejana",
+        "Mozambiquejani"
+      ]
+    },
+    {
+      "iso": "MM",
+      "english": "Myanmar/Burma",
+      "maltese": "Myanmar/Burma",
+      "maltese_official": "il-Myanmar/Burma",
+      "demonyms": [
+        "Myanmarjan",
+        "Myanmarjana",
+        "Myanmarjani/Burmiż",
+        "Burmiża",
+        "Burmiżi"
+      ]
+    },
+    {
+      "iso": "NA",
+      "english": "Namibia",
+      "maltese": "Namibja",
+      "maltese_official": "in-Namibja",
+      "demonyms": [
+        "Namibjan",
+        "Namibjana",
+        "Namibjani"
+      ]
+    },
+    {
+      "iso": "NR",
+      "english": "Nauru",
+      "maltese": "Nauru",
+      "maltese_official": "Nauru",
+      "demonyms": [
+        "Naurujan",
+        "Naurujana",
+        "Naurujani"
+      ]
+    },
+    {
+      "iso": "NP",
+      "english": "Nepal",
+      "maltese": "Nepal",
+      "maltese_official": "in-Nepal",
+      "demonyms": [
+        "Nepaliż",
+        "Nepaliża",
+        "Nepaliżi"
+      ]
+    },
+    {
+      "iso": "NL",
+      "english": "Netherlands",
+      "maltese": "Netherlands",
+      "maltese_official": "in-Netherlands",
+      "demonyms": [
+        "Netherlandiż",
+        "Netherlandiża",
+        "Netherlandiżi"
+      ]
+    },
+    {
+      "iso": "NC",
+      "english": "New Caledonia",
+      "maltese": "New Caledonia",
+      "maltese_official": "New Caledonia",
+      "demonyms": [
+        "New Caledonian",
+        "New Caledoniana",
+        "New Caledoniani"
+      ]
+    },
+    {
+      "iso": "NZ",
+      "english": "New Zealand",
+      "maltese": "New Zealand",
+      "maltese_official": "New Zealand",
+      "demonyms": [
+        "New Zealandiż",
+        "New Zealandiża",
+        "New Zealandiżi"
+      ]
+    },
+    {
+      "iso": "NI",
+      "english": "Nicaragua",
+      "maltese": "Nikaragwa",
+      "maltese_official": "in-Nikaragwa",
+      "demonyms": [
+        "Nikaragwan",
+        "Nikaragwana",
+        "Nikaragwani"
+      ]
+    },
+    {
+      "iso": "NE",
+      "english": "Niger",
+      "maltese": "Niġer",
+      "maltese_official": "in-Niġer",
+      "demonyms": [
+        "Niġerin",
+        "Niġerina",
+        "Niġerini"
+      ]
+    },
+    {
+      "iso": "NG",
+      "english": "Nigeria",
+      "maltese": "Niġerja",
+      "maltese_official": "in-Niġerja",
+      "demonyms": [
+        "Niġerjan",
+        "Niġerjana",
+        "Niġerjani"
+      ]
+    },
+    {
+      "iso": "NU",
+      "english": "Niue",
+      "maltese": "Niue",
+      "maltese_official": "Niue",
+      "demonyms": [
+        "Niuean",
+        "Niueana",
+        "Niueani"
+      ]
+    },
+    {
+      "iso": "NF",
+      "english": "Norfolk Island",
+      "maltese": "Gżira Norfolk",
+      "maltese_official": "il-Gżira Norfolk",
+      "demonyms": [
+        "Norfolkjan",
+        "Norfolkjana",
+        "Norfolkjani"
+      ]
+    },
+    {
+      "iso": "KP",
+      "english": "North Korea",
+      "maltese": "Korea ta’ Fuq",
+      "maltese_official": "il-Korea ta’ Fuq",
+      "demonyms": [
+        "Nord Korean",
+        "Nord Koreana",
+        "Nord Koreani"
+      ]
+    },
+    {
+      "iso": "MK",
+      "english": "North Macedonia",
+      "maltese": "Maċedonja ta’ Fuq",
+      "maltese_official": "il-Maċedonja ta’ Fuq",
+      "demonyms": [
+        "Maċedonjan/ċittadin tar-Repubblika tal-Maċedonja ta’ Fuq Maċedonjana/ċittadina tar-Repubblika tal-Maċedonja ta’ Fuq Maċedonjani/ċittadini tar-Repubblika tal-Maċedonja ta’ Fuq"
+      ]
+    },
+    {
+      "iso": "MP",
+      "english": "Northern Mariana Islands",
+      "maltese": "Gżejjer Mariana tat-Tramuntana",
+      "maltese_official": "il-Gżejjer Mariana tat-Tramuntana",
+      "demonyms": [
+        "mill-Gżejjer Mariana tat-Tramuntana"
+      ]
+    },
+    {
+      "iso": "NO",
+      "english": "Norway",
+      "maltese": "Norveġja",
+      "maltese_official": "in-Norveġja",
+      "demonyms": [
+        "Norveġiż",
+        "Norveġiża",
+        "Norveġiżi"
+      ]
+    },
+    {
+      "iso": "OM",
+      "english": "Oman",
+      "maltese": "Oman",
+      "maltese_official": "l-Oman",
+      "demonyms": [
+        "Omani",
+        "Omanija",
+        "Omanin"
+      ]
+    },
+    {
+      "iso": "PK",
+      "english": "Pakistan",
+      "maltese": "Pakistan",
+      "maltese_official": "il-Pakistan",
+      "demonyms": [
+        "Pakistani",
+        "Pakistana",
+        "Pakistani"
+      ]
+    },
+    {
+      "iso": "PW",
+      "english": "Palau",
+      "maltese": "Palau",
+      "maltese_official": "Palau",
+      "demonyms": [
+        "Palaujan",
+        "Palaujana",
+        "Palaujani"
+      ]
+    },
+    {
+      "iso": "PA",
+      "english": "Panama",
+      "maltese": "Panama",
+      "maltese_official": "il-Panama",
+      "demonyms": [
+        "Panaman",
+        "Panamana",
+        "Panamani"
+      ]
+    },
+    {
+      "iso": "PG",
+      "english": "Papua New Guinea",
+      "maltese": "Papua New Guinea",
+      "maltese_official": "Papua New Guinea",
+      "demonyms": [
+        "Papuan",
+        "Papuana",
+        "Papuani"
+      ]
+    },
+    {
+      "iso": "PY",
+      "english": "Paraguay",
+      "maltese": "Paragwaj",
+      "maltese_official": "il-Paragwaj",
+      "demonyms": [
+        "Paragwajan",
+        "Paragwajana",
+        "Paragwajani"
+      ]
+    },
+    {
+      "iso": "PE",
+      "english": "Peru",
+      "maltese": "Perù",
+      "maltese_official": "il-Perù",
+      "demonyms": [
+        "Peruvjan",
+        "Peruvjana",
+        "Peruvjani"
+      ]
+    },
+    {
+      "iso": "PH",
+      "english": "Philippines",
+      "maltese": "Filippini",
+      "maltese_official": "il-Filippini",
+      "demonyms": [
+        "Filippin",
+        "Filippina",
+        "Filippini"
+      ]
+    },
+    {
+      "iso": "PN",
+      "english": "Pitcairn Islands",
+      "maltese": "Gżejjer Pitcairn",
+      "maltese_official": "il-Gżejjer Pitcairn",
+      "demonyms": [
+        "Pitcairnjan",
+        "Pitcairnjana",
+        "Pitcairnjani"
+      ]
+    },
+    {
+      "iso": "PL",
+      "english": "Poland",
+      "maltese": "Polonja",
+      "maltese_official": "il-Polonja",
+      "demonyms": [
+        "Pollakk",
+        "Pollakka",
+        "Pollakki"
+      ]
+    },
+    {
+      "iso": "PT",
+      "english": "Portugal",
+      "maltese": "Portugall",
+      "maltese_official": "il-Portugall",
+      "demonyms": [
+        "Portugiż",
+        "Portugiża",
+        "Portugiżi"
+      ]
+    },
+    {
+      "iso": "PR",
+      "english": "Puerto Rico",
+      "maltese": "Puerto Rico",
+      "maltese_official": "Puerto Rico",
+      "demonyms": [
+        "Puerto Rican",
+        "Puerto Ricana",
+        "Puerto Ricani"
+      ]
+    },
+    {
+      "iso": "QA",
+      "english": "Qatar",
+      "maltese": "Qatar",
+      "maltese_official": "il-Qatar",
+      "demonyms": [
+        "Qatari",
+        "Qatarija",
+        "Qatarin"
+      ]
+    },
+    {
+      "iso": "RO",
+      "english": "Romania",
+      "maltese": "Rumanija",
+      "maltese_official": "ir-Rumanija",
+      "demonyms": [
+        "Rumen",
+        "Rumena",
+        "Rumeni"
+      ]
+    },
+    {
+      "iso": "RU",
+      "english": "Russia",
+      "maltese": "Russja",
+      "maltese_official": "ir-Russja",
+      "demonyms": [
+        "Russu",
+        "Russa",
+        "Russi"
+      ]
+    },
+    {
+      "iso": "RW",
+      "english": "Rwanda",
+      "maltese": "Rwanda",
+      "maltese_official": "ir-Rwanda",
+      "demonyms": [
+        "Rwandiż",
+        "Rwandiża",
+        "Rwandiżi"
+      ]
+    },
+    {
+      "iso": "RE",
+      "english": "Réunion",
+      "maltese": "Réunion",
+      "maltese_official": "Réunion",
+      "demonyms": [
+        "Réunioniż",
+        "Réunioniża",
+        "Réunioniżi"
+      ]
+    },
+    {
+      "iso": "BL",
+      "english": "Saint Barthélemy",
+      "maltese": "Saint Barthélemy",
+      "maltese_official": "Saint Barthélemy",
+      "demonyms": [
+        "minn Saint Barthélemy"
+      ]
+    },
+    {
+      "iso": "SH",
+      "english": "Saint Helena, Ascension and Tristan da Cunha",
+      "maltese": "Saint Helena, Ascension u Tristan da Cunha",
+      "maltese_official": "Saint Helena, Ascension u Tristan da Cunha",
+      "demonyms": [
+        "minn Saint Helena",
+        "Ascension u Tristan da Cunha"
+      ]
+    },
+    {
+      "iso": "KN",
+      "english": "Saint Kitts and Nevis",
+      "maltese": "Saint Kitts u Nevis",
+      "maltese_official": "Saint Kitts u Nevis",
+      "demonyms": [
+        "minn Saint Kitts u Nevis"
+      ]
+    },
+    {
+      "iso": "LC",
+      "english": "Saint Lucia",
+      "maltese": "Saint Lucia",
+      "maltese_official": "Saint Lucia",
+      "demonyms": [
+        "minn Saint Lucia"
+      ]
+    },
+    {
+      "iso": "MF",
+      "english": "Saint Martin",
+      "maltese": "Saint Martin",
+      "maltese_official": "Saint Martin",
+      "demonyms": [
+        "minn Saint Martin"
+      ]
+    },
+    {
+      "iso": "PM",
+      "english": "Saint Pierre and Miquelon",
+      "maltese": "Saint Pierre u Miquelon",
+      "maltese_official": "Saint Pierre u Miquelon",
+      "demonyms": [
+        "minn Saint Pierre u Miquelon"
+      ]
+    },
+    {
+      "iso": "VC",
+      "english": "Saint Vincent and the Grenadines",
+      "maltese": "Saint Vincent u l-Grenadini",
+      "maltese_official": "Saint Vincent u l-Grenadini",
+      "demonyms": [
+        "minn Saint Vincent u l-Grenadini"
+      ]
+    },
+    {
+      "iso": "WS",
+      "english": "Samoa",
+      "maltese": "Samoa",
+      "maltese_official": "Samoa",
+      "demonyms": [
+        "Samoan",
+        "Samoana",
+        "Samoani"
+      ]
+    },
+    {
+      "iso": "SM",
+      "english": "San Marino",
+      "maltese": "San Marino",
+      "maltese_official": "San Marino",
+      "demonyms": [
+        "San Mariniż",
+        "San Mariniża",
+        "San Mariniżi"
+      ]
+    },
+    {
+      "iso": "SA",
+      "english": "Saudi Arabia",
+      "maltese": "Arabja Sawdija",
+      "maltese_official": "l-Arabja Sawdija",
+      "demonyms": [
+        "Sawdi",
+        "Sawdija",
+        "Sawdin"
+      ]
+    },
+    {
+      "iso": "SN",
+      "english": "Senegal",
+      "maltese": "Senegal",
+      "maltese_official": "is-Senegal",
+      "demonyms": [
+        "Senegaliż",
+        "Senegaliża",
+        "Senegaliżi"
+      ]
+    },
+    {
+      "iso": "RS",
+      "english": "Serbia",
+      "maltese": "Serbja",
+      "maltese_official": "is-Serbja",
+      "demonyms": [
+        "Serb",
+        "Serba",
+        "Serbi"
+      ]
+    },
+    {
+      "iso": "SC",
+      "english": "Seychelles",
+      "maltese": "Seychelles",
+      "maltese_official": "is-Seychelles",
+      "demonyms": [
+        "Seychelljan",
+        "Seychelljana",
+        "Seychelljani"
+      ]
+    },
+    {
+      "iso": "SL",
+      "english": "Sierra Leone",
+      "maltese": "Sierra Leone",
+      "maltese_official": "Sierra Leone",
+      "demonyms": [
+        "Sierra Leonjan",
+        "Sierra Leonjana",
+        "Sierra Leonjani"
+      ]
+    },
+    {
+      "iso": "SG",
+      "english": "Singapore",
+      "maltese": "Singapore",
+      "maltese_official": "Singapore",
+      "demonyms": [
+        "Singaporjan",
+        "Singaporjana",
+        "Singaporjani"
+      ]
+    },
+    {
+      "iso": "SX",
+      "english": "Sint Maarten",
+      "maltese": "Sint Maarten",
+      "maltese_official": "Sint Maarten",
+      "demonyms": [
+        "minn Sint Maarten"
+      ]
+    },
+    {
+      "iso": "SK",
+      "english": "Slovakia",
+      "maltese": "Slovakkja",
+      "maltese_official": "is-Slovakkja",
+      "demonyms": [
+        "Slovakk",
+        "Slovakka",
+        "Slovakki"
+      ]
+    },
+    {
+      "iso": "SI",
+      "english": "Slovenia",
+      "maltese": "Slovenja",
+      "maltese_official": "is-Slovenja",
+      "demonyms": [
+        "Sloven",
+        "Slovena",
+        "Sloveni"
+      ]
+    },
+    {
+      "iso": "SB",
+      "english": "Solomon Islands",
+      "maltese": "Gżejjer Solomon",
+      "maltese_official": "il-Gżejjer Solomon",
+      "demonyms": [
+        "Solomonjan",
+        "Solomonjana",
+        "Solomonjani"
+      ]
+    },
+    {
+      "iso": "SO",
+      "english": "Somalia",
+      "maltese": "Somalja",
+      "maltese_official": "is-Somalja",
+      "demonyms": [
+        "Somalu",
+        "Somala",
+        "Somali"
+      ]
+    },
+    {
+      "iso": "ZA",
+      "english": "South Africa",
+      "maltese": "Afrika t’Isfel",
+      "maltese_official": "l-Afrika t’Isfel",
+      "demonyms": [
+        "Sud Afrikan",
+        "Sud Afrikana",
+        "Sud Afrikani"
+      ]
+    },
+    {
+      "iso": "GS",
+      "english": "South Georgia and the South Sandwich Islands",
+      "maltese": "Georgia tan-Nofsinhar u l-Gżejjer Sandwich tan-Nofsinhar",
+      "maltese_official": "il-Georgia tan-Nofsinhar u l-Gżejjer Sandwich tan-Nofsinhar",
+      "demonyms": []
+    },
+    {
+      "iso": "KR",
+      "english": "South Korea",
+      "maltese": "Korea t’Isfel",
+      "maltese_official": "il-Korea t’Isfel",
+      "demonyms": [
+        "Sud Korean",
+        "Sud Koreana",
+        "Sud Koreani"
+      ]
+    },
+    {
+      "iso": "SS",
+      "english": "South Sudan",
+      "maltese": "Sudan t’Isfel",
+      "maltese_official": "is-Sudan t’Isfel",
+      "demonyms": [
+        "Sud Sudaniż",
+        "Sud Sudaniża",
+        "Sud Sudaniżi"
+      ]
+    },
+    {
+      "iso": "ES",
+      "english": "Spain",
+      "maltese": "Spanja",
+      "maltese_official": "Spanja",
+      "demonyms": [
+        "Spanjol",
+        "Spanjola",
+        "Spanjoli"
+      ]
+    },
+    {
+      "iso": "LK",
+      "english": "Sri Lanka",
+      "maltese": "Sri Lanka",
+      "maltese_official": "is-Sri Lanka",
+      "demonyms": [
+        "Sri Lankan",
+        "Sri Lankana",
+        "Sri Lankani"
+      ]
+    },
+    {
+      "iso": "SD",
+      "english": "Sudan",
+      "maltese": "Sudan",
+      "maltese_official": "is-Sudan",
+      "demonyms": [
+        "Sudaniż",
+        "Sudaniża",
+        "Sudaniżi"
+      ]
+    },
+    {
+      "iso": "SR",
+      "english": "Suriname",
+      "maltese": "Suriname",
+      "maltese_official": "is-Suriname",
+      "demonyms": [
+        "Surinamjan",
+        "Surinamjana",
+        "Surinamjani"
+      ]
+    },
+    {
+      "iso": "SJ",
+      "english": "Svalbard and Jan Mayen",
+      "maltese": "Svalbard u Jan Mayen",
+      "maltese_official": "Svalbard u Jan Mayen",
+      "demonyms": [
+        "minn Svalbard",
+        "minn Jan Mayen"
+      ]
+    },
+    {
+      "iso": "SE",
+      "english": "Sweden",
+      "maltese": "Iżvezja",
+      "maltese_official": "l-Iżvezja",
+      "demonyms": [
+        "Żvediż",
+        "Żvediża",
+        "Żvediżi"
+      ]
+    },
+    {
+      "iso": "CH",
+      "english": "Switzerland",
+      "maltese": "Iżvizzera",
+      "maltese_official": "l-Iżvizzera",
+      "demonyms": [
+        "Żvizzeru",
+        "Żvizzera",
+        "Żvizzeri"
+      ]
+    },
+    {
+      "iso": "SY",
+      "english": "Syria",
+      "maltese": "Sirja",
+      "maltese_official": "is-Sirja",
+      "demonyms": [
+        "Sirjan",
+        "Sirjana",
+        "Sirjani"
+      ]
+    },
+    {
+      "iso": "ST",
+      "english": "São Tomé and Príncipe",
+      "maltese": "São Tomé u Príncipe",
+      "maltese_official": "São Tomé u Príncipe",
+      "demonyms": [
+        "minn São Tomé u Príncipe"
+      ]
+    },
+    {
+      "iso": "TW",
+      "english": "Taiwan",
+      "maltese": "Tajwan",
+      "maltese_official": "it-Tajwan",
+      "demonyms": [
+        "Tajwaniż",
+        "Tajwaniża",
+        "Tajwaniżi"
+      ]
+    },
+    {
+      "iso": "TJ",
+      "english": "Tajikistan",
+      "maltese": "Taġikistan",
+      "maltese_official": "it-Taġikistan",
+      "demonyms": [
+        "Taġikistani",
+        "Taġikistana",
+        "Taġikistani"
+      ]
+    },
+    {
+      "iso": "TZ",
+      "english": "Tanzania",
+      "maltese": "Tanzanija",
+      "maltese_official": "it-Tanzanija",
+      "demonyms": [
+        "Tanzani",
+        "Tanzanija",
+        "Tanzanin"
+      ]
+    },
+    {
+      "iso": "TH",
+      "english": "Thailand",
+      "maltese": "Tajlandja",
+      "maltese_official": "it-Tajlandja",
+      "demonyms": [
+        "Tajlandiż",
+        "Tajlandiża",
+        "Tajlandiżi"
+      ]
+    },
+    {
+      "iso": "GM",
+      "english": "The Gambia",
+      "maltese": "Gambja",
+      "maltese_official": "il-Gambja",
+      "demonyms": [
+        "Gambjan",
+        "Gambjana",
+        "Gambjani"
+      ]
+    },
+    {
+      "iso": "VA",
+      "english": "the Holy See/ Vatican City State",
+      "maltese": "Santa Sede / l-Istat tal-Belt tal-Vatikan",
+      "maltese_official": "is-Santa Sede / l-Istat tal-Belt tal-Vatikan",
+      "demonyms": [
+        "mis-Santa Sede / mill-Istat tal-Belt tal-Vatikan"
+      ]
+    },
+    {
+      "iso": "TL",
+      "english": "Timor-Leste",
+      "maltese": "Timor Leste",
+      "maltese_official": "Timor Leste",
+      "demonyms": [
+        "Timoriż",
+        "Timoriża",
+        "Timoriżi"
+      ]
+    },
+    {
+      "iso": "TG",
+      "english": "Togo",
+      "maltese": "Togo",
+      "maltese_official": "it-Togo",
+      "demonyms": [
+        "Togoliż",
+        "Togoliża",
+        "Togoliżi"
+      ]
+    },
+    {
+      "iso": "TK",
+      "english": "Tokelau",
+      "maltese": "Tokelau",
+      "maltese_official": "it-Tokelau",
+      "demonyms": [
+        "Tokelaujan",
+        "Tokelaujana",
+        "Tokelaujani"
+      ]
+    },
+    {
+      "iso": "TO",
+      "english": "Tonga",
+      "maltese": "Tonga",
+      "maltese_official": "Tonga",
+      "demonyms": [
+        "Tongan",
+        "Tongana",
+        "Tongani"
+      ]
+    },
+    {
+      "iso": "TT",
+      "english": "Trinidad and Tobago",
+      "maltese": "Trinidad u Tobago",
+      "maltese_official": "Trinidad u Tobago",
+      "demonyms": [
+        "minn Trinidad u Tobago"
+      ]
+    },
+    {
+      "iso": "TN",
+      "english": "Tunisia",
+      "maltese": "Tuneżija",
+      "maltese_official": "it-Tuneżija",
+      "demonyms": [
+        "Tuneżin",
+        "Tuneżina",
+        "Tuneżini"
+      ]
+    },
+    {
+      "iso": "TM",
+      "english": "Turkmenistan",
+      "maltese": "Turkmenistan",
+      "maltese_official": "it-Turkmenistan",
+      "demonyms": [
+        "Turkmen",
+        "Turkmena",
+        "Turkmeni"
+      ]
+    },
+    {
+      "iso": "TC",
+      "english": "Turks and Caicos Islands",
+      "maltese": "Gżejjer Turks u Caicos",
+      "maltese_official": "il-Gżejjer Turks u Caicos",
+      "demonyms": [
+        "mill-Gżejjer Turks u Caicos"
+      ]
+    },
+    {
+      "iso": "TV",
+      "english": "Tuvalu",
+      "maltese": "Tuvalu",
+      "maltese_official": "Tuvalu",
+      "demonyms": [
+        "Tuvalan",
+        "Tuvalana",
+        "Tuvalani"
+      ]
+    },
+    {
+      "iso": "TR",
+      "english": "Türkiye",
+      "maltese": "Turkija",
+      "maltese_official": "it-Turkija",
+      "demonyms": [
+        "Tork",
+        "Torka",
+        "Torok"
+      ]
+    },
+    {
+      "iso": "UG",
+      "english": "Uganda",
+      "maltese": "Uganda",
+      "maltese_official": "l-Uganda",
+      "demonyms": [
+        "Ugandiż",
+        "Ugandiża",
+        "Ugandiżi"
+      ]
+    },
+    {
+      "iso": "UA",
+      "english": "Ukraine",
+      "maltese": "Ukrajna",
+      "maltese_official": "l-Ukrajna",
+      "demonyms": [
+        "Ukren",
+        "Ukrena",
+        "Ukreni"
+      ]
+    },
+    {
+      "iso": "AE",
+      "english": "United Arab Emirates",
+      "maltese": "Emirati Għarab Magħquda",
+      "maltese_official": "l-Emirati Għarab Magħquda",
+      "demonyms": [
+        "Emiratjan",
+        "Emiratjana",
+        "Emiratjani"
+      ]
+    },
+    {
+      "iso": "UK",
+      "english": "United Kingdom",
+      "maltese": "Renju Unit",
+      "maltese_official": "ir-Renju Unit",
+      "demonyms": [
+        "Brittaniku",
+        "Brittanika",
+        "Brittaniċi"
+      ]
+    },
+    {
+      "iso": "US",
+      "english": "United States",
+      "maltese": "Istati Uniti",
+      "maltese_official": "l-Istati Uniti",
+      "demonyms": [
+        "Amerikan",
+        "Amerikana",
+        "Amerikani"
+      ]
+    },
+    {
+      "iso": "UM",
+      "english": "United States Minor Outlying Islands",
+      "maltese": "Gżejjer Minuri Mbiegħda tal-Istati Uniti",
+      "maltese_official": "il-Gżejjer Minuri Mbiegħda tal-Istati Uniti",
+      "demonyms": []
+    },
+    {
+      "iso": "UY",
+      "english": "Uruguay",
+      "maltese": "Urugwaj",
+      "maltese_official": "l-Urugwaj",
+      "demonyms": [
+        "Urugwajan",
+        "Urugwajana",
+        "Urugwajani"
+      ]
+    },
+    {
+      "iso": "VI",
+      "english": "US Virgin Islands",
+      "maltese": "Gżejjer Verġni tal-Istati Uniti",
+      "maltese_official": "il-Gżejjer Verġni tal-Istati Uniti",
+      "demonyms": [
+        "mill-Gżejjer Verġni tal-Istati Uniti"
+      ]
+    },
+    {
+      "iso": "UZ",
+      "english": "Uzbekistan",
+      "maltese": "Użbekistan",
+      "maltese_official": "l-Użbekistan",
+      "demonyms": [
+        "Użbek",
+        "Użbeka",
+        "Użbeki"
+      ]
+    },
+    {
+      "iso": "VU",
+      "english": "Vanuatu",
+      "maltese": "Vanuatu",
+      "maltese_official": "Vanuatu",
+      "demonyms": [
+        "Vanuatan",
+        "Vanuatana",
+        "Vanuatani"
+      ]
+    },
+    {
+      "iso": "VE",
+      "english": "Venezuela",
+      "maltese": "Venezwela",
+      "maltese_official": "il-Venezwela",
+      "demonyms": [
+        "Venezwelan",
+        "Venezwelana",
+        "Venezwelani"
+      ]
+    },
+    {
+      "iso": "VN",
+      "english": "Viet Nam",
+      "maltese": "Vjetnam",
+      "maltese_official": "il-Vjetnam",
+      "demonyms": [
+        "Vjetnamiż",
+        "Vjetnamiża",
+        "Vjetnamiżi"
+      ]
+    },
+    {
+      "iso": "WF",
+      "english": "Wallis and Futuna",
+      "maltese": "Wallis u Futuna",
+      "maltese_official": "Wallis u Futuna",
+      "demonyms": [
+        "minn Wallis u Futuna"
+      ]
+    },
+    {
+      "iso": "EH",
+      "english": "Western Sahara",
+      "maltese": "Saħara tal-Punent",
+      "maltese_official": "is-Saħara tal-Punent",
+      "demonyms": [
+        "mis-Saħara tal-Punent"
+      ]
+    },
+    {
+      "iso": "YE",
+      "english": "Yemen",
+      "maltese": "Jemen",
+      "maltese_official": "il-Jemen",
+      "demonyms": [
+        "Jemenit",
+        "Jemenita",
+        "Jemeniti"
+      ]
+    },
+    {
+      "iso": "ZM",
+      "english": "Zambia",
+      "maltese": "Żambja",
+      "maltese_official": "iż-Żambja",
+      "demonyms": [
+        "Żambjan",
+        "Żambjana",
+        "Żambjani"
+      ]
+    },
+    {
+      "iso": "ZW",
+      "english": "Zimbabwe",
+      "maltese": "Żimbabwe",
+      "maltese_official": "iż-Żimbabwe",
+      "demonyms": [
+        "Żimbabwen",
+        "Żimbabwena",
+        "Żimbabweni"
+      ]
+    },
+    {
+      "iso": "AX",
+      "english": "Åland Islands",
+      "maltese": "Gżejjer Åland",
+      "maltese_official": "il-Gżejjer Åland",
+      "demonyms": [
+        "Ålandiż",
+        "Ålandiża",
+        "Ålandiżi"
+      ]
+    }
+  ]
+}

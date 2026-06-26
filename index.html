@@ -10,12 +10,18 @@
         :root {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: #18202a;
+        }
+
+        html {
             background: #f5f7fb;
         }
 
         body {
+            box-sizing: border-box;
+            min-height: 100vh;
             margin: 0;
             padding: 32px;
+            background: #f5f7fb;
         }
 
         main {
@@ -273,6 +279,32 @@
             border: 1px solid #0284c7;
         }
 
+        .place-word {
+            position: relative;
+            display: inline-block;
+            background: #bae6fd;
+            border-radius: 5px;
+            padding: 0 3px;
+            cursor: pointer;
+        }
+
+        .place-word::before {
+            content: "M";
+            position: absolute;
+            top: -0.75em;
+            left: -0.45em;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            background: #38bdf8;
+            color: white;
+            font-size: 0.7em;
+            font-weight: 900;
+            line-height: 1em;
+            text-align: center;
+            border: 1px solid #0284c7;
+        }
+
         .name-like-word {
             border-bottom: 1px dotted #64748b;
             padding-bottom: 0.02em;
@@ -295,12 +327,14 @@
             white-space: normal;
         }
 
-        .english-word .suggestion-popover {
+        .english-word .suggestion-popover,
+        .place-word .suggestion-popover {
             border-color: #0284c7;
         }
 
         .ambiguous-word.open .suggestion-popover,
-        .english-word.open .suggestion-popover {
+        .english-word.open .suggestion-popover,
+        .place-word.open .suggestion-popover {
             display: block;
         }
 
@@ -530,12 +564,14 @@
             border-color: #c2410c;
         }
 
-        body.dark-mode .english-word {
+        body.dark-mode .english-word,
+        body.dark-mode .place-word {
             background: #0c4a6e;
             color: #f8fafc;
         }
 
-        body.dark-mode .english-word::before {
+        body.dark-mode .english-word::before,
+        body.dark-mode .place-word::before {
             background: #0284c7;
             color: white;
             border-color: #0369a1;
@@ -1266,7 +1302,7 @@
                                 const row = document.createElement("button");
                                 row.type = "button";
                                 row.className = "suggestion-row";
-                                row.innerHTML = `<span>Bil-Malti nistgħu nigħdu: <strong>${sugg}</strong></span>`;
+                                row.innerHTML = `<span>Bil-Malti nistgħu ngħidu: <strong>${sugg}</strong></span>`;
 
                                 row.addEventListener("click", (event) => {
                                     event.stopPropagation();
@@ -1282,7 +1318,9 @@
 
                         span.addEventListener("click", (event) => {
                             event.stopPropagation();
-                            document.querySelectorAll(".ambiguous-word.open, .english-word.open").forEach((item) => {
+                            document.querySelectorAll(
+                                ".ambiguous-word.open, .english-word.open, .place-word.open"
+                            ).forEach((item) => {
                                 if (item !== span) {
                                     item.classList.remove("open");
                                 }
@@ -1296,6 +1334,63 @@
                             document.createTextNode(token.corrected)
                         );
                     }
+                    return;
+                }
+
+                if (
+                    token.place_translation
+                    && allowEnglishSuggestions
+                    && Array.isArray(token.choices)
+                    && token.choices.length > 0
+                ) {
+                    const span = document.createElement("span");
+                    span.className = "place-word name-like-word";
+                    span.tabIndex = 0;
+
+                    const wordText = document.createElement("span");
+                    wordText.textContent = token.corrected;
+                    span.appendChild(wordText);
+
+                    const popover = document.createElement("span");
+                    popover.className = "suggestion-popover";
+                    token.choices.forEach((choice) => {
+                        const row = document.createElement("button");
+                        row.type = "button";
+                        row.className = "suggestion-row";
+
+                        const label = document.createElement("span");
+                        label.append("Bil-Malti nistgħu ngħidu: ");
+                        const word = document.createElement("strong");
+                        word.textContent = getChoiceWord(choice);
+                        label.appendChild(word);
+                        row.appendChild(label);
+
+                        row.addEventListener("click", (event) => {
+                            event.stopPropagation();
+                            chooseSuggestion(
+                                tokenIndex,
+                                getChoiceWord(choice)
+                            );
+                        });
+                        popover.appendChild(row);
+                    });
+                    span.appendChild(popover);
+
+                    span.addEventListener("click", (event) => {
+                        event.stopPropagation();
+                        document
+                            .querySelectorAll(
+                                ".ambiguous-word.open, .english-word.open, .place-word.open"
+                            )
+                            .forEach((item) => {
+                                if (item !== span) {
+                                    item.classList.remove("open");
+                                }
+                            });
+                        span.classList.toggle("open");
+                    });
+
+                    elements.results.appendChild(span);
                     return;
                 }
 
@@ -1333,7 +1428,9 @@
                         event.stopPropagation();
 
                         document
-                            .querySelectorAll(".ambiguous-word.open")
+                            .querySelectorAll(
+                                ".ambiguous-word.open, .english-word.open, .place-word.open"
+                            )
                             .forEach((item) => {
                                 if (item !== span) {
                                     item.classList.remove("open");
@@ -1360,7 +1457,11 @@
         }
 
         document.addEventListener("click", () => {
-            document.querySelectorAll(".ambiguous-word.open").forEach((item) => {
+            document
+                .querySelectorAll(
+                    ".ambiguous-word.open, .english-word.open, .place-word.open"
+                )
+                .forEach((item) => {
                 item.classList.remove("open");
             });
         });
@@ -1496,7 +1597,7 @@
                 element.style.color = randomColor();
             });
 
-            paintPartyGroup(".ambiguous-word, .english-word", (element) => {
+            paintPartyGroup(".ambiguous-word, .english-word, .place-word", (element) => {
                 element.style.backgroundColor = randomColor();
                 element.style.color = randomColor();
             });

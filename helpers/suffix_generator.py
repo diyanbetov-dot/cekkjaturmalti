@@ -25,7 +25,6 @@ class MalteseSuffixGenerator:
             grapheme_splitter=spellchecker._graphemes,
             normalizer=spellchecker._normalize_word,
         )
-        self.verb_index.load()
         self.rules = MalteseSuffixRules(spellchecker=spellchecker, verb_index=self.verb_index)
         self._record_cache: OrderedDict[tuple[str, str, str, int], tuple[VerbFormRecord, ...]] = OrderedDict()
         self._candidate_cache: OrderedDict[tuple[str, str, str, int], tuple[GeneratedSuffixCandidate, ...]] = OrderedDict()
