@@ -64,6 +64,8 @@ class MalteseSuffixGenerator:
             return False
         return bool(self.parse_possible_suffixes(normalized))
 
+    from functools import lru_cache
+    @lru_cache(maxsize=32768)
     def exact_suffix_matches(self, word: str) -> list[GeneratedSuffixCandidate]:
         normalized = self._normalize(word)
         if not normalized:

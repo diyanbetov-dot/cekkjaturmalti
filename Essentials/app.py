@@ -490,6 +490,7 @@ class UniversalMalteseSpellchecker:
     def _from_graphemes(self, graphemes: Iterable[str]) -> str:
         return "".join(graphemes)
 
+    @lru_cache(maxsize=131072)
     def _letter_tokens_raw(self, word: str) -> list[str]:
         """
         Splits a Maltese word into logical spelling tokens.
@@ -1142,6 +1143,7 @@ class UniversalMalteseSpellchecker:
                 collapsed.append(token)
         return "".join(collapsed)
 
+    @lru_cache(maxsize=131072)
     def _extract_consonant_anchor(self, word: str) -> str:
         normalized = self._normalize_word(word)
         if normalized in self.word_anchors:
@@ -1150,11 +1152,13 @@ class UniversalMalteseSpellchecker:
             self._letter_tokens_raw(normalized)
         )
 
+    @lru_cache(maxsize=131072)
     def _vowel_slots(self, word: str) -> list[tuple[int, str]]:
         normalized = self._normalize_word(word)
         tokens = self._letter_tokens_raw(normalized)
         return [(i, t) for i, t in enumerate(tokens) if t in self.VOWELS]
 
+    @lru_cache(maxsize=131072)
     def _count_vowels(self, word: str) -> int:
         normalized = self._normalize_word(word)
         if normalized in self.word_vowel_counts:
@@ -1196,6 +1200,7 @@ class UniversalMalteseSpellchecker:
 
         return dp[n][m]
 
+    @lru_cache(maxsize=131072)
     def _word_distance(self, word1: str, word2: str) -> int:
         return self._damerau_levenshtein_distance(
             tuple(self._letter_tokens(word1)),
@@ -1236,6 +1241,7 @@ class UniversalMalteseSpellchecker:
         )
         return max(0.0, (matched / len(typo_slots)) * count_ratio)
 
+    @lru_cache(maxsize=131072)
     def _score_once(self, typo_form: str, candidate: str, stage: str) -> ScoreRow:
         typo_tokens = self._letter_tokens(typo_form)
         candidate_tokens = self._letter_tokens(candidate)
@@ -2486,9 +2492,7 @@ class UniversalMalteseSpellchecker:
 
         return None
 
-    def _correct_sentence_initial_capitalized(
-        self, word: str, *, bulk_context: bool = False
-    ) -> str:
+    def _correct_sentence_initial_capitalized(self, word: str) -> str:
         normalized = self._normalize_word(word)
         if not normalized:
             return word
@@ -2518,13 +2522,9 @@ class UniversalMalteseSpellchecker:
         if exact:
             return exact
 
-        if not bulk_context or any(ch in normalized for ch in ("h", "c", "g", "z")):
-            ordinary_correction = self.correct_word(word, bulk_context=bulk_context)
-            if self._normalize_word(ordinary_correction) != normalized:
-                return ordinary_correction
-
-        if bulk_context:
-            return word
+        ordinary_correction = self.correct_word(word)
+        if self._normalize_word(ordinary_correction) != normalized:
+            return ordinary_correction
 
         best = self._best_ranked_candidate_from_pool(
             normalized,
@@ -2867,7 +2867,7 @@ class UniversalMalteseSpellchecker:
 
         return self._missing_h_verb_repairs.get(normalized)
 
-    def correct_word(self, word: str, *, bulk_context: bool = False) -> str:
+    def correct_word(self, word: str) -> str:
         if not word:
             return word
 
@@ -3044,18 +3044,6 @@ class UniversalMalteseSpellchecker:
                 for shortcut_variant in orthographic_generator.shortcut_letter_variants(
                     normalized
                 ):
-                    if hasattr(self, "doubled_letter_generator"):
-                        doubled_shortcut = (
-                            self.doubled_letter_generator.correct_missing_double(
-                                shortcut_variant
-                            )
-                        )
-                        if doubled_shortcut:
-                            return self._match_capitalisation(
-                                word,
-                                doubled_shortcut,
-                            )
-
                     gh_after_shortcut = orthographic_generator.correct_gh_priority(
                         shortcut_variant
                     )
@@ -3323,9 +3311,6 @@ class UniversalMalteseSpellchecker:
         exact_h = self._try_exact_variants(word, insert_h)
         if exact_h:
             return exact_h
-
-        if bulk_context:
-            return word
 
         if suffix_parse_guard:
             return word
@@ -5867,12 +5852,9 @@ class UniversalMalteseSpellchecker:
                 continue
 
             corrected_word = (
-                self._correct_sentence_initial_capitalized(
-                    original_word,
-                    bulk_context=bulk_mode,
-                )
+                self._correct_sentence_initial_capitalized(original_word)
                 if self._is_initial_capitalized(original_word) and sentence_initial
-                else self.correct_word(original_word, bulk_context=bulk_mode)
+                else self.correct_word(original_word)
             )
             corrected_word = self._contract_negative_ma(corrected_word)
             preserved_empathetic_i = False
