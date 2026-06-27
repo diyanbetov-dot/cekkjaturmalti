@@ -388,6 +388,7 @@ class UniversalMalteseSpellchecker:
 
         # consonant anchor -> surface forms
         self.anchor_map: dict[str, list[str]] = defaultdict(list)
+        self.anchor_letters: tuple[str, ...] = ()
 
         # Cached metadata
         self.word_lengths: dict[str, int] = {}
@@ -517,6 +518,9 @@ class UniversalMalteseSpellchecker:
     def _build_anchor_index(self) -> None:
         for word in self.dictionary:
             self.anchor_map[self.word_anchors[word]].append(word)
+        self.anchor_letters = tuple(
+            sorted({char for anchor in self.anchor_map for char in anchor})
+        )
 
     def _starts_vowel_gh_or_h(self, word: str) -> bool:
         normalized = self._normalize_word(word)
@@ -1787,7 +1791,7 @@ class UniversalMalteseSpellchecker:
         self, anchors: set[str], max_anchor_distance: int = 1
     ) -> list[str]:
         candidates: list[str] = []
-        letters = "abcdefghijklmnopqrstuvwxyzċġħż"
+        letters = self.anchor_letters
 
         for anchor in anchors:
             if max_anchor_distance == 1:
