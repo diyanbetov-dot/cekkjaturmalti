@@ -42,6 +42,8 @@ MEANING_DICTIONARY_FILES = [
 
 MAX_TEXT_LENGTH = 10_000
 MAX_WORD_LENGTH = 100
+LONG_TEXT_CHAR_THRESHOLD = 180
+LONG_TEXT_WORD_THRESHOLD = 28
 
 # Place fuzzy correction is isolated behind this switch. Set it to False to
 # keep exact/shortcut place recognition while disabling typo-based place lookup.
@@ -4284,6 +4286,9 @@ class UniversalMalteseSpellchecker:
             return max(default_limit, 4)
         return default_limit
 
+    def _long_text_bulk_mode(self, text: str, *, word_count: int) -> bool:
+        return len(text) >= LONG_TEXT_CHAR_THRESHOLD or word_count >= LONG_TEXT_WORD_THRESHOLD
+
     def correct_text_rich(self, text: str, edit_distance_tolerance: int = 1) -> dict:
         """
         Corrects text while also returning token-level ambiguity data for the frontend.
@@ -4308,6 +4313,9 @@ class UniversalMalteseSpellchecker:
             )
             if not overlaps_quote:
                 word_matches.append(m)
+
+        bulk_mode = self._long_text_bulk_mode(text, word_count=len(word_matches))
+        effective_tolerance = 1 if bulk_mode else edit_distance_tolerance
 
         matches = []
         for q in quote_matches:
@@ -4503,9 +4511,9 @@ class UniversalMalteseSpellchecker:
                     for suggestion in self.suggest(
                         original_word,
                         limit=3,
-                        edit_distance_tolerance=edit_distance_tolerance,
+                        edit_distance_tolerance=effective_tolerance,
                     )
-                ]
+                ] if not bulk_mode else []
                 is_ambiguous = len(choices) >= 2 and self._normalize_word(
                     choices[0]["word"]
                 ) != self._normalize_word(choices[1]["word"])
@@ -5728,8 +5736,8 @@ class UniversalMalteseSpellchecker:
                 original_word,
                 corrected_word,
                 limit=3,
-                edit_distance_tolerance=edit_distance_tolerance,
-            )
+                edit_distance_tolerance=effective_tolerance,
+            ) if not bulk_mode else []
             if (
                 sentence_initial
                 and self._is_initial_capitalized(original_word)
@@ -5746,8 +5754,8 @@ class UniversalMalteseSpellchecker:
                     original_word,
                     corrected_word,
                     limit=3,
-                    edit_distance_tolerance=edit_distance_tolerance,
-                )
+                    edit_distance_tolerance=effective_tolerance,
+                ) if not bulk_mode else []
 
             surface_word = self._apply_empathetic_i(
                 previous_surface_word, corrected_word
