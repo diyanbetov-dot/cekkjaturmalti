@@ -2171,6 +2171,53 @@ class UniversalMalteseSpellchecker:
 
         return variants
 
+    def _close_apostrophe_ranked_match(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        if "'" in normalized:
+            return None
+
+        row = self._best_ranked_candidate(
+            normalized,
+            stage="close_apostrophe",
+            score_limit=0.24,
+            max_distance=1,
+        )
+        if (
+            row is not None
+            and "'" in row.candidate
+            and row.edit_distance <= 1
+        ):
+            return self._match_capitalisation(word, row.candidate)
+        return None
+
+    def _shortcut_gh_suggestion_match(self, word: str) -> str | None:
+        orthographic_generator = getattr(self, "orthographic_generator", None)
+        if orthographic_generator is None:
+            return None
+        if not hasattr(orthographic_generator, "shortcut_letter_variants"):
+            return None
+        if not hasattr(orthographic_generator, "dictionary_gh_suggestion_variants"):
+            return None
+
+        candidates: list[str] = []
+        for shortcut_variant in orthographic_generator.shortcut_letter_variants(
+            word,
+            max_changes=3,
+        ):
+            for candidate in orthographic_generator.dictionary_gh_suggestion_variants(
+                shortcut_variant
+            ):
+                normalized_candidate = self._normalize_word(candidate)
+                if (
+                    normalized_candidate
+                    and normalized_candidate not in candidates
+                ):
+                    candidates.append(normalized_candidate)
+
+        if len(candidates) == 1:
+            return self._match_capitalisation(word, candidates[0])
+        return None
+
     def _match_capitalisation(self, original: str, corrected: str) -> str:
         if original.isupper():
             return corrected.upper()
@@ -2889,6 +2936,10 @@ class UniversalMalteseSpellchecker:
         for combined_variant in self._dictionary_i_ie_shortcut_variants(normalized):
             return self._match_capitalisation(word, combined_variant)
 
+        close_apostrophe = self._close_apostrophe_ranked_match(word)
+        if close_apostrophe:
+            return close_apostrophe
+
         lexicalized_forms = self._lexicalized_form_variants(normalized)
         if lexicalized_forms:
             return self._match_capitalisation(word, lexicalized_forms[0])
@@ -2996,6 +3047,10 @@ class UniversalMalteseSpellchecker:
                             word,
                             gh_after_shortcut,
                         )
+
+            shortcut_gh_suggestion = self._shortcut_gh_suggestion_match(word)
+            if shortcut_gh_suggestion:
+                return shortcut_gh_suggestion
 
         # d/t confusion for an invalid word.
         # Examples:
@@ -3424,6 +3479,13 @@ class UniversalMalteseSpellchecker:
             and not force_pre_exact_repair
         ):
             add_generated(normalized)
+            doubled_letter = getattr(self, "doubled_letter_generator", None)
+            if doubled_letter is not None:
+                for candidate in doubled_letter.missing_double_variants(normalized):
+                    if candidate in self.dictionary_set:
+                        add_generated(candidate)
+                        if len(suggestions) >= limit:
+                            return suggestions[:limit]
             if lexicalized_forms and self._normalize_word(lexicalized_forms[0]) == normalized:
                 for candidate in lexicalized_forms[1:]:
                     add_generated(candidate)
@@ -4228,14 +4290,6 @@ class UniversalMalteseSpellchecker:
 
         add(corrected_norm)
 
-        if original_norm in self.dictionary_set and corrected_norm == original_norm:
-            return [
-                {
-                    "word": self._match_capitalisation(original_word, corrected_norm),
-                    "meaning": self.meaning_for(corrected_norm),
-                }
-            ][:limit]
-
         # Show dictionary-valid Maltese-letter alternatives.
         if hasattr(self, "orthographic_generator"):
             if hasattr(
@@ -4287,8 +4341,17 @@ class UniversalMalteseSpellchecker:
             ):
                 add(suggestion_norm)
 
-            if len(ordered) >= limit:
-                break
+                if len(ordered) >= limit:
+                    break
+
+        if original_norm in self.dictionary_set and corrected_norm == original_norm:
+            return [
+                {
+                    "word": self._match_capitalisation(original_word, word),
+                    "meaning": self.meaning_for(word),
+                }
+                for word in ordered
+            ][:limit]
 
         choices = []
 
@@ -4318,6 +4381,43 @@ class UniversalMalteseSpellchecker:
 
     def _long_text_bulk_mode(self, text: str, *, word_count: int) -> bool:
         return len(text) >= LONG_TEXT_CHAR_THRESHOLD or word_count >= LONG_TEXT_WORD_THRESHOLD
+
+    def _bulk_ambiguity_choices(
+        self,
+        original_word: str,
+        corrected_word: str,
+        *,
+        limit: int = 3,
+    ) -> list[dict]:
+        original_norm = self._normalize_word(original_word)
+        corrected_norm = self._normalize_word(corrected_word)
+
+        if original_norm not in self.dictionary_set or corrected_norm != original_norm:
+            return []
+
+        choices: list[dict] = []
+        for suggestion in self.suggest(original_word, limit=limit):
+            suggestion_norm = self._normalize_word(suggestion)
+            if not suggestion_norm:
+                continue
+            if any(
+                self._normalize_word(choice.get("word", "")) == suggestion_norm
+                for choice in choices
+            ):
+                continue
+            choices.append(
+                {
+                    "word": self._match_capitalisation(
+                        original_word,
+                        suggestion_norm,
+                    ),
+                    "meaning": self.meaning_for(suggestion_norm),
+                }
+            )
+            if len(choices) >= limit:
+                break
+
+        return choices
 
     def correct_text_rich(self, text: str, edit_distance_tolerance: int = 1) -> dict:
         """
@@ -5767,7 +5867,11 @@ class UniversalMalteseSpellchecker:
                 corrected_word,
                 limit=3,
                 edit_distance_tolerance=effective_tolerance,
-            ) if not bulk_mode else []
+            ) if not bulk_mode else self._bulk_ambiguity_choices(
+                original_word,
+                corrected_word,
+                limit=3,
+            )
             if (
                 sentence_initial
                 and self._is_initial_capitalized(original_word)
@@ -5785,7 +5889,11 @@ class UniversalMalteseSpellchecker:
                     corrected_word,
                     limit=3,
                     edit_distance_tolerance=effective_tolerance,
-                ) if not bulk_mode else []
+                ) if not bulk_mode else self._bulk_ambiguity_choices(
+                    original_word,
+                    corrected_word,
+                    limit=3,
+                )
 
             surface_word = self._apply_empathetic_i(
                 previous_surface_word, corrected_word

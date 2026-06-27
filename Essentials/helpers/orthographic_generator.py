@@ -373,9 +373,14 @@ class MalteseOrthographicGenerator:
     def dictionary_gh_suggestion_variants(self, word: str) -> list[str]:
         matches = self.dictionary_gh_priority_variants(word)
 
-        for candidate in self.move_gh_right_across_adjacent_vowel(word):
-            if self._is_dictionary_word(candidate):
-                self._add_unique(matches, candidate)
+        movement_sources = [word]
+        movement_sources.extend(self.strict_lookup_variants(word))
+        movement_sources.extend(matches)
+
+        for source in movement_sources:
+            for candidate in self.move_gh_right_across_adjacent_vowel(source):
+                if self._is_dictionary_word(candidate):
+                    self._add_unique(matches, candidate)
 
         return matches
 

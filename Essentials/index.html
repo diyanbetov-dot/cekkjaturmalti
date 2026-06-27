@@ -42,6 +42,13 @@
             color: #5d6875;
         }
 
+        .usage-note {
+            margin: 20px 0 0;
+            color: #687586;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+
         .panel {
             background: white;
             border: 1px solid #dfe5ee;
@@ -499,6 +506,7 @@
         }
 
         body.dark-mode .subtitle,
+        body.dark-mode .usage-note,
         body.dark-mode .settings-row,
         body.dark-mode .correction-timer,
         body.dark-mode .status {
@@ -606,6 +614,9 @@
         <p id="mainSubtitle" class="subtitle">
             Flask-backed Maltese correction with vowel-slot scoring, strict priorities, and safer għ/h candidate
             handling.
+        </p>
+        <p id="usageNote" class="usage-note">
+            Reminder: write names with a capital letter, and put English words or phrases in inverted commas.
         </p>
 
         <section class="panel">
@@ -762,6 +773,7 @@
             langToggle: document.getElementById("langToggle"),
             mainTitle: document.getElementById("mainTitle"),
             mainSubtitle: document.getElementById("mainSubtitle"),
+            usageNote: document.getElementById("usageNote"),
             labelInput: document.getElementById("labelInput"),
             textInput: document.getElementById("textInput"),
             labelResults: document.getElementById("labelResults"),
@@ -803,6 +815,7 @@
                 lightModeBtn: "☀️ Change to Light Mode",
                 title: "Maltese Spell Checker",
                 subtitle: "",
+                usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
                 labelInput: "Input text",
                 labelResults: "Corrected text",
                 checkBtn: "Check spelling",
@@ -851,6 +864,7 @@
                 lightModeBtn: "☀️ Aqleb għall-Mudwal",
                 title: "Ċekkjatur tal-Malti",
                 subtitle: "",
+                usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
                 labelInput: "Test oriġinali",
                 labelResults: "Test ikkoreġut",
                 checkBtn: "Iċċekkja l-ortografija",
@@ -858,7 +872,7 @@
                 showSuggestionsOn: "Turix suġġerimenti",
                 showSuggestionsOff: "Uri suġġerimenti",
                 alwaysShowCrucial: "Dejjem uri suġġerimenti kruċjali",
-                allowEnglishSuggestions: "Ippermetti suġġerimenti bl-Ingliż",
+                allowEnglishSuggestions: "Uri suġġerimenti bl-Ingliż",
                 showStatusMessages: "Uri messaġġi tal-istatus",
                 clearBtn: "Ħassar kollox",
                 labelDebug: "Suġġerimenti għal kelma partikolari",
@@ -971,6 +985,7 @@
             elements.langToggle.innerHTML = labels.toggleBtn;
             elements.mainTitle.textContent = labels.title;
             elements.mainSubtitle.textContent = labels.subtitle;
+            elements.usageNote.textContent = labels.usageNote;
 
             elements.labelInput.textContent = labels.labelInput;
             elements.labelResultsText.textContent = labels.labelResults;
