@@ -547,6 +547,21 @@ class MeaningIndex:
         for path in paths:
             self.load_file(path)
 
+    def load_entries(
+        self,
+        entries: Iterable[tuple[str, str | None]],
+        *,
+        include_verbs: bool = False,
+    ) -> None:
+        for word, payload in entries:
+            if not word or not payload:
+                continue
+            if not include_verbs and str(payload).startswith(
+                ("T-", "Q-", "S-", "AS-", "IS-")
+            ):
+                continue
+            self.add(word, extract_meaning_from_payload(payload))
+
     def meanings_for(self, word: str) -> list[str]:
         exact = self._exact_meanings.get(normalize_word_exact(word), ())
         if exact:

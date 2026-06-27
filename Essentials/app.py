@@ -381,6 +381,7 @@ class UniversalMalteseSpellchecker:
 
         # surface form -> all paradigm keys for that surface form
         self.word_tags: dict[str, set[str]] = defaultdict(set)
+        self.raw_entries: list[tuple[str, str | None]] = []
 
         # paradigm key -> all surface forms in that paradigm
         self.paradigm_forms: dict[str, list[str]] = defaultdict(list)
@@ -405,6 +406,7 @@ class UniversalMalteseSpellchecker:
 
         places_file = FINAL_DICS_DIR / "places.dic"
         raw_entries.extend(self._load_eu_single_word_entries(places_file))
+        self.raw_entries = list(raw_entries)
 
         seen_words: set[str] = set()
         seen_paradigm_forms: dict[str, set[str]] = defaultdict(set)
@@ -437,6 +439,16 @@ class UniversalMalteseSpellchecker:
             f"Loaded {len(self.dictionary)} dictionary words, "
             f"{len(self.paradigm_forms)} paradigms."
         )
+
+    def tagged_words_with_marker(self, marker: str) -> set[str]:
+        marker = str(marker or "").upper()
+        if not marker:
+            return set()
+        out: set[str] = set()
+        for word, tags in self.word_tags.items():
+            if any(marker in tag.split("-", 1)[0].upper() for tag in tags):
+                out.add(word)
+        return out
 
     # ------------------------------------------------------------------
     # Normalisation/tokenisation
@@ -5813,11 +5825,14 @@ class UniversalMalteseSpellchecker:
 app = Flask(__name__)
 
 spellchecker = UniversalMalteseSpellchecker(dictionary_files=DICTIONARY_FILES)
-meaning_index = MeaningIndex([*MEANING_DICTIONARY_FILES, EU_COUNTRIES_DIC])
+meaning_index = MeaningIndex()
+meaning_index.load_entries(spellchecker.raw_entries)
+spellchecker.raw_entries = []
 article_phrase_rules = MalteseArticlePhraseRules(
-    dictionary_files=DICTIONARY_FILES,
     meaning_index=meaning_index,
     normalizer=spellchecker._normalize_word,
+    noun_words=spellchecker.tagged_words_with_marker("NOUN"),
+    num_words=spellchecker.tagged_words_with_marker("NUM"),
 )
 article_phrase_rules.spellchecker = spellchecker
 spellchecker.article_phrase_rules = article_phrase_rules

@@ -102,12 +102,20 @@ class MalteseArticlePhraseRules:
     def __init__(
         self,
         *,
-        dictionary_files,
+        dictionary_files=None,
         meaning_index,
         normalizer=normalize_word,
+        noun_words=None,
+        num_words=None,
     ) -> None:
-        self.noun_words = load_noun_words([Path(path) for path in dictionary_files])
-        self.num_words = load_num_words([Path(path) for path in dictionary_files])
+        if noun_words is not None:
+            self.noun_words = set(noun_words)
+        else:
+            self.noun_words = load_noun_words([Path(path) for path in (dictionary_files or ())])
+        if num_words is not None:
+            self.num_words = set(num_words)
+        else:
+            self.num_words = load_num_words([Path(path) for path in (dictionary_files or ())])
         self.meaning_index = meaning_index
         self.normalizer = normalizer
 
