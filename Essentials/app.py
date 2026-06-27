@@ -2486,7 +2486,9 @@ class UniversalMalteseSpellchecker:
 
         return None
 
-    def _correct_sentence_initial_capitalized(self, word: str) -> str:
+    def _correct_sentence_initial_capitalized(
+        self, word: str, *, bulk_context: bool = False
+    ) -> str:
         normalized = self._normalize_word(word)
         if not normalized:
             return word
@@ -2516,9 +2518,13 @@ class UniversalMalteseSpellchecker:
         if exact:
             return exact
 
-        ordinary_correction = self.correct_word(word)
-        if self._normalize_word(ordinary_correction) != normalized:
-            return ordinary_correction
+        if not bulk_context or any(ch in normalized for ch in ("h", "c", "g", "z")):
+            ordinary_correction = self.correct_word(word, bulk_context=bulk_context)
+            if self._normalize_word(ordinary_correction) != normalized:
+                return ordinary_correction
+
+        if bulk_context:
+            return word
 
         best = self._best_ranked_candidate_from_pool(
             normalized,
@@ -2861,7 +2867,7 @@ class UniversalMalteseSpellchecker:
 
         return self._missing_h_verb_repairs.get(normalized)
 
-    def correct_word(self, word: str) -> str:
+    def correct_word(self, word: str, *, bulk_context: bool = False) -> str:
         if not word:
             return word
 
@@ -3038,6 +3044,18 @@ class UniversalMalteseSpellchecker:
                 for shortcut_variant in orthographic_generator.shortcut_letter_variants(
                     normalized
                 ):
+                    if hasattr(self, "doubled_letter_generator"):
+                        doubled_shortcut = (
+                            self.doubled_letter_generator.correct_missing_double(
+                                shortcut_variant
+                            )
+                        )
+                        if doubled_shortcut:
+                            return self._match_capitalisation(
+                                word,
+                                doubled_shortcut,
+                            )
+
                     gh_after_shortcut = orthographic_generator.correct_gh_priority(
                         shortcut_variant
                     )
@@ -3305,6 +3323,9 @@ class UniversalMalteseSpellchecker:
         exact_h = self._try_exact_variants(word, insert_h)
         if exact_h:
             return exact_h
+
+        if bulk_context:
+            return word
 
         if suffix_parse_guard:
             return word
@@ -5846,9 +5867,12 @@ class UniversalMalteseSpellchecker:
                 continue
 
             corrected_word = (
-                self._correct_sentence_initial_capitalized(original_word)
+                self._correct_sentence_initial_capitalized(
+                    original_word,
+                    bulk_context=bulk_mode,
+                )
                 if self._is_initial_capitalized(original_word) and sentence_initial
-                else self.correct_word(original_word)
+                else self.correct_word(original_word, bulk_context=bulk_mode)
             )
             corrected_word = self._contract_negative_ma(corrected_word)
             preserved_empathetic_i = False
