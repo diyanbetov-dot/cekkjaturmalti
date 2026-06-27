@@ -663,7 +663,7 @@ class MalteseSuffixGenerator:
             "corrected": self.correct_suffix(word),
             "parser_mode": "ending-first",
             "verb_files": [str(path) for path in self.verbs_files],
-            "verb_record_count": len(self.verb_index.records),
+            "verb_record_count": self.verb_index.record_count(),
             "parse_count": len(parses),
             "parses": parse_debug,
             "top_candidates": top,

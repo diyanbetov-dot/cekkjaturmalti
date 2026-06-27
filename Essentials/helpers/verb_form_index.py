@@ -107,9 +107,7 @@ class MalteseVerbFormIndex:
         self._external_normalizer = normalizer
         self._external_grapheme_splitter = grapheme_splitter
 
-        self.records: list[VerbFormRecord] = []
         self.by_word: dict[str, list[VerbFormRecord]] = defaultdict(list)
-        self.by_root: dict[str, list[VerbFormRecord]] = defaultdict(list)
         self.by_short_tag: dict[str, list[VerbFormRecord]] = defaultdict(list)
         self.by_anchor: dict[str, list[VerbFormRecord]] = defaultdict(list)
         self.by_anchor_length: dict[int, list[str]] = defaultdict(list)
@@ -259,9 +257,7 @@ class MalteseVerbFormIndex:
     # ------------------------------------------------------------------
 
     def load(self) -> None:
-        self.records.clear()
         self.by_word.clear()
-        self.by_root.clear()
         self.by_short_tag.clear()
         self.by_anchor.clear()
         self.by_anchor_length.clear()
@@ -343,15 +339,21 @@ class MalteseVerbFormIndex:
         )
 
     def add_record(self, record: VerbFormRecord) -> None:
-        self.records.append(record)
         self.by_word[record.word].append(record)
-        self.by_root[record.root].append(record)
         self.by_short_tag[record.short_tag].append(record)
 
         anchor = self.consonant_anchor(record.word)
         if anchor not in self.by_anchor:
             self.by_anchor_length[len(anchor)].append(anchor)
         self.by_anchor[anchor].append(record)
+
+    def iter_records(self):
+        for records in self.by_word.values():
+            for record in records:
+                yield record
+
+    def record_count(self) -> int:
+        return sum(len(records) for records in self.by_word.values())
 
     # ------------------------------------------------------------------
     # Retrieval

@@ -35,6 +35,10 @@ DICTIONARY_FILES = sorted(
     for path in FINAL_DICS_DIR.glob("*.dic")
     if path.name not in {"places.dic", EU_COUNTRIES_DIC.name}
 )
+VERB_DICTIONARY_NAMES = {"verbmt_semitic.dic", "verbmt_nonsemitic.dic"}
+MEANING_DICTIONARY_FILES = [
+    path for path in DICTIONARY_FILES if path.name not in VERB_DICTIONARY_NAMES
+]
 
 MAX_TEXT_LENGTH = 10_000
 MAX_WORD_LENGTH = 100
@@ -383,10 +387,8 @@ class UniversalMalteseSpellchecker:
         self.anchor_map: dict[str, list[str]] = defaultdict(list)
 
         # Cached metadata
-        self.word_tokens: dict[str, list[str]] = {}
         self.word_lengths: dict[str, int] = {}
         self.word_vowel_counts: dict[str, int] = {}
-        self.word_vowel_slots: dict[str, list[tuple[int, str]]] = {}
         self.word_anchors: dict[str, str] = {}
         self._missing_h_verb_repairs: dict[str, str] | None = None
 
@@ -489,17 +491,13 @@ class UniversalMalteseSpellchecker:
 
     def _letter_tokens(self, word: str) -> list[str]:
         normalized = self._normalize_word(word)
-        return self.word_tokens.get(normalized) or self._letter_tokens_raw(normalized)
+        return self._letter_tokens_raw(normalized)
 
     def _build_word_metadata(self) -> None:
         for word in self.dictionary:
             tokens = self._letter_tokens_raw(word)
-            self.word_tokens[word] = tokens
             self.word_lengths[word] = len(tokens)
             self.word_vowel_counts[word] = sum(1 for t in tokens if t in self.VOWELS)
-            self.word_vowel_slots[word] = [
-                (i, t) for i, t in enumerate(tokens) if t in self.VOWELS
-            ]
             self.word_anchors[word] = self._extract_consonant_anchor_from_tokens(tokens)
 
     def _build_anchor_index(self) -> None:
@@ -1136,8 +1134,6 @@ class UniversalMalteseSpellchecker:
 
     def _vowel_slots(self, word: str) -> list[tuple[int, str]]:
         normalized = self._normalize_word(word)
-        if normalized in self.word_vowel_slots:
-            return self.word_vowel_slots[normalized]
         tokens = self._letter_tokens_raw(normalized)
         return [(i, t) for i, t in enumerate(tokens) if t in self.VOWELS]
 
@@ -2707,7 +2703,7 @@ class UniversalMalteseSpellchecker:
 
         repairs: dict[str, str] = {}
 
-        for record in verb_index.records:
+        for record in verb_index.iter_records():
             if record.form_class != "F1" or record.tense not in {"IMP", "MPERF"}:
                 continue
 
@@ -4104,13 +4100,24 @@ class UniversalMalteseSpellchecker:
 
         if normalized.startswith("l'") and len(normalized) > 2:
             relative_tail = normalized[2:]
-            relative_meaning = meaning_index.meaning_for(relative_tail)
+            repaired_tail = self._article_tail_repair(relative_tail) or self.correct_word(
+                relative_tail
+            )
+            lookup_tail = (
+                self._normalize_word(repaired_tail)
+                if repaired_tail and self._normalize_word(repaired_tail) != relative_tail
+                else relative_tail
+            )
+            if self._is_verb_tagged_word(lookup_tail):
+                relative_meaning = self.meaning_for(lookup_tail)
+            else:
+                relative_meaning = meaning_index.meaning_for(lookup_tail)
             if not relative_meaning:
-                relative_meaning = self.meaning_for(relative_tail)
+                relative_meaning = self.meaning_for(lookup_tail)
             if relative_meaning:
-                if self._is_adjective_tagged_word(relative_tail):
+                if self._is_adjective_tagged_word(lookup_tail):
                     return f"which is {relative_meaning}"
-                if self._is_verb_tagged_word(relative_tail):
+                if self._is_verb_tagged_word(lookup_tail):
                     if relative_meaning.casefold().startswith("to "):
                         relative_meaning = relative_meaning[3:]
                     for pronoun_prefix in ("he ", "she ", "it "):
@@ -4118,8 +4125,8 @@ class UniversalMalteseSpellchecker:
                             relative_meaning = relative_meaning[len(pronoun_prefix):]
                             break
                     return f"which {relative_meaning}"
-                if self._is_adverb_tagged_word(relative_tail) or self._is_preposition_tagged_word(
-                    relative_tail
+                if self._is_adverb_tagged_word(lookup_tail) or self._is_preposition_tagged_word(
+                    lookup_tail
                 ):
                     return f"which {relative_meaning}"
 
@@ -4128,6 +4135,16 @@ class UniversalMalteseSpellchecker:
             noun_meaning = meaning_index.meaning_for(noun_base)
             if noun_meaning:
                 return noun_meaning
+
+        tag_meanings: list[str] = []
+        for tag in self.word_tags.get(normalized, ()):
+            if not tag.startswith(("T-", "Q-", "S-", "AS-", "IS-")):
+                continue
+            meaning = extract_meaning_from_payload(tag)
+            if meaning and meaning not in tag_meanings:
+                tag_meanings.append(meaning)
+        if tag_meanings:
+            return " / ".join(tag_meanings)
 
         direct_meaning = meaning_index.meaning_for(word)
         if direct_meaning:
@@ -5788,7 +5805,7 @@ class UniversalMalteseSpellchecker:
 app = Flask(__name__)
 
 spellchecker = UniversalMalteseSpellchecker(dictionary_files=DICTIONARY_FILES)
-meaning_index = MeaningIndex([*DICTIONARY_FILES, EU_COUNTRIES_DIC])
+meaning_index = MeaningIndex([*MEANING_DICTIONARY_FILES, EU_COUNTRIES_DIC])
 article_phrase_rules = MalteseArticlePhraseRules(
     dictionary_files=DICTIONARY_FILES,
     meaning_index=meaning_index,
@@ -5867,9 +5884,7 @@ def health():
     if hasattr(spellchecker, "suffix_generator"):
         suffix_info = {
             "suffix_parser_mode": "ending-first",
-            "suffix_verb_records": len(
-                spellchecker.suffix_generator.verb_index.records
-            ),
+            "suffix_verb_records": spellchecker.suffix_generator.verb_index.record_count(),
         }
 
     return jsonify(
