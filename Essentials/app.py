@@ -1164,7 +1164,8 @@ class UniversalMalteseSpellchecker:
     # Distance/scoring
     # ------------------------------------------------------------------
 
-    def _damerau_levenshtein_distance(self, a: list, b: list) -> int:
+    @lru_cache(maxsize=131072)
+    def _damerau_levenshtein_distance(self, a: tuple[str, ...], b: tuple[str, ...]) -> int:
         """Optimal-string-alignment Damerau-Levenshtein distance."""
         n, m = len(a), len(b)
         if n == 0:
@@ -1193,8 +1194,8 @@ class UniversalMalteseSpellchecker:
 
     def _word_distance(self, word1: str, word2: str) -> int:
         return self._damerau_levenshtein_distance(
-            self._letter_tokens(word1),
-            self._letter_tokens(word2),
+            tuple(self._letter_tokens(word1)),
+            tuple(self._letter_tokens(word2)),
         )
 
     def _vowel_slot_vector_score(
@@ -1242,7 +1243,7 @@ class UniversalMalteseSpellchecker:
         typo_anchor = self._extract_consonant_anchor(typo_form)
         candidate_anchor = self._extract_consonant_anchor(candidate)
         consonant_dist = self._damerau_levenshtein_distance(
-            list(typo_anchor), list(candidate_anchor)
+            tuple(typo_anchor), tuple(candidate_anchor)
         )
         consonant_score = consonant_dist / max(
             1, max(len(typo_anchor), len(candidate_anchor))
@@ -1462,7 +1463,7 @@ class UniversalMalteseSpellchecker:
             targets = (canonical, *alternatives)
             target_keys = {self._lexicalized_key(target) for target in targets}
             best_distance = min(
-                self._damerau_levenshtein_distance(list(word_key), list(target_key))
+                self._damerau_levenshtein_distance(tuple(word_key), tuple(target_key))
                 for word_key in word_keys
                 for target_key in target_keys
             )
@@ -1786,17 +1787,30 @@ class UniversalMalteseSpellchecker:
         self, anchors: set[str], max_anchor_distance: int = 1
     ) -> list[str]:
         candidates: list[str] = []
+        letters = "abcdefghijklmnopqrstuvwxyzċġħż"
 
-        for known_anchor, words in self.anchor_map.items():
-            for anchor in anchors:
-                if abs(len(known_anchor) - len(anchor)) > max_anchor_distance:
-                    continue
-                dist = self._damerau_levenshtein_distance(
-                    list(anchor), list(known_anchor)
-                )
-                if dist <= max_anchor_distance:
-                    candidates.extend(words)
-                    break
+        for anchor in anchors:
+            if max_anchor_distance == 1:
+                splits = [(anchor[:i], anchor[i:]) for i in range(len(anchor) + 1)]
+                deletes = [L + R[1:] for L, R in splits if R]
+                transposes = [L + R[1] + R[0] + R[2:] for L, R in splits if len(R) > 1]
+                replaces = [L + c + R[1:] for L, R in splits if R for c in letters]
+                inserts = [L + c + R for L, R in splits for c in letters]
+                edits = set([anchor] + deletes + transposes + replaces + inserts)
+                
+                for edit in edits:
+                    if edit in self.anchor_map:
+                        candidates.extend(self.anchor_map[edit])
+            else:
+                for known_anchor, words in self.anchor_map.items():
+                    if abs(len(known_anchor) - len(anchor)) > max_anchor_distance:
+                        continue
+                    dist = self._damerau_levenshtein_distance(
+                        tuple(anchor), tuple(known_anchor)
+                    )
+                    if dist <= max_anchor_distance:
+                        candidates.extend(words)
+                        break
 
         return candidates
 
@@ -2351,8 +2365,8 @@ class UniversalMalteseSpellchecker:
             for known_anchor in anchor_buckets.get((anchor[0], length), ()):
                 if (
                     self._damerau_levenshtein_distance(
-                        list(anchor),
-                        list(known_anchor),
+                        tuple(anchor),
+                        tuple(known_anchor),
                     )
                     <= 1
                 ):

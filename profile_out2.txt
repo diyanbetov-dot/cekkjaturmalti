@@ -1,0 +1,40 @@
+Sat Jun 27 03:14:59 2026    profile_stats2
+
+         22905363 function calls (22851764 primitive calls) in 18.381 seconds
+
+   Ordered by: cumulative time
+   List reduced from 339 to 30 due to restriction <30>
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+        1    0.000    0.000   18.403   18.403 {built-in method builtins.exec}
+        1    0.000    0.000   18.403   18.403 <string>:1(<module>)
+        1    0.000    0.000   18.403   18.403 <string>:16(run_test)
+        1    0.003    0.003   18.402   18.402 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:4305(correct_text_rich)
+       54    0.002    0.000   18.340    0.340 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:2800(correct_word)
+       61    0.029    0.000   17.900    0.293 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:2034(_best_ranked_candidate)
+       36    0.000    0.000   17.358    0.482 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\helpers\article_phrase_rules.py:379(match_split_article)
+       61    0.001    0.000   15.858    0.260 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1850(_get_candidates)
+       32    0.113    0.004   15.857    0.496 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1804(_get_candidates_cached)
+       19    0.001    0.000   15.755    0.829 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:2102(_try_ranked_from_variants)
+       25    3.515    0.141   15.689    0.628 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1786(_near_anchor_candidates)
+   405756    9.063    0.000   11.751    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1167(_damerau_levenshtein_distance)
+12941277/12887682    2.571    0.000    2.616    0.000 {built-in method builtins.min}
+     5701    0.017    0.000    1.619    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1284(_candidate_score)
+     6916    0.121    0.000    1.454    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1235(_score_once)
+    70067    0.470    0.000    0.904    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:492(_letter_tokens_raw)
+5002834/5002832    0.741    0.000    0.741    0.000 {built-in method builtins.len}
+    36235    0.036    0.000    0.525    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:506(_letter_tokens)
+     6918    0.030    0.000    0.457    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1195(_word_distance)
+    25549    0.040    0.000    0.291    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1141(_extract_consonant_anchor)
+  1870106    0.278    0.000    0.278    0.000 {built-in method builtins.abs}
+       45    0.000    0.000    0.251    0.006 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:2792(_missing_h_verb_repair)
+        1    0.060    0.060    0.250    0.250 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:2712(_build_missing_h_verb_repairs)
+   112146    0.133    0.000    0.245    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:471(_graphemes)
+    14028    0.039    0.000    0.224    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1149(_vowel_slots)
+   278120    0.183    0.000    0.200    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:457(_normalize_word)
+     6368    0.017    0.000    0.200    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1864(_is_implausible_vowel_swap)
+     8077    0.040    0.000    0.192    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\helpers\orthographic_generator.py:258(strict_lookup_variants)
+    13838    0.026    0.000    0.153    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1154(_count_vowels)
+     6297    0.008    0.000    0.153    0.000 C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials\app.py:1323(_strict_lookup_variants)
+
+

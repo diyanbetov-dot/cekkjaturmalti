@@ -578,6 +578,8 @@
             element.style.transformOrigin = "50% 50%";
             element.style.willChange = "transform";
 
+            document.body.appendChild(element);
+
             const item = {
                 element,
                 placeholder,
@@ -598,6 +600,7 @@
         }
 
         function restoreGravityItem(item) {
+            item.placeholder.before(item.element);
             Object.entries(item.storedStyle).forEach(([property, value]) => {
                 item.element.style[property] = value;
             });
