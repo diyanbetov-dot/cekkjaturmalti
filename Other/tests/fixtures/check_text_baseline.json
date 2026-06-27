@@ -1,0 +1,1291 @@
+[
+  {
+    "id": "required_phrase",
+    "json": {
+      "changed": true,
+      "corrected_text": "agħlqu l-bajja għax sabu shark",
+      "original_text": "alqu l bajja ax sabu 'shark'",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "F1",
+              "word": "agħlqu"
+            },
+            {
+              "meaning": "F1",
+              "word": "għalqu"
+            },
+            {
+              "meaning": "they closed or shuted down or expired (of time) him",
+              "word": "għalquh"
+            }
+          ],
+          "corrected": "agħlqu",
+          "name_like": false,
+          "original": "alqu",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "the bay",
+              "word": "l-bajja"
+            },
+            {
+              "meaning": "to a bay",
+              "word": "'l bajja"
+            },
+            {
+              "meaning": "to the bay",
+              "word": "'l-bajja"
+            }
+          ],
+          "corrected": "l-bajja",
+          "crucial": true,
+          "original": "l bajja",
+          "type": "phrase"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għax",
+          "name_like": false,
+          "original": "ax",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "sabu",
+          "crucial": false,
+          "name_like": false,
+          "original": "sabu",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "corrected": "shark",
+          "inner_text": "shark",
+          "maltese_suggestion": [
+            "kelb il-baħar"
+          ],
+          "original": "'shark'",
+          "type": "english_phrase"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "alqu",
+    "json": {
+      "changed": true,
+      "corrected_text": "agħlqu",
+      "original_text": "alqu",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "F1",
+              "word": "agħlqu"
+            },
+            {
+              "meaning": "F1",
+              "word": "għalqu"
+            },
+            {
+              "meaning": "they closed or shuted down or expired (of time) him",
+              "word": "għalquh"
+            }
+          ],
+          "corrected": "agħlqu",
+          "name_like": false,
+          "original": "alqu",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "ax",
+    "json": {
+      "changed": true,
+      "corrected_text": "għax",
+      "original_text": "ax",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għax",
+          "name_like": false,
+          "original": "ax",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "l_bajja",
+    "json": {
+      "changed": true,
+      "corrected_text": "il-bajja",
+      "original_text": "l bajja",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "the bay",
+              "word": "il-bajja"
+            },
+            {
+              "meaning": "to a bay",
+              "word": "'l bajja"
+            },
+            {
+              "meaning": "to the bay",
+              "word": "'l-bajja"
+            }
+          ],
+          "corrected": "il-bajja",
+          "crucial": true,
+          "original": "l bajja",
+          "type": "phrase"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "ghamililkom",
+    "json": {
+      "changed": true,
+      "corrected_text": "g?mielilkom",
+      "original_text": "g?amililkom",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "letter",
+              "word": "g"
+            },
+            {
+              "meaning": "letter",
+              "word": "ġ"
+            }
+          ],
+          "corrected": "g",
+          "name_like": false,
+          "original": "g",
+          "type": "word"
+        },
+        {
+          "text": "?",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "mielilkom",
+          "name_like": false,
+          "original": "amililkom",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "introducieni",
+    "json": {
+      "changed": true,
+      "corrected_text": "introdu?għgħieni",
+      "original_text": "introdu?ieni",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "introdu",
+          "name_like": false,
+          "original": "introdu",
+          "type": "word"
+        },
+        {
+          "text": "?",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għgħieni",
+          "name_like": false,
+          "original": "ieni",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "ibghatu",
+    "json": {
+      "changed": true,
+      "corrected_text": "għib?agħtu",
+      "original_text": "ibg?atu",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għib",
+          "name_like": false,
+          "original": "ibg",
+          "type": "word"
+        },
+        {
+          "text": "?",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "F1",
+              "word": "agħtu"
+            },
+            {
+              "meaning": "F1",
+              "word": "għatu"
+            },
+            {
+              "meaning": "F1 / F2",
+              "word": "għattu"
+            }
+          ],
+          "corrected": "agħtu",
+          "name_like": false,
+          "original": "atu",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "amel",
+    "json": {
+      "changed": true,
+      "corrected_text": "agħmel",
+      "original_text": "amel",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "F1",
+              "word": "agħmel"
+            },
+            {
+              "meaning": "F1",
+              "word": "għamel"
+            }
+          ],
+          "corrected": "agħmel",
+          "name_like": false,
+          "original": "amel",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "correct_maltese",
+    "json": {
+      "changed": true,
+      "corrected_text": "Jien inha?serb li dan huwa tajjeb.",
+      "original_text": "Jien na?seb li dan huwa tajjeb.",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "Jien",
+          "name_like": true,
+          "original": "Jien",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "inha",
+          "name_like": false,
+          "original": "na",
+          "type": "word"
+        },
+        {
+          "text": "?",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "serb",
+          "name_like": false,
+          "original": "seb",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "li",
+          "name_like": false,
+          "original": "li",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "this",
+              "word": "dan"
+            },
+            {
+              "meaning": "F1",
+              "word": "dann"
+            }
+          ],
+          "corrected": "dan",
+          "name_like": false,
+          "original": "dan",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "huwa",
+          "name_like": false,
+          "original": "huwa",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "good / well",
+              "word": "tajjeb"
+            },
+            {
+              "meaning": "F5 / F2",
+              "word": "tgħajjeb"
+            }
+          ],
+          "corrected": "tajjeb",
+          "name_like": false,
+          "original": "tajjeb",
+          "type": "word"
+        },
+        {
+          "text": ".",
+          "type": "text"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "semitic_verbs",
+    "json": {
+      "changed": false,
+      "corrected_text": "jikteb kitbu nikteb",
+      "original_text": "jikteb kitbu nikteb",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "jikteb",
+          "name_like": false,
+          "original": "jikteb",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "kitbu",
+          "name_like": false,
+          "original": "kitbu",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "nikteb",
+          "name_like": false,
+          "original": "nikteb",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "nonsemitic_verbs",
+    "json": {
+      "changed": true,
+      "corrected_text": "pparkjajtu nipparkja pparkjaw",
+      "original_text": "ipparkjajt nipparkja pparkjaw",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "pparkjajtu",
+          "name_like": false,
+          "original": "ipparkjajt",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "nipparkja",
+          "name_like": false,
+          "original": "nipparkja",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "pparkjaw",
+          "name_like": false,
+          "original": "pparkjaw",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "suffixed_verbs",
+    "json": {
+      "changed": true,
+      "corrected_text": "g?għamlilhom bgħal?tilakom rajtha",
+      "original_text": "g?amlilhom bag?tilkom rajtha",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "letter",
+              "word": "g"
+            },
+            {
+              "meaning": "letter",
+              "word": "ġ"
+            }
+          ],
+          "corrected": "g",
+          "name_like": false,
+          "original": "g",
+          "type": "word"
+        },
+        {
+          "text": "?",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "he did or made their",
+              "word": "għamlilhom"
+            },
+            {
+              "meaning": "you, do or make their (command)",
+              "word": "agħmlilhom"
+            }
+          ],
+          "corrected": "għamlilhom",
+          "name_like": false,
+          "original": "amlilhom",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "bgħal",
+          "name_like": false,
+          "original": "bag",
+          "type": "word"
+        },
+        {
+          "text": "?",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "tilakom",
+          "name_like": false,
+          "original": "tilkom",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "rajtha",
+          "name_like": false,
+          "original": "rajtha",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "possessive_nouns",
+    "json": {
+      "changed": false,
+      "corrected_text": "dari ktiebek ommhom",
+      "original_text": "dari ktiebek ommhom",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "house",
+              "word": "dari"
+            },
+            {
+              "meaning": "tender",
+              "word": "tari"
+            },
+            {
+              "meaning": "F1",
+              "word": "ddari"
+            }
+          ],
+          "corrected": "dari",
+          "name_like": false,
+          "original": "dari",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "ktiebek",
+          "name_like": false,
+          "original": "ktiebek",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "ommhom",
+          "name_like": false,
+          "original": "ommhom",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "missing_gh",
+    "json": {
+      "changed": true,
+      "corrected_text": "għaliex għandi x'agħar",
+      "original_text": "ghaliex ghandi xaghar",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għaliex",
+          "name_like": false,
+          "original": "ghaliex",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għandi",
+          "name_like": false,
+          "original": "ghandi",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [
+            {
+              "meaning": "worse",
+              "word": "x'agħar"
+            }
+          ],
+          "corrected": "x'agħar",
+          "crucial": false,
+          "original": "xaghar",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "missing_h",
+    "json": {
+      "changed": true,
+      "corrected_text": "naħseb taħdimx aħjar",
+      "original_text": "nahseb tahdimx ahjar",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "naħseb",
+          "name_like": false,
+          "original": "nahseb",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "taħdimx",
+          "name_like": false,
+          "original": "tahdimx",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "aħjar",
+          "name_like": false,
+          "original": "ahjar",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "articles",
+    "json": {
+      "changed": true,
+      "corrected_text": "fil-bajja l-iskola għall-omm",
+      "original_text": "fil bajja l iskola ghall omm",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "fil-bajja",
+          "crucial": false,
+          "name_like": false,
+          "original": "fil bajja",
+          "type": "phrase"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [
+            {
+              "meaning": "",
+              "word": "l-iskola"
+            }
+          ],
+          "corrected": "l-iskola",
+          "crucial": false,
+          "original": "l iskola",
+          "type": "phrase"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għall-omm",
+          "crucial": false,
+          "name_like": false,
+          "original": "ghall omm",
+          "type": "phrase"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "punctuation_caps_quotes",
+    "json": {
+      "changed": true,
+      "corrected_text": "Għamm qalet, good morning, u marret il-Belt.",
+      "original_text": "Amy qalet, 'good morning', u marret il-Belt.",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "Għamm",
+          "name_like": true,
+          "original": "Amy",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "qalet",
+          "crucial": false,
+          "name_like": false,
+          "original": "qalet",
+          "type": "word"
+        },
+        {
+          "text": ", ",
+          "type": "text"
+        },
+        {
+          "corrected": "good morning",
+          "inner_text": "good morning",
+          "maltese_suggestion": null,
+          "original": "'good morning'",
+          "type": "english_phrase"
+        },
+        {
+          "text": ", ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "u",
+          "name_like": false,
+          "original": "u",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "marret",
+          "name_like": false,
+          "original": "marret",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [
+            {
+              "meaning": "the city",
+              "word": "il-belt"
+            }
+          ],
+          "corrected": "il-Belt",
+          "crucial": false,
+          "original": "il-Belt",
+          "type": "phrase"
+        },
+        {
+          "text": ".",
+          "type": "text"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "ambiguous",
+    "json": {
+      "changed": false,
+      "corrected_text": "qed isir dan",
+      "original_text": "qed isir dan",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "qed",
+          "name_like": false,
+          "original": "qed",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "F1",
+              "word": "isir"
+            },
+            {
+              "meaning": "F1",
+              "word": "issir"
+            }
+          ],
+          "corrected": "isir",
+          "name_like": false,
+          "original": "isir",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "this",
+              "word": "dan"
+            },
+            {
+              "meaning": "F1",
+              "word": "dann"
+            }
+          ],
+          "corrected": "dan",
+          "name_like": false,
+          "original": "dan",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "repeated_words",
+    "json": {
+      "changed": true,
+      "corrected_text": "laħam laħam laħam għaliex għaliex",
+      "original_text": "laham laham laham ghaliex ghaliex",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "laħam",
+          "name_like": false,
+          "original": "laham",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "laħam",
+          "name_like": false,
+          "original": "laham",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "laħam",
+          "name_like": false,
+          "original": "laham",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għaliex",
+          "name_like": false,
+          "original": "ghaliex",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għaliex",
+          "name_like": false,
+          "original": "ghaliex",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "context_dependent",
+    "json": {
+      "changed": true,
+      "corrected_text": "minn Malta u l-bajja",
+      "original_text": "minn Malta u l bajja",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "minn",
+          "name_like": false,
+          "original": "minn",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "Malta",
+          "name_like": true,
+          "original": "Malta",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "u",
+          "name_like": false,
+          "original": "u",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "the bay",
+              "word": "l-bajja"
+            },
+            {
+              "meaning": "to a bay",
+              "word": "'l bajja"
+            },
+            {
+              "meaning": "to the bay",
+              "word": "'l-bajja"
+            }
+          ],
+          "corrected": "l-bajja",
+          "crucial": true,
+          "original": "l bajja",
+          "type": "phrase"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "social_paragraph",
+    "json": {
+      "changed": true,
+      "corrected_text": "Fgħal ta' Amy m'iniex anzi, bħal ħafna minnkom nixtieq li Luke jirbaħ għax żagħżugħa kellha atteġġjament.",
+      "original_text": "Fan ta' Amy minix anzi, bhal hafna minnkom nixtieq li Luke jirbah ghax zghazugha kellha attegjament.",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "Fgħal",
+          "name_like": true,
+          "original": "Fan",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "ta'",
+          "name_like": false,
+          "original": "ta'",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "Amy",
+          "name_like": true,
+          "original": "Amy",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "m'iniex",
+          "name_like": false,
+          "original": "minix",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "anzi",
+          "name_like": false,
+          "original": "anzi",
+          "type": "word"
+        },
+        {
+          "text": ", ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "bħal",
+          "name_like": false,
+          "original": "bhal",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "ħafna",
+          "name_like": false,
+          "original": "hafna",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "minnkom",
+          "name_like": false,
+          "original": "minnkom",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "nixtieq",
+          "name_like": false,
+          "original": "nixtieq",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "li",
+          "name_like": false,
+          "original": "li",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "Luke",
+          "name_like": true,
+          "original": "Luke",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "jirbaħ",
+          "name_like": false,
+          "original": "jirbah",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għax",
+          "name_like": false,
+          "original": "ghax",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "żagħżugħa",
+          "name_like": false,
+          "original": "zghazugha",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "kellha",
+          "name_like": false,
+          "original": "kellha",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "atteġġjament",
+          "name_like": false,
+          "original": "attegjament",
+          "type": "word"
+        },
+        {
+          "text": ".",
+          "type": "text"
+        }
+      ]
+    },
+    "status_code": 200
+  }
+]

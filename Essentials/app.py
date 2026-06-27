@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import time
 import unicodedata
 from Essentials.dictionary_meanings import (
     MeaningIndex,
@@ -18,6 +19,13 @@ from Essentials.helpers.fused_preposition_rules import MalteseFusedPrepositionRu
 from Essentials.helpers.suffix_generator import MalteseSuffixGenerator
 from Essentials.helpers.orthographic_generator import MalteseOrthographicGenerator
 from Essentials.helpers.doubled_letter_generator import MalteseDoubledLetterGenerator
+from Essentials.helpers.performance_logging import (
+    RequestProfiler,
+    current_profiler,
+    log_spellcheck_event,
+    reset_current_profiler,
+    set_current_profiler,
+)
 from flask import Flask, jsonify, request, send_from_directory
 
 
@@ -1202,6 +1210,9 @@ class UniversalMalteseSpellchecker:
 
     @lru_cache(maxsize=131072)
     def _word_distance(self, word1: str, word2: str) -> int:
+        profiler = current_profiler()
+        if profiler is not None:
+            profiler.increment("distance_calls")
         return self._damerau_levenshtein_distance(
             tuple(self._letter_tokens(word1)),
             tuple(self._letter_tokens(word2)),
@@ -1872,7 +1883,22 @@ class UniversalMalteseSpellchecker:
 
     def _get_candidates(self, word: str) -> list[str]:
         normalized = self._normalize_word(word)
-        return list(self._get_candidates_cached(normalized))
+        profiler = current_profiler()
+        before = self._get_candidates_cached.cache_info() if profiler is not None else None
+        started = time.perf_counter() if profiler is not None else 0.0
+        candidates = list(self._get_candidates_cached(normalized))
+        if profiler is not None and before is not None:
+            after = self._get_candidates_cached.cache_info()
+            cache_hit = after.hits > before.hits
+            profiler.increment("candidates_generated", len(candidates))
+            profiler.log_stage(
+                "candidate_generation",
+                (time.perf_counter() - started) * 1000,
+                token=normalized,
+                candidates_generated=len(candidates),
+                cache_hit=cache_hit,
+            )
+        return candidates
 
     @staticmethod
     def _deduplicate(items: Iterable[str]) -> list[str]:
@@ -2086,6 +2112,8 @@ class UniversalMalteseSpellchecker:
                 if self._normalize_word(combined) in self.dictionary_set:
                     candidates_to_score.add(combined)
 
+        profiler = current_profiler()
+        started = time.perf_counter() if profiler is not None else 0.0
         rows: list[ScoreRow] = []
         for candidate in candidates_to_score:
             if candidate_filter and not candidate_filter(candidate):
@@ -2103,6 +2131,17 @@ class UniversalMalteseSpellchecker:
             ):
                 continue
             rows.append(self._candidate_score(normalized, candidate, stage))
+
+        if profiler is not None:
+            profiler.increment("candidates_scored", len(rows))
+            profiler.log_stage(
+                "ranked_candidate",
+                (time.perf_counter() - started) * 1000,
+                token=normalized,
+                ranked_stage=stage,
+                candidates_generated=len(candidates_to_score),
+                candidates_scored=len(rows),
+            )
 
         if not rows:
             return None
@@ -2868,6 +2907,20 @@ class UniversalMalteseSpellchecker:
         return self._missing_h_verb_repairs.get(normalized)
 
     def correct_word(self, word: str) -> str:
+        profiler = current_profiler()
+        if profiler is None:
+            return self._correct_word_uncached(word)
+
+        key = (word,)
+        hit, value = profiler.cache_get("correct_word", key)
+        if hit:
+            return value
+
+        with profiler.span("correct_word", token=word, cache_hit=False):
+            value = self._correct_word_uncached(word)
+        return profiler.cache_set("correct_word", key, value)
+
+    def _correct_word_uncached(self, word: str) -> str:
         if not word:
             return word
 
@@ -4271,6 +4324,42 @@ class UniversalMalteseSpellchecker:
         return " / ".join(meanings)
 
     def ambiguity_choices(
+        self,
+        original_word: str,
+        corrected_word: str,
+        limit: int = 2,
+        edit_distance_tolerance: int = 1,
+    ) -> list[dict]:
+        profiler = current_profiler()
+        if profiler is None:
+            return self._ambiguity_choices_uncached(
+                original_word,
+                corrected_word,
+                limit=limit,
+                edit_distance_tolerance=edit_distance_tolerance,
+            )
+
+        key = (original_word, corrected_word, limit, edit_distance_tolerance)
+        hit, value = profiler.cache_get("ambiguity_choices", key)
+        if hit:
+            return value
+
+        with profiler.span(
+            "ambiguity_choices",
+            token=original_word,
+            corrected=corrected_word,
+            cache_hit=False,
+            ambiguity_invoked=True,
+        ):
+            value = self._ambiguity_choices_uncached(
+                original_word,
+                corrected_word,
+                limit=limit,
+                edit_distance_tolerance=edit_distance_tolerance,
+            )
+        return profiler.cache_set("ambiguity_choices", key, value)
+
+    def _ambiguity_choices_uncached(
         self,
         original_word: str,
         corrected_word: str,
@@ -5956,6 +6045,7 @@ class UniversalMalteseSpellchecker:
 
 app = Flask(__name__)
 
+_startup_started = time.perf_counter()
 spellchecker = UniversalMalteseSpellchecker(dictionary_files=DICTIONARY_FILES)
 meaning_index = MeaningIndex()
 meaning_index.load_entries(spellchecker.raw_entries)
@@ -5991,6 +6081,18 @@ fused_preposition_rules = MalteseFusedPrepositionRules(
     meaning_index=meaning_index,
 )
 spellchecker.fused_preposition_rules = fused_preposition_rules
+
+log_spellcheck_event(
+    stage="startup_complete",
+    elapsed_ms=(time.perf_counter() - _startup_started) * 1000,
+    dictionary_words=len(spellchecker.dictionary),
+    paradigms=len(spellchecker.paradigm_forms),
+    suffix_verb_records=(
+        spellchecker.suffix_generator.verb_index.record_count()
+        if hasattr(spellchecker, "suffix_generator")
+        else None
+    ),
+)
 
 
 ENABLE_DEV_TOOLS = False
@@ -6054,42 +6156,68 @@ def health():
 
 @app.post("/check-text")
 def check_text():
+    profiler = RequestProfiler()
+    profiler_token = set_current_profiler(profiler)
+    token_count = 0
+    unique_tokens = 0
     data = request.get_json(silent=True) or {}
-    text = data.get("text", "")
+    try:
+        text = data.get("text", "")
 
-    if not isinstance(text, str):
-        return jsonify({"error": "text must be a string."}), 400
+        if not isinstance(text, str):
+            return jsonify({"error": "text must be a string."}), 400
 
-    if not text.strip():
-        return jsonify({"error": "Please write some Maltese text first."}), 400
+        if not text.strip():
+            return jsonify({"error": "Please write some Maltese text first."}), 400
 
-    if len(text) > MAX_TEXT_LENGTH:
-        return (
-            jsonify(
-                {
-                    "error": (
-                        f"Text is too long. Maximum length is "
-                        f"{MAX_TEXT_LENGTH} characters."
-                    )
-                }
-            ),
-            413,
+        if len(text) > MAX_TEXT_LENGTH:
+            return (
+                jsonify(
+                    {
+                        "error": (
+                            f"Text is too long. Maximum length is "
+                            f"{MAX_TEXT_LENGTH} characters."
+                        )
+                    }
+                ),
+                413,
+            )
+
+        request_words = [
+            match.group(0) for match in spellchecker.WORD_PATTERN.finditer(text)
+        ]
+        token_count = len(request_words)
+        unique_tokens = len(
+            {spellchecker._normalize_word(word) for word in request_words}
         )
 
-    edit_distance_tolerance = int(data.get("edit_distance_tolerance", 1))
-    result = spellchecker.correct_text_rich(
-        text, edit_distance_tolerance=edit_distance_tolerance
-    )
-    corrected_text = result["corrected_text"]
+        edit_distance_tolerance = int(data.get("edit_distance_tolerance", 1))
+        with profiler.span(
+            "correct_text_rich",
+            tokens=token_count,
+            unique_tokens=unique_tokens,
+        ):
+            result = spellchecker.correct_text_rich(
+                text, edit_distance_tolerance=edit_distance_tolerance
+            )
+        corrected_text = result["corrected_text"]
 
-    return jsonify(
-        {
-            "original_text": text,
-            "corrected_text": corrected_text,
-            "changed": corrected_text != text,
-            "tokens": result["tokens"],
-        }
-    )
+        return jsonify(
+            {
+                "original_text": text,
+                "corrected_text": corrected_text,
+                "changed": corrected_text != text,
+                "tokens": result["tokens"],
+            }
+        )
+    except Exception:
+        app.logger.exception(
+            "SPELLCHECK request_id=%s stage=exception", profiler.request_id
+        )
+        return jsonify({"error": "Internal spell-checking error."}), 500
+    finally:
+        profiler.finish(token_count=token_count, unique_tokens=unique_tokens)
+        reset_current_profiler(profiler_token)
 
 
 @app.post("/suggest-word")
