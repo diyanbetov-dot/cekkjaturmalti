@@ -85,5 +85,47 @@ class VerbSuffixMeaningIntegrationTests(unittest.TestCase):
         )
 
 
+class ExactVerbMeaningLookupTests(unittest.TestCase):
+    def test_exact_semitic_verbs_have_meanings(self):
+        self.assertEqual(
+            app.spellchecker.meaning_for("kiteb"),
+            "he wrote or registered",
+        )
+        self.assertEqual(
+            app.spellchecker.meaning_for("kitibx"),
+            "he didn't write or register",
+        )
+        self.assertEqual(
+            app.spellchecker.meaning_for("jikteb"),
+            "he writes or registers",
+        )
+        self.assertEqual(
+            app.spellchecker.meaning_for("kitbu"),
+            "they wrote or registered",
+        )
+
+    def test_exact_non_semitic_verbs_have_meanings(self):
+        self.assertEqual(app.spellchecker.meaning_for("introduċa"), "he introduced")
+        self.assertEqual(app.spellchecker.meaning_for("introduċew"), "they introduced")
+
+
+class VerbMeaningEndpointTests(unittest.TestCase):
+    def test_check_text_exposes_token_meaning_for_exact_verb(self):
+        client = app.app.test_client()
+        response = client.post(
+            "/check-text",
+            json={"text": "kiteb", "edit_distance_tolerance": 1},
+        )
+        self.assertEqual(response.status_code, 200)
+        payload = response.get_json()
+        self.assertEqual(payload["corrected_text"], "kiteb")
+        self.assertEqual(len(payload["tokens"]), 1)
+        self.assertEqual(payload["tokens"][0]["corrected"], "kiteb")
+        self.assertEqual(
+            payload["tokens"][0]["meaning"],
+            "he wrote or registered",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

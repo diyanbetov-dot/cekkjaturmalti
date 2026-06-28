@@ -444,13 +444,16 @@ class UniversalMalteseSpellchecker:
                 seen_words.add(normalized)
 
             if tag:
-                self.word_tags[normalized].add(tag)
+                runtime_tag = str(tag).split()[0]
+                self.word_tags[normalized].add(str(tag))
                 if (
-                    self._is_paradigm_tag(tag)
-                    and normalized not in seen_paradigm_forms[tag]
+                    self._is_paradigm_tag(runtime_tag)
+                    and normalized
+                    not in seen_paradigm_forms[self._parse_paradigm_key(runtime_tag)]
                 ):
-                    self.paradigm_forms[tag].append(normalized)
-                    seen_paradigm_forms[tag].add(normalized)
+                    paradigm_key = self._parse_paradigm_key(runtime_tag)
+                    self.paradigm_forms[paradigm_key].append(normalized)
+                    seen_paradigm_forms[paradigm_key].add(normalized)
 
         self.dictionary_set = set(self.dictionary)
         self._load_country_place_index(FINAL_DICS_DIR / "eu_countries.json")
@@ -1210,21 +1213,16 @@ class UniversalMalteseSpellchecker:
                 if not line or line.startswith("#"):
                     continue
 
-                # Keep only the first whitespace field:
-                #   word/FLAGS po:noun -> word/FLAGS
-                first_field = line.split()[0]
-
-                if "/" in first_field:
-                    word, raw_tag = first_field.split("/", 1)
+                if "/" in line:
+                    word, raw_tag = line.split("/", 1)
                     word = word.strip()
                     raw_tag = raw_tag.strip()
-                    if self._is_paradigm_tag(raw_tag):
-                        entries.append((word, self._parse_paradigm_key(raw_tag)))
-                    elif "-" in raw_tag:
+                    if "-" in raw_tag or raw_tag:
                         entries.append((word, raw_tag))
                     else:
                         entries.append((word, None))
                 else:
+                    first_field = line.split()[0]
                     entries.append((first_field, None))
 
         return entries
@@ -5277,6 +5275,7 @@ class UniversalMalteseSpellchecker:
                         "type": "word",
                         "original": original_word,
                         "corrected": corrected_word,
+                        "meaning": self.meaning_for(corrected_word),
                         "ambiguous": is_ambiguous,
                         "choices": choices if is_ambiguous else [],
                         "name_like": self._is_initial_capitalized(corrected_word),
@@ -6538,6 +6537,7 @@ class UniversalMalteseSpellchecker:
                     "type": "word",
                     "original": original_word,
                     "corrected": surface_word,
+                    "meaning": self.meaning_for(corrected_word),
                     "ambiguous": is_ambiguous,
                     "choices": choices if is_ambiguous else [],
                     "name_like": self._is_initial_capitalized(surface_word),
@@ -6594,7 +6594,7 @@ app = Flask(__name__)
 _startup_started = time.perf_counter()
 spellchecker = UniversalMalteseSpellchecker(dictionary_files=DICTIONARY_FILES)
 meaning_index = MeaningIndex()
-meaning_index.load_entries(spellchecker.raw_entries)
+meaning_index.load_entries(spellchecker.raw_entries, include_verbs=True)
 spellchecker.raw_entries = []
 article_phrase_rules = MalteseArticlePhraseRules(
     meaning_index=meaning_index,
