@@ -323,7 +323,7 @@
             z-index: 20;
             left: 0;
             top: 1.8em;
-            width: max-content;
+            width: min(28rem, 90vw);
             max-width: 90vw;
             background: white;
             border: 1px solid #d6b600;
@@ -347,9 +347,7 @@
 
 
         .suggestion-row {
-            display: grid;
-            grid-template-columns: auto 1fr;
-            gap: 8px;
+            display: block;
             width: 100%;
             padding: 7px 8px;
             border: none;
@@ -370,7 +368,16 @@
         }
 
         .suggestion-row strong {
-            white-space: nowrap;
+            display: block;
+            margin-bottom: 2px;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .suggestion-row .suggestion-meaning {
+            display: block;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         .correction-timer {
@@ -1246,6 +1253,7 @@
                 word.textContent = choiceWord;
 
                 const meaning = document.createElement("span");
+                meaning.className = "suggestion-meaning";
                 meaning.textContent = choiceMeaning
                     ? `: ${choiceMeaning}`
                     : ": meaning unavailable";

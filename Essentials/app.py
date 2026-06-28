@@ -2553,6 +2553,13 @@ class UniversalMalteseSpellchecker:
             cursor -= 1
         return cursor < 0 or text[cursor] in ".?!"
 
+    def _ensure_terminal_period(self, text: str) -> str:
+        stripped = text.rstrip()
+        if not stripped or stripped[-1] in ".?!":
+            return text
+        trailing = text[len(stripped) :]
+        return f"{stripped}.{trailing}"
+
     def _limited_candidates_from_pool(
         self,
         typo: str,
@@ -6593,7 +6600,7 @@ class UniversalMalteseSpellchecker:
             )
             corrected_parts.append(raw_text)
 
-        corrected_text = "".join(corrected_parts)
+        corrected_text = self._ensure_terminal_period("".join(corrected_parts))
         self._add_country_translation_choices(tokens)
 
         return {
