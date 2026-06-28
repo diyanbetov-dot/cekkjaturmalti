@@ -6180,7 +6180,14 @@ def devtoy_assets(filename):
 
 @app.get("/health")
 def health():
-    return jsonify({"status": "ok"}), 200
+    return jsonify(
+        {
+            "ok": True,
+            "status": "ok",
+            "dictionary_words": len(spellchecker.dictionary),
+            "paradigms": len(spellchecker.paradigm_forms),
+        }
+    ), 200
 
 
 @app.post("/check-text")
