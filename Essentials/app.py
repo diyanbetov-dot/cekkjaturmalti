@@ -530,6 +530,7 @@ class UniversalMalteseSpellchecker:
             "_damerau_levenshtein_distance",
             "_word_distance",
             "_get_candidates_cached",
+            "_letter_tokens_raw",
             "meaning_for",
         )
         summary: dict[str, dict[str, int | None]] = {}
@@ -1905,9 +1906,10 @@ class UniversalMalteseSpellchecker:
         # whole-dictionary scans dominating one bad guess.
         if len(candidates) < 8:
             word_len = len(self._letter_tokens(normalized))
-            max_length_gap = max(1, self._max_distance(normalized))
+            # Use gap of 1 (not max_distance) to stay tight.
+            max_length_gap = 1
             initial = normalized[:1]
-            fallback_limit = 96
+            fallback_limit = 32
 
             for candidate in self.dictionary:
                 if len(candidates) >= fallback_limit:
@@ -2132,12 +2134,21 @@ class UniversalMalteseSpellchecker:
             self._max_distance(normalized) if max_distance is None else max_distance
         )
         typo_len = len(self._letter_tokens(normalized))
+        typo_anchor = self._extract_consonant_anchor(normalized)
 
         candidates_to_score = set(self._get_candidates(normalized))
         for variant in self._lexicalized_form_variants(normalized):
             candidates_to_score.update(self._get_candidates(variant))
 
+        # Also expand shortcut letter variants (c→ċ, g→ġ, z→ż, h→ħ) so that
+        # e.g. 'iddecidew' searches candidates of 'iddeċidew' too.
         ortho_gen = getattr(self, "orthographic_generator", None)
+        if ortho_gen is not None and hasattr(ortho_gen, "shortcut_letter_variants"):
+            for sc_variant in ortho_gen.shortcut_letter_variants(normalized):
+                sc_norm = self._normalize_word(sc_variant)
+                if sc_norm and sc_norm != normalized:
+                    candidates_to_score.update(self._get_candidates(sc_norm))
+
         if ortho_gen is not None:
             combined_variants = []
             for t_d in ortho_gen.substitute_d_t(normalized):
@@ -2146,10 +2157,17 @@ class UniversalMalteseSpellchecker:
             for b_p in ortho_gen.substitute_b_p(normalized):
                 combined_variants.extend(ortho_gen.insert_token_next_to_vowels(b_p, "h"))
                 combined_variants.extend(ortho_gen.insert_token_next_to_vowels(b_p, "għ"))
-            
+
             for combined in combined_variants:
                 if self._normalize_word(combined) in self.dictionary_set:
                     candidates_to_score.add(combined)
+
+        # Pre-filter by anchor distance: reject candidates whose consonant skeleton
+        # differs from the typo's by more than max_distance+1.
+        # This removes clearly unrelated words (e.g. anchor_dist=4+) without the
+        # ordering bias of a top-N sort, which can incorrectly prefer related-but-wrong
+        # forms over the actual target.
+        anchor_reject_threshold = max_distance + 1
 
         profiler = current_profiler()
         started = time.perf_counter() if profiler is not None else 0.0
@@ -2157,19 +2175,25 @@ class UniversalMalteseSpellchecker:
         for candidate in candidates_to_score:
             if candidate_filter and not candidate_filter(candidate):
                 continue
+            # Fast length pre-filter: skip expensive scoring if lengths differ too much
+            cand_len = self.word_lengths.get(
+                candidate, len(self._letter_tokens(candidate))
+            )
+            if abs(cand_len - typo_len) > max_distance + 2:
+                continue
+            # Fast anchor distance pre-filter: skip if consonant skeletons are too far
+            cand_anchor = self._extract_consonant_anchor(candidate)
+            if self._damerau_levenshtein_distance(
+                tuple(typo_anchor), tuple(cand_anchor)
+            ) > anchor_reject_threshold:
+                continue
             if self._is_implausible_vowel_swap(normalized, candidate):
                 continue
-            if (
-                abs(
-                    self.word_lengths.get(
-                        candidate, len(self._letter_tokens(candidate))
-                    )
-                    - typo_len
-                )
-                > max_distance + 2
-            ):
-                continue
-            rows.append(self._candidate_score(normalized, candidate, stage))
+            row = self._candidate_score(normalized, candidate, stage)
+            rows.append(row)
+            # Early exit: perfect phonetic match found, no need to keep scoring
+            if row.edit_distance == 0 and row.score < score_limit:
+                break
 
         if profiler is not None:
             profiler.increment("candidates_scored", len(rows))
@@ -3463,8 +3487,29 @@ class UniversalMalteseSpellchecker:
         )
         if broad_best:
             candidate_seq = self._vowel_sequence(broad_best.candidate)
+            result_candidate = broad_best.candidate
+            # If the candidate lacks the same initial letter as the input, try to
+            # recover the correct prefixed form via shortcut letter substitution.
+            # E.g. 'iddecidew' finds 'ddeċidew' → check 'iddeċidew'.
+            if (
+                result_candidate[:1] != normalized[:1]
+                and normalized[:1]
+            ):
+                prefixed = normalized[:1] + result_candidate
+                prefixed_norm = self._normalize_word(prefixed)
+                if prefixed_norm in self.dictionary_set:
+                    result_candidate = prefixed_norm
+                else:
+                    # Check shortcut substitution of the input against i-prefixed candidate
+                    ortho_gen_b = getattr(self, "orthographic_generator", None)
+                    if ortho_gen_b is not None and hasattr(ortho_gen_b, "shortcut_letter_variants"):
+                        for sc_v in ortho_gen_b.shortcut_letter_variants(normalized):
+                            sc_n = self._normalize_word(sc_v)
+                            if sc_n and sc_n in self.dictionary_set:
+                                result_candidate = sc_n
+                                break
             if candidate_seq == target_vowel_sequence or broad_best.score <= 0.38:
-                return self._match_capitalisation(word, broad_best.candidate)
+                return self._match_capitalisation(word, result_candidate)
 
         return word
 
