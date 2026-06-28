@@ -240,7 +240,7 @@ class UniversalMalteseSpellchecker:
         "da": "dan",
         "xol": "xogħol",
         "nom": "ngħum",
-        "nowm": "ngħum"
+        "nowm": "ngħum",
         "nowmu": "ngħumu",
         "towm": "tgħum",
         "towmu": "tgħumu",
