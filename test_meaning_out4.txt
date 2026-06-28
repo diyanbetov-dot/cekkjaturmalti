@@ -1,0 +1,5 @@
+Tags for nagħmel (nagħmel): {'T-għml-F1'}
+Tags for ngħamel (ngħamel): {'T-għml-F71'}
+Tags for għamel (għamel): {'T-għml-F1'}
+Tags for jagħmel (jagħmel): {'T-għml-F1'}
+Done.
