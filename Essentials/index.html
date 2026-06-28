@@ -323,8 +323,8 @@
             z-index: 20;
             left: 0;
             top: 1.8em;
-            width: min(28rem, 90vw);
-            max-width: 90vw;
+            width: max-content;
+            max-width: min(28rem, 90vw);
             background: white;
             border: 1px solid #d6b600;
             border-radius: 12px;
@@ -347,7 +347,10 @@
 
 
         .suggestion-row {
-            display: block;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: start;
+            column-gap: 8px;
             width: 100%;
             padding: 7px 8px;
             border: none;
@@ -368,14 +371,11 @@
         }
 
         .suggestion-row strong {
-            display: block;
-            margin-bottom: 2px;
-            white-space: normal;
-            overflow-wrap: anywhere;
+            white-space: nowrap;
         }
 
         .suggestion-row .suggestion-meaning {
-            display: block;
+            display: inline;
             white-space: normal;
             overflow-wrap: anywhere;
         }
