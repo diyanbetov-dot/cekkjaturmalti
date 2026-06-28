@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import threading
 import time
 import unicodedata
 import uuid
@@ -10,7 +11,7 @@ from Essentials.dictionary_meanings import (
     format_suffix_candidate_meaning,
 )
 from collections import defaultdict
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from functools import lru_cache
 from pathlib import Path
 from typing import Callable, Iterable
@@ -29,6 +30,14 @@ from Essentials.helpers.performance_logging import (
     set_current_profiler,
 )
 from flask import Flask, jsonify, request, send_from_directory
+
+
+@dataclass(slots=True)
+class TokenAnalysis:
+    normalized: str
+    corrected: str = ""
+    candidates: tuple[str, ...] = ()
+    is_deterministic: bool = False
 
 
 # -----------------------------------------------------------------------------
@@ -372,6 +381,7 @@ class UniversalMalteseSpellchecker:
             )
         )
         self.instance_id = uuid.uuid4().hex[:12]
+        self._local = threading.local()
         self.dictionary: list[str] = []
         self.dictionary_set: set[str] = set()
         self.place_entries: list[str] = []
@@ -519,6 +529,109 @@ class UniversalMalteseSpellchecker:
     def _letter_tokens(self, word: str) -> tuple[str, ...]:
         normalized = self._normalize_word(word)
         return self._letter_tokens_raw(normalized)
+
+    def _reset_request_token_cache(self) -> None:
+        self._local.token_cache = {}
+        self._local.suggestion_cache = {}
+
+    def _request_token_cache(self) -> dict[str, TokenAnalysis]:
+        cache = getattr(self._local, "token_cache", None)
+        if cache is None:
+            cache = {}
+            self._local.token_cache = cache
+        return cache
+
+    def _request_suggestion_cache(
+        self,
+    ) -> dict[tuple[str, int, int], tuple[str, ...]]:
+        cache = getattr(self._local, "suggestion_cache", None)
+        if cache is None:
+            cache = {}
+            self._local.suggestion_cache = cache
+        return cache
+
+    def _get_token_analysis(self, word: str) -> TokenAnalysis | None:
+        return self._request_token_cache().get(word)
+
+    def _store_token_analysis(
+        self,
+        word: str,
+        *,
+        corrected: str | None = None,
+        candidates: Iterable[str] | None = None,
+        is_deterministic: bool | None = None,
+    ) -> TokenAnalysis:
+        cache = self._request_token_cache()
+        analysis = cache.get(word)
+        if analysis is None:
+            analysis = TokenAnalysis(normalized=self._normalize_word(word))
+            cache[word] = analysis
+        if corrected is not None:
+            analysis.corrected = corrected
+        if candidates is not None:
+            unique_candidates: list[str] = []
+            for candidate in candidates:
+                candidate = str(candidate)
+                if candidate and candidate not in unique_candidates:
+                    unique_candidates.append(candidate)
+            analysis.candidates = tuple(unique_candidates)
+        if is_deterministic is not None:
+            analysis.is_deterministic = is_deterministic
+        return analysis
+
+    def _cached_correct_word(self, word: str) -> str | None:
+        analysis = self._get_token_analysis(word)
+        if analysis and analysis.corrected:
+            return analysis.corrected
+        return None
+
+    def _store_correct_word_result(
+        self,
+        word: str,
+        corrected: str,
+        *,
+        is_deterministic: bool = False,
+        candidates: Iterable[str] | None = None,
+    ) -> str:
+        candidate_list = list(candidates or ())
+        if not candidate_list:
+            candidate_list = [corrected]
+            if self._normalize_word(corrected) != self._normalize_word(word):
+                candidate_list.append(word)
+        self._store_token_analysis(
+            word,
+            corrected=corrected,
+            candidates=candidate_list,
+            is_deterministic=is_deterministic,
+        )
+        return corrected
+
+    def _store_suggest_result(
+        self,
+        word: str,
+        limit: int,
+        edit_distance_tolerance: int,
+        suggestions: list[str],
+    ) -> list[str]:
+        normalized = self._normalize_word(word)
+        result = tuple(suggestions[:limit])
+        self._request_suggestion_cache()[(word, limit, edit_distance_tolerance)] = result
+        analysis = self._get_token_analysis(word)
+        if analysis is None:
+            self._store_token_analysis(
+                word,
+                corrected=result[0] if result else "",
+                candidates=result,
+                is_deterministic=False,
+            )
+        else:
+            if result and not analysis.corrected:
+                analysis.corrected = result[0]
+            if result and not analysis.candidates:
+                analysis.candidates = result
+            if not analysis.normalized:
+                analysis.normalized = normalized
+        return list(result)
 
     def _cache_summary(self) -> dict[str, dict[str, int | None]]:
         names = (
@@ -2971,8 +3084,14 @@ class UniversalMalteseSpellchecker:
 
     def correct_word(self, word: str) -> str:
         profiler = current_profiler()
+        cached = self._cached_correct_word(word)
+        if cached is not None:
+            return cached
         if profiler is None:
-            return self._correct_word_uncached(word)
+            result = self._correct_word_uncached(word)
+            if self._get_token_analysis(word) is None:
+                self._store_correct_word_result(word, result)
+            return result
 
         key = (word,)
         hit, value = profiler.cache_get("correct_word", key)
@@ -2981,6 +3100,8 @@ class UniversalMalteseSpellchecker:
 
         with profiler.span("correct_word", token=word, cache_hit=False):
             value = self._correct_word_uncached(word)
+        if self._get_token_analysis(word) is None:
+            self._store_correct_word_result(word, value)
         return profiler.cache_set("correct_word", key, value)
 
     def _correct_word_uncached(self, word: str) -> str:
@@ -3022,9 +3143,18 @@ class UniversalMalteseSpellchecker:
         if normalized in self.dictionary_set:
             missing_h_verb_match = self._missing_h_verb_repair(normalized)
             if missing_h_verb_match and normalized not in {"tajru", "m'hemmx"}:
-                return self._match_capitalisation(word, missing_h_verb_match)
+                corrected = self._match_capitalisation(word, missing_h_verb_match)
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
+                )
             if normalized not in {"tajru"}:
-                return word
+                return self._store_correct_word_result(
+                    word,
+                    word,
+                    is_deterministic=True,
+                )
 
         orthographic_generator = getattr(
             self,
@@ -3039,9 +3169,14 @@ class UniversalMalteseSpellchecker:
             shortcut_match = orthographic_generator.correct_shortcut_letters(word)
 
             if shortcut_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     shortcut_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         # Typed gh is an explicit shortcut for għ. Resolve an exact dictionary
@@ -3053,38 +3188,77 @@ class UniversalMalteseSpellchecker:
         ):
             gh_shortcut_match = orthographic_generator.correct_gh_priority(word)
             if gh_shortcut_match:
-                return self._match_capitalisation(word, gh_shortcut_match)
+                corrected = self._match_capitalisation(word, gh_shortcut_match)
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
+                )
 
         for combined_variant in self._dictionary_i_ie_shortcut_variants(normalized):
-            return self._match_capitalisation(word, combined_variant)
+            corrected = self._match_capitalisation(word, combined_variant)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         close_apostrophe = self._close_apostrophe_ranked_match(word)
         if close_apostrophe:
-            return close_apostrophe
+            return self._store_correct_word_result(
+                word,
+                close_apostrophe,
+                is_deterministic=True,
+            )
 
         lexicalized_forms = self._lexicalized_form_variants(normalized)
         if lexicalized_forms:
-            return self._match_capitalisation(word, lexicalized_forms[0])
+            corrected = self._match_capitalisation(word, lexicalized_forms[0])
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         pattern_repairs = self._pattern_repair_variants(normalized)
         if pattern_repairs and (
             normalized not in self.dictionary_set or normalized in {"tajru"}
         ):
-            return self._match_capitalisation(word, pattern_repairs[0])
+            corrected = self._match_capitalisation(word, pattern_repairs[0])
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         manual_repairs = self._manual_repair_variants(normalized)
         if manual_repairs and normalized not in self.dictionary_set:
-            return self._match_capitalisation(word, manual_repairs[0])
+            corrected = self._match_capitalisation(word, manual_repairs[0])
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         compact_xi_article = self._expand_compact_xi_article(normalized)
         if compact_xi_article is not None:
-            return self._match_capitalisation(word, compact_xi_article)
+            corrected = self._match_capitalisation(word, compact_xi_article)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         fused_preposition_rules = getattr(self, "fused_preposition_rules", None)
         if fused_preposition_rules is not None:
             fused_match = fused_preposition_rules.match(normalized)
             if fused_match is not None:
-                return self._match_capitalisation(word, fused_match.corrected)
+                corrected = self._match_capitalisation(word, fused_match.corrected)
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
+                )
 
         article_rules = getattr(self, "article_phrase_rules", None)
         if article_rules is not None:
@@ -3092,25 +3266,45 @@ class UniversalMalteseSpellchecker:
                 normalized,
             )
             if compact_article is not None:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     compact_article.corrected,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
             inline_article = self._correct_inline_article_word(
                 normalized,
                 previous=None,
             )
             if inline_article is not None:
-                return self._match_capitalisation(word, inline_article)
+                corrected = self._match_capitalisation(word, inline_article)
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
+                )
 
         noun_suffix_match = self._correct_noun_possessive_suffix(normalized)
         if noun_suffix_match:
-            return self._match_capitalisation(word, noun_suffix_match)
+            corrected = self._match_capitalisation(word, noun_suffix_match)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         if article_rules is not None:
             collapsed = article_rules.collapse_three_same_consonants(normalized)
             if collapsed != normalized:
-                return self._match_capitalisation(word, collapsed)
+                corrected = self._match_capitalisation(word, collapsed)
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
+                )
 
         if (
             orthographic_generator is not None
@@ -3123,7 +3317,12 @@ class UniversalMalteseSpellchecker:
         ):
             i_ie_match = orthographic_generator.correct_i_ie_confusion(word)
             if i_ie_match:
-                return self._match_capitalisation(word, i_ie_match)
+                corrected = self._match_capitalisation(word, i_ie_match)
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
+                )
 
         # Stage 1: High-priority għ repairs before shortcut letters or
         # broad dictionary scoring can compete.
@@ -3137,9 +3336,14 @@ class UniversalMalteseSpellchecker:
                 normalized,
                 gh_priority_match,
             ):
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     gh_priority_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         # Keyboard shortcuts for Maltese letters:
@@ -3151,9 +3355,14 @@ class UniversalMalteseSpellchecker:
             shortcut_match = orthographic_generator.correct_shortcut_letters(word)
 
             if shortcut_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     shortcut_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
             if hasattr(orthographic_generator, "shortcut_letter_variants"):
@@ -3165,14 +3374,23 @@ class UniversalMalteseSpellchecker:
                     )
 
                     if gh_after_shortcut:
-                        return self._match_capitalisation(
+                        corrected = self._match_capitalisation(
                             word,
                             gh_after_shortcut,
+                        )
+                        return self._store_correct_word_result(
+                            word,
+                            corrected,
+                            is_deterministic=True,
                         )
 
             shortcut_gh_suggestion = self._shortcut_gh_suggestion_match(word)
             if shortcut_gh_suggestion:
-                return shortcut_gh_suggestion
+                return self._store_correct_word_result(
+                    word,
+                    shortcut_gh_suggestion,
+                    is_deterministic=True,
+                )
 
         # d/t confusion for an invalid word.
         # Examples:
@@ -3185,9 +3403,14 @@ class UniversalMalteseSpellchecker:
             dt_match = orthographic_generator.correct_d_t_confusion(word)
 
             if dt_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     dt_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         # b/p confusion for an invalid word.
@@ -3199,24 +3422,41 @@ class UniversalMalteseSpellchecker:
             bp_match = orthographic_generator.correct_b_p_confusion(word)
 
             if bp_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     bp_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         dt_double_match = self._correct_d_t_then_double(word)
         if dt_double_match:
-            return dt_double_match
+            return self._store_correct_word_result(
+                word,
+                dt_double_match,
+                is_deterministic=True,
+            )
 
         if hasattr(self, "doubled_letter_generator"):
             j_priority_match = self.doubled_letter_generator.correct_j_priority(word)
             if j_priority_match:
-                return j_priority_match
+                return self._store_correct_word_result(
+                    word,
+                    j_priority_match,
+                    is_deterministic=True,
+                )
 
         if hasattr(
             self, "suffix_generator"
         ) and self.suffix_generator.exact_suffix_matches(word):
-            return word
+            return self._store_correct_word_result(
+                word,
+                word,
+                is_deterministic=True,
+            )
 
         if orthographic_generator is not None and hasattr(
             orthographic_generator,
@@ -3225,14 +3465,24 @@ class UniversalMalteseSpellchecker:
             extra_double_match = orthographic_generator.correct_extra_double(word)
 
             if extra_double_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     extra_double_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         missing_h_verb_match = self._missing_h_verb_repair(normalized)
         if missing_h_verb_match and normalized not in {"m'hemmx"}:
-            return self._match_capitalisation(word, missing_h_verb_match)
+            corrected = self._match_capitalisation(word, missing_h_verb_match)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         if orthographic_generator is not None and hasattr(
             orthographic_generator,
@@ -3243,9 +3493,14 @@ class UniversalMalteseSpellchecker:
             )
 
             if missing_h_after_d_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     missing_h_after_d_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         # d/t confusion for an invalid word after whole-word exceptions.
@@ -3264,9 +3519,14 @@ class UniversalMalteseSpellchecker:
             dt_match = orthographic_generator.correct_d_t_confusion(word)
 
             if dt_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     dt_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         # i/ie confusion for an invalid word.
@@ -3279,9 +3539,14 @@ class UniversalMalteseSpellchecker:
             i_ie_match = orthographic_generator.correct_i_ie_confusion(word)
 
             if i_ie_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     i_ie_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         if orthographic_generator is not None and hasattr(
@@ -3291,9 +3556,14 @@ class UniversalMalteseSpellchecker:
             aw_ghu_match = orthographic_generator.correct_final_aw_to_ghu(word)
 
             if aw_ghu_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     aw_ghu_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         # Final għ/h/ħ confusion for an invalid word only.
@@ -3306,9 +3576,14 @@ class UniversalMalteseSpellchecker:
             )
 
             if final_gh_h_hbar_match:
-                return self._match_capitalisation(
+                corrected = self._match_capitalisation(
                     word,
                     final_gh_h_hbar_match,
+                )
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
                 )
 
         # Stage 0.5: Missing doubled-letter repair.
@@ -3317,7 +3592,11 @@ class UniversalMalteseSpellchecker:
         if hasattr(self, "doubled_letter_generator"):
             doubled_letter = self.doubled_letter_generator.correct_missing_double(word)
             if doubled_letter:
-                return doubled_letter
+                return self._store_correct_word_result(
+                    word,
+                    doubled_letter,
+                    is_deterministic=True,
+                )
 
         # Stage 2: Exact safe orthographic variants from helper.
         # Example:
@@ -3331,7 +3610,11 @@ class UniversalMalteseSpellchecker:
             )
 
         if exact_ortho:
-            return exact_ortho
+            return self._store_correct_word_result(
+                word,
+                exact_ortho,
+                is_deterministic=True,
+            )
 
         suffix_parse_guard = False
 
@@ -3344,7 +3627,12 @@ class UniversalMalteseSpellchecker:
         if hasattr(self, "suffix_generator"):
             liex_lix_match = self._validated_liex_to_lix_repair(normalized)
             if liex_lix_match:
-                return self._match_capitalisation(word, liex_lix_match)
+                corrected = self._match_capitalisation(word, liex_lix_match)
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
+                )
 
             generated_suffix = self.suffix_generator.correct_suffix(word)
 
@@ -3376,7 +3664,12 @@ class UniversalMalteseSpellchecker:
                                 word,
                                 lexical_best.candidate,
                             )
-                return self._match_capitalisation(word, generated_suffix)
+                corrected = self._match_capitalisation(word, generated_suffix)
+                return self._store_correct_word_result(
+                    word,
+                    corrected,
+                    is_deterministic=True,
+                )
 
             # Suffix-looking words can otherwise fall through into broad
             # whole-dictionary scoring, which is slow and usually misleading.
@@ -3390,7 +3683,11 @@ class UniversalMalteseSpellchecker:
         if suffix_vars:
             exact_suffix = self._try_exact_variants(word, suffix_vars)
             if exact_suffix:
-                return exact_suffix
+                return self._store_correct_word_result(
+                    word,
+                    exact_suffix,
+                    is_deterministic=True,
+                )
 
             # Find the longest matching suffix to use as our new base word
             for suffix, replacement in self._sorted_suffix_repairs:
@@ -3408,25 +3705,41 @@ class UniversalMalteseSpellchecker:
         remove_h = self._remove_token(normalized, "h")
         exact_rm_h = self._try_exact_variants(word, remove_h)
         if exact_rm_h:
-            return exact_rm_h
+            return self._store_correct_word_result(
+                word,
+                exact_rm_h,
+                is_deterministic=True,
+            )
 
         # Stage 2.5: Remove q and check again
         remove_q = self._remove_token(normalized, "q")
         exact_rm_q = self._try_exact_variants(word, remove_q)
         if exact_rm_q:
-            return exact_rm_q
+            return self._store_correct_word_result(
+                word,
+                exact_rm_q,
+                is_deterministic=True,
+            )
 
         # Stage 3: Insert għ next to vowels (Exact & Ranked)
         insert_gh = self._insert_token_next_to_vowels(normalized, "għ")
         exact_gh = self._try_exact_variants(word, insert_gh)
         if exact_gh:
-            return exact_gh
+            return self._store_correct_word_result(
+                word,
+                exact_gh,
+                is_deterministic=True,
+            )
 
         # Stage 4: Insert h next to vowels (Exact & Ranked)
         insert_h = self._insert_token_next_to_vowels(normalized, "h")
         exact_h = self._try_exact_variants(word, insert_h)
         if exact_h:
-            return exact_h
+            return self._store_correct_word_result(
+                word,
+                exact_h,
+                is_deterministic=True,
+            )
 
         if suffix_parse_guard:
             return word
@@ -3435,19 +3748,31 @@ class UniversalMalteseSpellchecker:
             word, remove_h, stage="remove_h", score_limit=0.42
         )
         if ranked_rm_h:
-            return ranked_rm_h
+            return self._store_correct_word_result(
+                word,
+                ranked_rm_h,
+                is_deterministic=False,
+            )
 
         ranked_gh = self._try_ranked_from_variants(
             word, insert_gh, stage="insert_gh_near_vowel", score_limit=0.42
         )
         if ranked_gh:
-            return ranked_gh
+            return self._store_correct_word_result(
+                word,
+                ranked_gh,
+                is_deterministic=False,
+            )
 
         ranked_h = self._try_ranked_from_variants(
             word, insert_h, stage="insert_h_near_vowel", score_limit=0.42
         )
         if ranked_h:
-            return ranked_h
+            return self._store_correct_word_result(
+                word,
+                ranked_h,
+                is_deterministic=False,
+            )
 
         # Stage 5: Closest dictionary words with same vowel count
         same_vowel_best = self._best_ranked_candidate(
@@ -3552,19 +3877,43 @@ class UniversalMalteseSpellchecker:
         if not normalized:
             return []
 
+        suggestion_cache = self._request_suggestion_cache()
+        cache_key = (word, limit, edit_distance_tolerance)
+        cached_suggestions = suggestion_cache.get(cache_key)
+        if cached_suggestions is not None:
+            return list(cached_suggestions)
+
+        analysis = self._get_token_analysis(word)
+        if analysis is not None and analysis.is_deterministic:
+            deterministic = list(analysis.candidates or (() if not analysis.corrected else (analysis.corrected,)))
+            if not deterministic and analysis.corrected:
+                deterministic = [analysis.corrected]
+            if deterministic:
+                result = deterministic[:limit]
+                suggestion_cache[cache_key] = tuple(result)
+                return result
+
         if self._is_initial_capitalized(word):
             if normalized in self.place_word_set:
-                return [self.place_word_display.get(normalized, word)]
+                result = [self.place_word_display.get(normalized, word)]
+                suggestion_cache[cache_key] = tuple(result)
+                return result
             if normalized in self.dictionary_set:
-                return [self._match_capitalisation(word, normalized)]
+                result = [self._match_capitalisation(word, normalized)]
+                suggestion_cache[cache_key] = tuple(result)
+                return result
             corrected_place = self._correct_place_word(word)
             if corrected_place:
-                return [corrected_place]
+                result = [corrected_place]
+                suggestion_cache[cache_key] = tuple(result)
+                return result
             strict = self._try_exact_variants(
                 word,
                 self._strict_lookup_variants(normalized),
             )
-            return [strict] if strict else []
+            result = [strict] if strict else []
+            suggestion_cache[cache_key] = tuple(result)
+            return result
 
         suggestions: list[str] = []
         trusted_generated: set[str] = set()
@@ -4057,7 +4406,12 @@ class UniversalMalteseSpellchecker:
                 if len(suggestions) >= limit:
                     break
 
-        return suggestions[:limit]
+        return self._store_suggest_result(
+            word,
+            limit,
+            edit_distance_tolerance,
+            suggestions,
+        )
 
     def debug_word(
         self,
@@ -4610,6 +4964,8 @@ class UniversalMalteseSpellchecker:
         """
         if not text:
             return {"corrected_text": text, "tokens": []}
+
+        self._reset_request_token_cache()
 
         tokens: list[dict] = []
         corrected_parts: list[str] = []
@@ -6331,6 +6687,7 @@ def check_text():
 def suggest_word():
     data = request.get_json(silent=True) or {}
     word = data.get("word", "")
+    spellchecker._reset_request_token_cache()
 
     if not isinstance(word, str):
         return jsonify({"error": "word must be a string."}), 400
