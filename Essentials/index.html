@@ -312,32 +312,6 @@
             border: 1px solid #0284c7;
         }
 
-        .meaning-word {
-            position: relative;
-            display: inline-block;
-            background: #dbeafe;
-            border-radius: 5px;
-            padding: 0 3px;
-            cursor: pointer;
-        }
-
-        .meaning-word::before {
-            content: "i";
-            position: absolute;
-            top: -0.75em;
-            left: -0.45em;
-            width: 1em;
-            height: 1em;
-            border-radius: 50%;
-            background: #60a5fa;
-            color: white;
-            font-size: 0.7em;
-            font-weight: 900;
-            line-height: 1em;
-            text-align: center;
-            border: 1px solid #2563eb;
-        }
-
         .name-like-word {
             border-bottom: 1px dotted #64748b;
             padding-bottom: 0.02em;
@@ -361,15 +335,13 @@
         }
 
         .english-word .suggestion-popover,
-        .place-word .suggestion-popover,
-        .meaning-word .suggestion-popover {
+        .place-word .suggestion-popover {
             border-color: #0284c7;
         }
 
         .ambiguous-word.open .suggestion-popover,
         .english-word.open .suggestion-popover,
-        .place-word.open .suggestion-popover,
-        .meaning-word.open .suggestion-popover {
+        .place-word.open .suggestion-popover {
             display: block;
         }
 
@@ -1292,26 +1264,6 @@
             return popover;
         }
 
-        function createMeaningPopover(meaningText) {
-            const popover = document.createElement("span");
-            popover.className = "suggestion-popover";
-
-            const row = document.createElement("span");
-            row.className = "suggestion-row";
-
-            const label = document.createElement("strong");
-            label.textContent = "Meaning";
-
-            const meaning = document.createElement("span");
-            meaning.textContent = `: ${meaningText}`;
-
-            row.appendChild(label);
-            row.appendChild(meaning);
-            popover.appendChild(row);
-
-            return popover;
-        }
-
         function renderCorrectedText(tokens, fallbackText = "") {
             elements.results.classList.remove("loading");
             elements.results.innerHTML = "";
@@ -1505,39 +1457,7 @@
 
                     elements.results.appendChild(span);
                 } else {
-                    const directMeaning = cleanMeaningText(token.meaning || "");
-
-                    if (directMeaning) {
-                        const span = document.createElement("span");
-                        span.className = "meaning-word";
-                        if (isNameLike) {
-                            span.classList.add("name-like-word");
-                        }
-                        span.tabIndex = 0;
-
-                        const wordText = document.createElement("span");
-                        wordText.textContent = corrected;
-                        span.appendChild(wordText);
-                        span.appendChild(createMeaningPopover(directMeaning));
-
-                        span.addEventListener("click", (event) => {
-                            event.stopPropagation();
-
-                            document
-                                .querySelectorAll(
-                                    ".ambiguous-word.open, .english-word.open, .place-word.open, .meaning-word.open"
-                                )
-                                .forEach((item) => {
-                                    if (item !== span) {
-                                        item.classList.remove("open");
-                                    }
-                                });
-
-                            span.classList.toggle("open");
-                        });
-
-                        elements.results.appendChild(span);
-                    } else if (isNameLike) {
+                    if (isNameLike) {
                         const span = document.createElement("span");
                         span.className = "name-like-word";
                         span.textContent = corrected;

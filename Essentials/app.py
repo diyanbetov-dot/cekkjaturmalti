@@ -241,6 +241,9 @@ class UniversalMalteseSpellchecker:
         "xol": "xogħol",
         "nom": "ngħum",
         "nowm": "ngħum"
+        "nowmu": "ngħumu",
+        "towm": "tgħum",
+        "towmu": "tgħumu",
     }
 
     MANUAL_WORD_SUGGESTIONS = {
@@ -2525,6 +2528,11 @@ class UniversalMalteseSpellchecker:
         if len(original) > 1 and original[0].isupper() and original[1:].islower():
             return corrected[:1].upper() + corrected[1:]
         return corrected
+
+    def _capitalize_first_letter(self, word: str) -> str:
+        if not word:
+            return word
+        return word[:1].upper() + word[1:]
 
     def _match_hyphenated_tail_capitalisation(
         self,
@@ -5157,6 +5165,7 @@ class UniversalMalteseSpellchecker:
 
             original_word = match.group(0)
             original_norm = self._normalize_word(original_word)
+            sentence_initial = self._is_sentence_initial_position(text, match.start())
 
             if index + 1 < len(matches) and not getattr(
                 matches[index + 1], "is_quote", False
@@ -5267,6 +5276,17 @@ class UniversalMalteseSpellchecker:
                         edit_distance_tolerance=effective_tolerance,
                     )
                 ] if not bulk_mode else []
+                if sentence_initial:
+                    corrected_word = self._capitalize_first_letter(corrected_word)
+                    choices = [
+                        {
+                            **choice,
+                            "word": self._capitalize_first_letter(
+                                choice.get("word", "")
+                            ),
+                        }
+                        for choice in choices
+                    ]
                 is_ambiguous = len(choices) >= 2 and self._normalize_word(
                     choices[0]["word"]
                 ) != self._normalize_word(choices[1]["word"])
@@ -5422,8 +5442,6 @@ class UniversalMalteseSpellchecker:
                 previous_surface_word = self._normalize_word(original_word)
                 index += 1
                 continue
-
-            sentence_initial = self._is_sentence_initial_position(text, match.start())
 
             capitalized_place_phrase = self._match_capitalized_place_phrase(
                 text,
@@ -6471,7 +6489,7 @@ class UniversalMalteseSpellchecker:
 
             corrected_word = (
                 self._correct_sentence_initial_capitalized(original_word)
-                if self._is_initial_capitalized(original_word) and sentence_initial
+                if sentence_initial
                 else self.correct_word(original_word)
             )
             corrected_word = self._contract_negative_ma(corrected_word)
@@ -6527,6 +6545,21 @@ class UniversalMalteseSpellchecker:
                 surface_word
             ) != self._normalize_word(corrected_word):
                 choices = []
+
+            if sentence_initial:
+                surface_word = self._capitalize_first_letter(surface_word)
+                corrected_word = self._capitalize_first_letter(corrected_word)
+                capitalized_choices = []
+                for choice in choices:
+                    capitalized_choices.append(
+                        {
+                            **choice,
+                            "word": self._capitalize_first_letter(
+                                choice.get("word", "")
+                            ),
+                        }
+                    )
+                choices = capitalized_choices
 
             is_ambiguous = len(choices) >= 2 and self._normalize_word(
                 choices[0]["word"]
