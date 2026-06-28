@@ -368,6 +368,27 @@ def _suffix_phrase(kind: str | None, person: str | None) -> str:
     return ""
 
 
+def has_second_person_suffix_person(person: str | None) -> bool:
+    if not person:
+        return False
+    return any(part in {"2S", "2P"} for part in str(person).split("+"))
+
+
+def is_invalid_imperative_suffix_combination(
+    *,
+    tense: str | None,
+    person: str | None,
+    suffix_kind: str | None,
+    suffix_person: str | None,
+) -> bool:
+    return (
+        str(tense or "").upper() == "IMP"
+        and str(person or "").upper() in {"2S", "2P"}
+        and str(suffix_kind or "").upper() in {"DO", "IDO", "DO_IDO"}
+        and has_second_person_suffix_person(suffix_person)
+    )
+
+
 def format_verb_meaning_from_gloss(
     gloss: str,
     *,
@@ -377,6 +398,14 @@ def format_verb_meaning_from_gloss(
     suffix_kind: str | None = None,
     suffix_person: str | None = None,
 ) -> str:
+    if is_invalid_imperative_suffix_combination(
+        tense=tense,
+        person=person,
+        suffix_kind=suffix_kind,
+        suffix_person=suffix_person,
+    ):
+        return ""
+
     subject = SUBJECT_PRONOUNS.get(person, "it")
     clauses = _normalise_infinitive_gloss(gloss, negative=negative)
     predicate = _combine_predicates(clauses, tense, person, negative)
@@ -385,6 +414,19 @@ def format_verb_meaning_from_gloss(
     if tense == "IMP":
         command_predicate = f"{predicate} {suffix}".strip() if suffix else predicate
         return f"{subject}, {command_predicate} (command)"
+
+    if (
+        str(suffix_kind or "").upper() == "IDO"
+        and suffix
+        and predicate.startswith(("was ", "were ", "is ", "are ", "am "))
+    ):
+        return f"{suffix} (something) {predicate}".strip()
+    if (
+        str(suffix_kind or "").upper() == "IDO"
+        and suffix
+        and predicate.startswith(("was not ", "were not ", "is not ", "are not ", "am not "))
+    ):
+        return f"{suffix} (something) {predicate}".strip()
 
     finite = f"{subject} {predicate}".strip()
     if suffix:

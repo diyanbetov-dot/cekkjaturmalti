@@ -9,6 +9,7 @@ from Essentials.dictionary_meanings import (
     MeaningIndex,
     extract_meaning_from_payload,
     format_suffix_candidate_meaning,
+    is_invalid_imperative_suffix_combination,
 )
 from collections import defaultdict
 from dataclasses import asdict, dataclass
@@ -630,6 +631,89 @@ class UniversalMalteseSpellchecker:
             if not analysis.normalized:
                 analysis.normalized = normalized
         return list(result)
+
+    def _deterministic_suggestion_variants(
+        self,
+        word: str,
+        analysis: TokenAnalysis,
+        *,
+        limit: int,
+    ) -> list[str]:
+        ordered: list[str] = []
+
+        def add(candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+            if candidate and candidate not in ordered:
+                ordered.append(candidate)
+
+        add(analysis.corrected)
+        for candidate in analysis.candidates:
+            add(candidate)
+
+        orthographic_generator = getattr(self, "orthographic_generator", None)
+        if orthographic_generator is not None:
+            sources = [word, analysis.corrected]
+
+            for method_name in (
+                "dictionary_gh_suggestion_variants",
+                "dictionary_shortcut_variants",
+                "dictionary_d_t_variants",
+                "dictionary_b_p_variants",
+                "dictionary_i_ie_variants",
+                "dictionary_final_gh_h_hbar_variants",
+            ):
+                if not hasattr(orthographic_generator, method_name):
+                    continue
+                generator = getattr(orthographic_generator, method_name)
+                for source in sources:
+                    for candidate in generator(source):
+                        add(candidate)
+                        if len(ordered) >= limit:
+                            return ordered[:limit]
+
+            if hasattr(
+                orthographic_generator,
+                "move_gh_right_across_adjacent_vowel",
+            ):
+                suffix_generator = getattr(self, "suffix_generator", None)
+                for source in sources:
+                    for candidate in orthographic_generator.move_gh_right_across_adjacent_vowel(
+                        self._normalize_word(source)
+                    ):
+                        if candidate in self.dictionary_set:
+                            add(candidate)
+                        elif (
+                            suffix_generator is not None
+                            and self._valid_suffix_surface_candidates(candidate)
+                        ):
+                            add(candidate)
+                        if len(ordered) >= limit:
+                            return ordered[:limit]
+
+        return ordered[:limit]
+
+    def _valid_suffix_surface_candidates(self, word: str):
+        suffix_generator = getattr(self, "suffix_generator", None)
+        if suffix_generator is None or not hasattr(
+            suffix_generator,
+            "candidates_for_surface",
+        ):
+            return []
+
+        candidates = suffix_generator.candidates_for_surface(word)
+        if not candidates:
+            return []
+
+        return [
+            candidate
+            for candidate in candidates
+            if not is_invalid_imperative_suffix_combination(
+                tense=getattr(candidate, "tense", ""),
+                person=getattr(candidate, "person", ""),
+                suffix_kind=getattr(candidate, "suffix_kind", ""),
+                suffix_person=getattr(candidate, "suffix_person", ""),
+            )
+        ]
 
     def _cache_summary(self) -> dict[str, dict[str, int | None]]:
         names = (
@@ -3883,7 +3967,11 @@ class UniversalMalteseSpellchecker:
 
         analysis = self._get_token_analysis(word)
         if analysis is not None and analysis.is_deterministic:
-            deterministic = list(analysis.candidates or (() if not analysis.corrected else (analysis.corrected,)))
+            deterministic = self._deterministic_suggestion_variants(
+                word,
+                analysis,
+                limit=limit,
+            )
             if not deterministic and analysis.corrected:
                 deterministic = [analysis.corrected]
             if deterministic:
@@ -3925,6 +4013,13 @@ class UniversalMalteseSpellchecker:
             candidate = self._normalize_word(candidate)
 
             if not candidate or candidate in suggestions:
+                return
+            suffix_candidates = self._valid_suffix_surface_candidates(candidate)
+            if (
+                suffix_candidates == []
+                and hasattr(self, "suffix_generator")
+                and self.suffix_generator.candidates_for_surface(candidate)
+            ):
                 return
             if (
                 candidate not in trusted_generated
@@ -4748,7 +4843,7 @@ class UniversalMalteseSpellchecker:
 
         meanings: list[str] = []
 
-        for candidate in suffix_generator.candidates_for_surface(word):
+        for candidate in self._valid_suffix_surface_candidates(word):
             meaning = format_suffix_candidate_meaning(
                 candidate,
                 fallback_gloss=meaning_index.meaning_for(candidate.base),
@@ -5162,10 +5257,7 @@ class UniversalMalteseSpellchecker:
             elif original_norm in {"tajru"}:
                 token_repairs = self._pattern_repair_variants(original_norm)
             if token_repairs:
-                corrected_word = self._match_capitalisation(
-                    original_word,
-                    token_repairs[0],
-                )
+                corrected_word = self.correct_word(original_word)
                 choices = [
                     {
                         "word": suggestion,
@@ -6707,6 +6799,7 @@ def suggest_word():
         )
 
     edit_distance_tolerance = int(data.get("edit_distance_tolerance", 1))
+    spellchecker.correct_word(word)
 
     suggestions = spellchecker.suggest(
         word,
