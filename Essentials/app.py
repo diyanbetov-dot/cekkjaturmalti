@@ -3,6 +3,7 @@ import os
 import re
 import time
 import unicodedata
+import uuid
 from Essentials.dictionary_meanings import (
     MeaningIndex,
     extract_meaning_from_payload,
@@ -24,6 +25,7 @@ from Essentials.helpers.performance_logging import (
     current_profiler,
     log_spellcheck_event,
     reset_current_profiler,
+    rss_mb,
     set_current_profiler,
 )
 from flask import Flask, jsonify, request, send_from_directory
@@ -369,6 +371,7 @@ class UniversalMalteseSpellchecker:
                 reverse=True,
             )
         )
+        self.instance_id = uuid.uuid4().hex[:12]
         self.dictionary: list[str] = []
         self.dictionary_set: set[str] = set()
         self.place_entries: list[str] = []
@@ -415,7 +418,7 @@ class UniversalMalteseSpellchecker:
 
         places_file = FINAL_DICS_DIR / "places.dic"
         raw_entries.extend(self._load_eu_single_word_entries(places_file))
-        self.raw_entries = list(raw_entries)
+        self.raw_entries = raw_entries
 
         seen_words: set[str] = set()
         seen_paradigm_forms: dict[str, set[str]] = defaultdict(set)
@@ -498,8 +501,7 @@ class UniversalMalteseSpellchecker:
     def _from_graphemes(self, graphemes: Iterable[str]) -> str:
         return "".join(graphemes)
 
-    @lru_cache(maxsize=131072)
-    def _letter_tokens_raw(self, word: str) -> list[str]:
+    def _letter_tokens_raw(self, word: str) -> tuple[str, ...]:
         """
         Splits a Maltese word into logical spelling tokens.
         għ is represented internally as ʕ so it has token length 1.
@@ -511,11 +513,48 @@ class UniversalMalteseSpellchecker:
                 tokens.append("ʕ")
             elif len(g) == 1 and g.isalpha():
                 tokens.append(g)
-        return tokens
+        return tuple(tokens)
 
-    def _letter_tokens(self, word: str) -> list[str]:
+    def _letter_tokens(self, word: str) -> tuple[str, ...]:
         normalized = self._normalize_word(word)
         return self._letter_tokens_raw(normalized)
+
+    def _cache_summary(self) -> dict[str, dict[str, int | None]]:
+        names = (
+            "_normalize_word_cached",
+            "_graphemes_cached",
+            "_extract_consonant_anchor",
+            "_vowel_slots",
+            "_count_vowels",
+            "_damerau_levenshtein_distance",
+            "_word_distance",
+            "_get_candidates_cached",
+            "meaning_for",
+        )
+        summary: dict[str, dict[str, int | None]] = {}
+        for name in names:
+            fn = getattr(type(self), name, None) or getattr(self, name, None)
+            if fn is not None and hasattr(fn, "cache_info"):
+                info = fn.cache_info()
+                summary[name] = {
+                    "hits": info.hits,
+                    "misses": info.misses,
+                    "maxsize": info.maxsize,
+                    "currsize": info.currsize,
+                }
+        return summary
+
+    def clear_disposable_startup_caches(self) -> None:
+        before = self._cache_summary()
+        type(self)._normalize_word_cached.cache_clear()
+        type(self)._graphemes_cached.cache_clear()
+        after = self._cache_summary()
+        log_spellcheck_event(
+            event="SPELLCHECK_CACHE_CLEAR",
+            instance_id=self.instance_id,
+            before=before,
+            after=after,
+        )
 
     def _build_word_metadata(self) -> None:
         for word in self.dictionary:
@@ -6082,8 +6121,12 @@ fused_preposition_rules = MalteseFusedPrepositionRules(
 )
 spellchecker.fused_preposition_rules = fused_preposition_rules
 
+spellchecker.clear_disposable_startup_caches()
+
 log_spellcheck_event(
+    event="SPELLCHECK_STARTUP",
     stage="startup_complete",
+    instance_id=spellchecker.instance_id,
     elapsed_ms=(time.perf_counter() - _startup_started) * 1000,
     dictionary_words=len(spellchecker.dictionary),
     paradigms=len(spellchecker.paradigm_forms),
@@ -6092,6 +6135,7 @@ log_spellcheck_event(
         if hasattr(spellchecker, "suffix_generator")
         else None
     ),
+    rss_mb=rss_mb(),
 )
 
 
@@ -6136,22 +6180,7 @@ def devtoy_assets(filename):
 
 @app.get("/health")
 def health():
-    suffix_info = {}
-
-    if hasattr(spellchecker, "suffix_generator"):
-        suffix_info = {
-            "suffix_parser_mode": "ending-first",
-            "suffix_verb_records": spellchecker.suffix_generator.verb_index.record_count(),
-        }
-
-    return jsonify(
-        {
-            "ok": True,
-            "dictionary_words": len(spellchecker.dictionary),
-            "paradigms": len(spellchecker.paradigm_forms),
-            **suffix_info,
-        }
-    )
+    return jsonify({"status": "ok"}), 200
 
 
 @app.post("/check-text")
@@ -6162,6 +6191,11 @@ def check_text():
     unique_tokens = 0
     data = request.get_json(silent=True) or {}
     try:
+        log_spellcheck_event(
+            event="SPELLCHECK_REQUEST",
+            instance_id=spellchecker.instance_id,
+            request_id=profiler.request_id,
+        )
         text = data.get("text", "")
 
         if not isinstance(text, str):

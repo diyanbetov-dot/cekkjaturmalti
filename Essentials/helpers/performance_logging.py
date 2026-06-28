@@ -121,3 +121,21 @@ def log_spellcheck_event(**fields: Any) -> None:
             rendered = str(value)
         parts.append(f"{key}={rendered}")
     LOGGER.info(" ".join(parts))
+
+
+def rss_mb() -> float | None:
+    if os.name == "posix":
+        try:
+            with open("/proc/self/status", encoding="utf-8") as handle:
+                for line in handle:
+                    if line.startswith("VmRSS:"):
+                        return int(line.split()[1]) / 1024
+        except OSError:
+            pass
+        try:
+            import resource
+        except ImportError:
+            return None
+        usage = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        return usage / 1024 if usage else None
+    return None

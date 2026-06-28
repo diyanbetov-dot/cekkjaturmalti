@@ -1,5 +1,73 @@
 [
   {
+    "id": "memory_phrase",
+    "json": {
+      "changed": true,
+      "corrected_text": "il-bajja għalqet għax sabu",
+      "original_text": "l bajja alqet ax sabu",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "the bay",
+              "word": "il-bajja"
+            },
+            {
+              "meaning": "to a bay",
+              "word": "'l bajja"
+            },
+            {
+              "meaning": "to the bay",
+              "word": "'l-bajja"
+            }
+          ],
+          "corrected": "il-bajja",
+          "crucial": true,
+          "original": "l bajja",
+          "type": "phrase"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għalqet",
+          "name_like": false,
+          "original": "alqet",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għax",
+          "name_like": false,
+          "original": "ax",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "sabu",
+          "name_like": false,
+          "original": "sabu",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
     "id": "required_phrase",
     "json": {
       "changed": true,
@@ -89,6 +157,25 @@
           ],
           "original": "'shark'",
           "type": "english_phrase"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "alqet",
+    "json": {
+      "changed": true,
+      "corrected_text": "għalqet",
+      "original_text": "alqet",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għalqet",
+          "name_like": false,
+          "original": "alqet",
+          "type": "word"
         }
       ]
     },
@@ -416,7 +503,7 @@
               "word": "tajjeb"
             },
             {
-              "meaning": "F5 / F2",
+              "meaning": "F2 / F5",
               "word": "tgħajjeb"
             }
           ],
@@ -709,6 +796,46 @@
     "status_code": 200
   },
   {
+    "id": "extra_gh",
+    "json": {
+      "changed": true,
+      "corrected_text": "għamel għatba",
+      "original_text": "ghamel ghatba",
+      "tokens": [
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "F1",
+              "word": "għamel"
+            },
+            {
+              "meaning": "F1",
+              "word": "agħmel"
+            }
+          ],
+          "corrected": "għamel",
+          "name_like": false,
+          "original": "ghamel",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għatba",
+          "name_like": false,
+          "original": "ghatba",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
     "id": "missing_h",
     "json": {
       "changed": true,
@@ -745,6 +872,46 @@
           "corrected": "aħjar",
           "name_like": false,
           "original": "ahjar",
+          "type": "word"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "doubled_consonants",
+    "json": {
+      "changed": true,
+      "corrected_text": "atteġġjament isir",
+      "original_text": "attegjament isir",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "atteġġjament",
+          "name_like": false,
+          "original": "attegjament",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "F1",
+              "word": "isir"
+            },
+            {
+              "meaning": "F1",
+              "word": "issir"
+            }
+          ],
+          "corrected": "isir",
+          "name_like": false,
+          "original": "isir",
           "type": "word"
         }
       ]
@@ -796,6 +963,49 @@
           "name_like": false,
           "original": "ghall omm",
           "type": "phrase"
+        }
+      ]
+    },
+    "status_code": 200
+  },
+  {
+    "id": "fused_prepositions",
+    "json": {
+      "changed": true,
+      "corrected_text": "għalih minnha biha",
+      "original_text": "ghalih minnha biha",
+      "tokens": [
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "għalih",
+          "name_like": false,
+          "original": "ghalih",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "minnha",
+          "name_like": false,
+          "original": "minnha",
+          "type": "word"
+        },
+        {
+          "text": " ",
+          "type": "text"
+        },
+        {
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "biha",
+          "name_like": false,
+          "original": "biha",
+          "type": "word"
         }
       ]
     },
