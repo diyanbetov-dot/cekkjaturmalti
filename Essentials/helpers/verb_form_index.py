@@ -12,7 +12,7 @@ MEDIAL_LIQUID_OR_GUTTURAL = {"l", "m", "n", "r", "għ"}
 WEAK_RADICALS = {"w", "j"}
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class VerbFormRecord:
     word: str
     raw_tag: str

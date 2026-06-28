@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Iterable
 from itertools import combinations
 
@@ -255,8 +256,7 @@ class MalteseOrthographicGenerator:
 
         return variants
 
-    from functools import lru_cache
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def strict_lookup_variants(self, word: str) -> list[str]:
         """
         Ordered strict variants for lookup/scoring.

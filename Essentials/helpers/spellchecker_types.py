@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class ScoreRow:
     candidate: str
     score: float
@@ -16,7 +16,7 @@ class ScoreRow:
     matched_typo_form: str
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, slots=True)
 class UnifiedMatch:
     start_index: int
     end_index: int

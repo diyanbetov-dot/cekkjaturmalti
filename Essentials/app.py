@@ -471,7 +471,7 @@ class UniversalMalteseSpellchecker:
         return self._normalize_word_cached(str(word))
 
     @staticmethod
-    @lru_cache(maxsize=65536)
+    @lru_cache(maxsize=16384)
     def _normalize_word_cached(word: str) -> str:
         return (
             unicodedata.normalize("NFC", str(word).strip().lower())
@@ -485,7 +485,7 @@ class UniversalMalteseSpellchecker:
         return list(self._graphemes_cached(self._normalize_word(word)))
 
     @staticmethod
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=8192)
     def _graphemes_cached(word: str) -> tuple[str, ...]:
         out: list[str] = []
         i = 0
@@ -501,6 +501,7 @@ class UniversalMalteseSpellchecker:
     def _from_graphemes(self, graphemes: Iterable[str]) -> str:
         return "".join(graphemes)
 
+    @lru_cache(maxsize=8192)
     def _letter_tokens_raw(self, word: str) -> tuple[str, ...]:
         """
         Splits a Maltese word into logical spelling tokens.
@@ -687,13 +688,13 @@ class UniversalMalteseSpellchecker:
             tag.startswith(("T-", "Q-", "S-", "AS-", "IS-")) for tag in tags
         )
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _is_noun_tagged_word(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         tags = self.word_tags.get(normalized, set())
         return any("NOUN" in tag.split("-", 1)[0] for tag in tags)
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _is_dual_noun(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         return any(
@@ -701,13 +702,13 @@ class UniversalMalteseSpellchecker:
             for tag in self.word_tags.get(normalized, set())
         )
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _is_pronoun_tagged_word(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         tags = self.word_tags.get(normalized, set())
         return any(tag.startswith("PRON") for tag in tags)
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _is_adverb_tagged_word(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         tags = self.word_tags.get(normalized, set())
@@ -715,7 +716,7 @@ class UniversalMalteseSpellchecker:
             tag.startswith(("ADVERB", "ADV-", "SHORTADVERB", "LADVERB")) for tag in tags
         )
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _is_preposition_tagged_word(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         tags = self.word_tags.get(normalized, set())
@@ -778,7 +779,7 @@ class UniversalMalteseSpellchecker:
         # consonant cluster (CC…) → xi
         return "xi"
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _is_feminine_noun(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         tags = self.word_tags.get(normalized, set())
@@ -791,7 +792,7 @@ class UniversalMalteseSpellchecker:
                 return normalized.endswith("a")
         return False
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _noun_possessive_base_is_enabled(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         mode = self.NOUN_POSSESSIVE_MODE.lower().strip()
@@ -853,7 +854,7 @@ class UniversalMalteseSpellchecker:
 
         return stems
 
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=2048)
     def _noun_possessive_surfaces_for_base(self, noun: str) -> frozenset[str]:
         surfaces: set[str] = set()
         normalized = self._normalize_word(noun)
@@ -897,7 +898,7 @@ class UniversalMalteseSpellchecker:
             surfaces.add(plural_stem + "hom")
         return frozenset(surfaces)
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _noun_possessive_base_for_surface(self, word: str) -> str | None:
         normalized = self._normalize_word(word)
         suffixes = ("kom", "hom", "ek", "ok", "ha", "na", "i", "u", "h", "k")
@@ -1190,7 +1191,7 @@ class UniversalMalteseSpellchecker:
                 collapsed.append(token)
         return "".join(collapsed)
 
-    @lru_cache(maxsize=131072)
+    @lru_cache(maxsize=16384)
     def _extract_consonant_anchor(self, word: str) -> str:
         normalized = self._normalize_word(word)
         if normalized in self.word_anchors:
@@ -1199,13 +1200,13 @@ class UniversalMalteseSpellchecker:
             self._letter_tokens_raw(normalized)
         )
 
-    @lru_cache(maxsize=131072)
+    @lru_cache(maxsize=8192)
     def _vowel_slots(self, word: str) -> list[tuple[int, str]]:
         normalized = self._normalize_word(word)
         tokens = self._letter_tokens_raw(normalized)
         return [(i, t) for i, t in enumerate(tokens) if t in self.VOWELS]
 
-    @lru_cache(maxsize=131072)
+    @lru_cache(maxsize=8192)
     def _count_vowels(self, word: str) -> int:
         normalized = self._normalize_word(word)
         if normalized in self.word_vowel_counts:
@@ -1219,7 +1220,7 @@ class UniversalMalteseSpellchecker:
     # Distance/scoring
     # ------------------------------------------------------------------
 
-    @lru_cache(maxsize=131072)
+    @lru_cache(maxsize=32768)
     def _damerau_levenshtein_distance(self, a: tuple[str, ...], b: tuple[str, ...]) -> int:
         """Optimal-string-alignment Damerau-Levenshtein distance."""
         n, m = len(a), len(b)
@@ -1247,7 +1248,7 @@ class UniversalMalteseSpellchecker:
 
         return dp[n][m]
 
-    @lru_cache(maxsize=131072)
+    @lru_cache(maxsize=16384)
     def _word_distance(self, word1: str, word2: str) -> int:
         profiler = current_profiler()
         if profiler is not None:
@@ -1291,7 +1292,6 @@ class UniversalMalteseSpellchecker:
         )
         return max(0.0, (matched / len(typo_slots)) * count_ratio)
 
-    @lru_cache(maxsize=131072)
     def _score_once(self, typo_form: str, candidate: str, stage: str) -> ScoreRow:
         typo_tokens = self._letter_tokens(typo_form)
         candidate_tokens = self._letter_tokens(candidate)
@@ -1874,7 +1874,7 @@ class UniversalMalteseSpellchecker:
 
         return candidates
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=4096)
     def _get_candidates_cached(self, normalized: str) -> tuple[str, ...]:
         anchors = self._lookup_anchors(normalized)
         candidates: list[str] = []
@@ -4267,7 +4267,7 @@ class UniversalMalteseSpellchecker:
             return text
         return self.correct_text_rich(text)["corrected_text"]
 
-    @lru_cache(maxsize=65536)
+    @lru_cache(maxsize=8192)
     def meaning_for(self, word: str) -> str:
         normalized = self._normalize_word(word)
         analytic_base = self.LEXICALIZED_ANALYTIC_MEANING_BASES.get(normalized)
@@ -6079,6 +6079,22 @@ class UniversalMalteseSpellchecker:
 
 
 # -----------------------------------------------------------------------------
+
+def _trim_request_caches() -> None:
+    """
+    Partially clear high-churn, per-request caches to keep memory bounded.
+    Called after every check-text request. Only clears caches that fill up
+    with user-input-derived keys (word pairs etc.), not dictionary-derived ones.
+    """
+    import gc
+    spellchecker._word_distance.cache_clear()
+    spellchecker._damerau_levenshtein_distance.cache_clear()
+    spellchecker._extract_consonant_anchor.cache_clear()
+    spellchecker._vowel_slots.cache_clear()
+    spellchecker._count_vowels.cache_clear()
+    spellchecker._get_candidates_cached.cache_clear()
+    gc.collect()
+
 # Flask app
 # -----------------------------------------------------------------------------
 
@@ -6259,6 +6275,11 @@ def check_text():
     finally:
         profiler.finish(token_count=token_count, unique_tokens=unique_tokens)
         reset_current_profiler(profiler_token)
+        # Trim request-scoped caches to prevent unbounded memory growth across requests.
+        # We only trim caches whose entries are request-specific (word pairs, scores).
+        # Dictionary-based caches (_normalize, _graphemes, tag lookups) are kept warm
+        # because they store pre-computed facts about the dictionary words, not user text.
+        _trim_request_caches()
 
 
 @app.post("/suggest-word")
