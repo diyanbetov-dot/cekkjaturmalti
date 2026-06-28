@@ -596,8 +596,6 @@ class UniversalMalteseSpellchecker:
         candidate_list = list(candidates or ())
         if not candidate_list:
             candidate_list = [corrected]
-            if self._normalize_word(corrected) != self._normalize_word(word):
-                candidate_list.append(word)
         self._store_token_analysis(
             word,
             corrected=corrected,

@@ -50,6 +50,11 @@ PERSON_MARKER_RE = re.compile(
     re.IGNORECASE,
 )
 
+VERB_FORM_CLASS_ONLY_RE = re.compile(
+    r"^(?:T|Q|S|AS|IS)-[^-]+-F\d+$",
+    re.IGNORECASE,
+)
+
 VERB_TENSES = {"IMP", "PERF", "MPERF"}
 SUBJECT_PRONOUNS = {
     "1S": "I",
@@ -478,6 +483,9 @@ def extract_meaning_from_payload(payload: str) -> str:
     if "/" in raw:
         raw = raw.split("/", 1)[1].strip()
 
+    if VERB_FORM_CLASS_ONLY_RE.fullmatch(raw):
+        return ""
+
     # Nouns, adjectives, adverbs, and pronouns.
     match = POS_MARKER_RE.search(raw)
     if match:
@@ -497,6 +505,8 @@ def extract_meaning_from_payload(payload: str) -> str:
 
     # Compatibility fallback following the user's stated convention.
     parts = raw.split("-")
+    if parts and re.fullmatch(r"F\d+", parts[-1], re.IGNORECASE):
+        return ""
     return clean_meaning(parts[-1] if parts else "")
 
 
