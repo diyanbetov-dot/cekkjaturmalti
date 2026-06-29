@@ -37,6 +37,17 @@
             margin-bottom: 12px;
         }
 
+        .title-line {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .title-line h1 {
+            margin: 0;
+        }
+
         .subtitle {
             margin-top: 0;
             color: #5d6875;
@@ -50,7 +61,7 @@
         }
 
         .alpha-note {
-            margin: 8px 0 0;
+            margin: 0;
             color: #8a94a3;
             font-size: 0.88rem;
             font-style: italic;
@@ -71,6 +82,7 @@
             color: #687586;
             font-size: 0.9rem;
             line-height: 1.45;
+            white-space: pre-line;
         }
 
         label {
@@ -632,8 +644,10 @@
             <button id="langToggle" class="secondary" type="button">Swiċċja għall-Malti</button>
         </div>
 
-        <h1 id="mainTitle">Maltese Spell Checker</h1>
-        <p id="alphaNote" class="alpha-note">Alpha 0.1.0</p>
+        <div class="title-line">
+            <h1 id="mainTitle">Maltese Spell Checker</h1>
+            <p id="alphaNote" class="alpha-note">Alpha 0.1.0</p>
+        </div>
         <p id="mainSubtitle" class="subtitle">
             Flask-backed Maltese correction with vowel-slot scoring, strict priorities, and safer għ/h candidate
             handling.
@@ -847,7 +861,7 @@
                 alphaNote: "Alpha 0.1.0",
                 subtitle: "",
                 usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
-                sourcesNote: "Sources and References: Verbs: verb.mt, Other: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
+                sourcesNote: "Sources and References:\nVerbs: verb.mt\nOther: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
                 labelInput: "Input text",
                 labelResults: "Corrected text",
                 checkBtn: "Check spelling",
@@ -898,7 +912,7 @@
                 alphaNote: "Alfa 0.1.0",
                 subtitle: "",
                 usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
-                sourcesNote: "Sorsi u Referenzi: Verbi: verb.mt, Oħrajn: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
+                sourcesNote: "Sorsi u Referenzi:\nVerbi: verb.mt\nKliem Ieħor: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
                 labelInput: "Test oriġinali",
                 labelResults: "Test ikkoreġut",
                 checkBtn: "Iċċekkja l-ortografija",
