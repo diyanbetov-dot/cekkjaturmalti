@@ -49,6 +49,14 @@
             line-height: 1.45;
         }
 
+        .alpha-note {
+            margin: 8px 0 0;
+            color: #8a94a3;
+            font-size: 0.88rem;
+            font-style: italic;
+            line-height: 1.3;
+        }
+
         .panel {
             background: white;
             border: 1px solid #dfe5ee;
@@ -56,6 +64,13 @@
             padding: 20px;
             box-shadow: 0 8px 24px rgba(24, 32, 42, 0.06);
             margin-top: 18px;
+        }
+
+        .sources-note {
+            margin: 14px 0 0;
+            color: #687586;
+            font-size: 0.9rem;
+            line-height: 1.45;
         }
 
         label {
@@ -618,6 +633,7 @@
         </div>
 
         <h1 id="mainTitle">Maltese Spell Checker</h1>
+        <p id="alphaNote" class="alpha-note">Alpha 0.1.0</p>
         <p id="mainSubtitle" class="subtitle">
             Flask-backed Maltese correction with vowel-slot scoring, strict priorities, and safer għ/h candidate
             handling.
@@ -758,6 +774,9 @@
 
             <pre id="debugOutput">Debug output will appear here.</pre>
         </section>
+        <p id="sourcesNote" class="sources-note">
+            Sources and References: Verbs: verb.mt, Other: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)
+        </p>
     </main>
 
     <script src="/devtoy.js"></script>
@@ -774,11 +793,14 @@
         const SHOW_GRAVITY_DEVTOOLS_BUTTON = true;
         const API_BASE = window.location.origin;
         const ENABLE_CORRECTION_TIMER = true;
+        const SHOW_ALPHA_NOTE = true;
+        const SHOW_SOURCES_NOTE = true;
 
         const elements = {
             darkModeToggle: document.getElementById("darkModeToggle"),
             langToggle: document.getElementById("langToggle"),
             mainTitle: document.getElementById("mainTitle"),
+            alphaNote: document.getElementById("alphaNote"),
             mainSubtitle: document.getElementById("mainSubtitle"),
             usageNote: document.getElementById("usageNote"),
             labelInput: document.getElementById("labelInput"),
@@ -812,6 +834,7 @@
             fireworksButton: document.getElementById("fireworksButton"),
             partyModeButton: document.getElementById("partyModeButton"),
             gravityModeButton: document.getElementById("gravityModeButton"),
+            sourcesNote: document.getElementById("sourcesNote"),
         };
 
         const translations = {
@@ -821,8 +844,10 @@
                 darkModeBtn: "🌙 Change to Dark Mode",
                 lightModeBtn: "☀️ Change to Light Mode",
                 title: "Maltese Spell Checker",
+                alphaNote: "Alpha 0.1.0",
                 subtitle: "",
                 usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
+                sourcesNote: "Sources and References: Verbs: verb.mt, Other: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
                 labelInput: "Input text",
                 labelResults: "Corrected text",
                 checkBtn: "Check spelling",
@@ -870,8 +895,10 @@
                 darkModeBtn: "🌙 Aqleb għall-Mudlam",
                 lightModeBtn: "☀️ Aqleb għall-Mudwal",
                 title: "Ċekkjatur tal-Malti",
+                alphaNote: "Alfa 0.1.0",
                 subtitle: "",
                 usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
+                sourcesNote: "Sorsi u Referenzi: Verbi: verb.mt, Oħrajn: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
                 labelInput: "Test oriġinali",
                 labelResults: "Test ikkoreġut",
                 checkBtn: "Iċċekkja l-ortografija",
@@ -971,6 +998,11 @@
             elements.devPanel.classList.toggle("hidden", !ENABLE_DEV_TOOLS);
         }
 
+        function updateOptionalNotesVisibility() {
+            elements.alphaNote.classList.toggle("hidden", !SHOW_ALPHA_NOTE);
+            elements.sourcesNote.classList.toggle("hidden", !SHOW_SOURCES_NOTE);
+        }
+
         function setOutputLoading(loading) {
             elements.results.classList.toggle("loading", loading);
             if (loading) {
@@ -991,8 +1023,10 @@
 
             elements.langToggle.innerHTML = labels.toggleBtn;
             elements.mainTitle.textContent = labels.title;
+            elements.alphaNote.textContent = labels.alphaNote;
             elements.mainSubtitle.textContent = labels.subtitle;
             elements.usageNote.textContent = labels.usageNote;
+            elements.sourcesNote.textContent = labels.sourcesNote;
 
             elements.labelInput.textContent = labels.labelInput;
             elements.labelResultsText.textContent = labels.labelResults;
@@ -1016,6 +1050,7 @@
 
             updateShowSuggestionsButton();
             updateDevPanelVisibility();
+            updateOptionalNotesVisibility();
             if (devToy) {
                 devToy.updateModeButtons();
             } else {
