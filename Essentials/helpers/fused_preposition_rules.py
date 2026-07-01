@@ -104,6 +104,26 @@ class MalteseFusedPrepositionRules:
     def short_article_choices(self, noun: str) -> list[dict[str, str]]:
         article = self.article_rules.assimilate("l-", noun)
         definite = f"{article}{noun}"
+        noun_meaning = self.meaning_index.meaning_for(noun)
+
+        if self.article_rules.is_adjective(noun):
+            superlative = ""
+            if hasattr(self.article_rules, "_superlative_meaning"):
+                superlative = self.article_rules._superlative_meaning(noun_meaning)
+            return [
+                {
+                    "word": definite,
+                    "meaning": superlative or self.noun_choice_meaning("the", noun),
+                },
+                {
+                    "word": f"l'{noun}",
+                    "meaning": f"which is {noun_meaning}" if noun_meaning else "which is",
+                },
+                {
+                    "word": f"'l-{noun}",
+                    "meaning": self.noun_choice_meaning("to the", noun),
+                },
+            ]
 
         return [
             {
