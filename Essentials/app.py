@@ -378,6 +378,7 @@ class UniversalMalteseSpellchecker:
     }
 
     EXACT_SUGGESTION_OVERRIDES = {
+        "biex": (),
         "min": ("minn",),
         "qalu": ("qallu",),
         "hu": ("ħu", "u"),
@@ -2842,6 +2843,40 @@ class UniversalMalteseSpellchecker:
 
         return None
 
+    def _is_recognized_surface(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if not normalized:
+            return True
+        if normalized in self.dictionary_set:
+            return True
+        if self._exact_place_word(word):
+            return True
+        if normalized in self.country_english_to_maltese:
+            return True
+        if normalized in self.country_maltese_to_english:
+            return True
+        if self._valid_suffix_surface_candidates(normalized):
+            return True
+        return any(
+            (
+                self._is_verb_tagged_word(normalized),
+                self._is_noun_tagged_word(normalized),
+                self._is_pronoun_tagged_word(normalized),
+                self._is_adjective_tagged_word(normalized),
+                self._is_adverb_tagged_word(normalized),
+                self._is_preposition_tagged_word(normalized),
+            )
+        )
+
+    def _mark_unrecognized_tokens(self, tokens: list[dict]) -> None:
+        for token in tokens:
+            if token.get("type") != "word":
+                continue
+            corrected = str(token.get("corrected", "")).strip()
+            token["unrecognized"] = bool(corrected) and not self._is_recognized_surface(
+                corrected
+            )
+
     def _correct_place_phrase(self, phrase: str) -> str | None:
         normalized = self._normalize_word(phrase)
         if not normalized or not self.place_phrases:
@@ -3155,6 +3190,9 @@ class UniversalMalteseSpellchecker:
             return corrected_word
 
         return self._match_capitalisation(corrected_word, f"i{normalized}")
+
+    def _breaks_empathetic_i_context(self, raw_text: str) -> bool:
+        return any(mark in raw_text for mark in ",;:")
 
     def _apostrophe_tail_variants(
         self,
@@ -5472,6 +5510,8 @@ class UniversalMalteseSpellchecker:
                     }
                 )
                 corrected_parts.append(raw_text)
+                if self._breaks_empathetic_i_context(raw_text):
+                    previous_surface_word = None
 
             if getattr(match, "is_quote", False):
                 inner_text = match.inner_text
@@ -6103,20 +6143,24 @@ class UniversalMalteseSpellchecker:
                 ):
                     corrected_next = self.correct_word(next_word)
                     if self._is_verb_tagged_word(corrected_next):
-                        corrected_phrase = f"{current_norm}'{corrected_next}"
+                        display_prefix = self._apply_surface_case(
+                            original_word,
+                            current_norm,
+                            sentence_initial=sentence_initial,
+                        )
+                        corrected_phrase = f"{display_prefix}'{corrected_next}"
+                        negated_meaning = self.meaning_for(corrected_next)
+                        if negated_meaning and not negated_meaning.startswith("not "):
+                            negated_meaning = f"not {negated_meaning}"
                         phrase_choices = [
                             {
                                 "word": corrected_phrase,
-                                "meaning": self.meaning_for(corrected_next),
-                            },
-                            {
-                                "word": f"{current_norm} {corrected_next}",
-                                "meaning": self.meaning_for(corrected_next),
+                                "meaning": negated_meaning,
                             },
                         ]
                         is_ambiguous, is_crucial = token_choice_state(
                             phrase_choices,
-                            force_crucial=True,
+                            force_crucial=False,
                         )
                         tokens.append(
                             {
@@ -6272,7 +6316,7 @@ class UniversalMalteseSpellchecker:
                     corrected_next = self.correct_word(next_word)
 
                     # ADD MORE WORDS HERE manually as needed
-                    SPECIAL_MINN_WORDS = {"xiex", "meta"}
+                    SPECIAL_MINN_WORDS = {"xiex", "meta", "hekk"}
                     HEMM_HAWN_WORDS = {"hemm", "hawn", "hemmhekk", "hawnhekk"}
 
                     is_name = self._is_initial_capitalized(corrected_next)
@@ -6295,8 +6339,10 @@ class UniversalMalteseSpellchecker:
                         )
 
                     if current_norm != target_min or next_norm_corrected != next_norm:
-                        display_min = self._match_capitalisation(
-                            original_word, target_min
+                        display_min = self._apply_surface_case(
+                            original_word,
+                            target_min,
+                            sentence_initial=sentence_initial,
                         )
                         corrected_phrase = f"{display_min} {corrected_next}"
                         phrase_choices = [
@@ -6308,8 +6354,10 @@ class UniversalMalteseSpellchecker:
 
                         if current_norm != target_min:
                             other_min = "min" if target_min == "minn" else "minn"
-                            display_other = self._match_capitalisation(
-                                original_word, other_min
+                            display_other = self._apply_surface_case(
+                                original_word,
+                                other_min,
+                                sentence_initial=sentence_initial,
                             )
                             phrase_choices.append(
                                 {
@@ -6496,7 +6544,12 @@ class UniversalMalteseSpellchecker:
                 ):
                     corrected_next = self.correct_word(next_word)
                     if self._is_probable_noun(corrected_next):
-                        corrected_phrase = f"{current_norm}'{corrected_next}"
+                        display_prefix = self._apply_surface_case(
+                            original_word,
+                            current_norm,
+                            sentence_initial=sentence_initial,
+                        )
+                        corrected_phrase = f"{display_prefix}'{corrected_next}"
                         phrase_choices = [
                             {
                                 "word": corrected_phrase,
@@ -6678,48 +6731,6 @@ class UniversalMalteseSpellchecker:
                             },
                         ]
 
-                        is_ambiguous, is_crucial = token_choice_state(
-                            phrase_choices,
-                            force_crucial=True,
-                        )
-                        tokens.append(
-                            {
-                                "type": "phrase",
-                                "original": text[
-                                    matches[index].start() : matches[index + 1].end()
-                                ],
-                                "corrected": corrected_phrase,
-                                "ambiguous": is_ambiguous,
-                                "crucial": is_crucial,
-                                "choices": phrase_choices,
-                            }
-                        )
-                        corrected_parts.append(corrected_phrase)
-                        previous_surface_word = self._normalize_word(
-                            corrected_phrase.split()[-1]
-                        )
-                        last_end = matches[index + 1].end()
-                        index += 2
-                        continue
-
-                if (
-                    current_norm == "m"
-                    and next_norm not in {"l", "il"}
-                    and not next_norm.startswith(("l-", "il-"))
-                ):
-                    corrected_next = self.correct_word(next_word)
-                    if self._is_verb_tagged_word(corrected_next):
-                        corrected_phrase = f"{current_norm}'{corrected_next}"
-                        phrase_choices = [
-                            {
-                                "word": corrected_phrase,
-                                "meaning": self.meaning_for(corrected_next),
-                            },
-                            {
-                                "word": f"{current_norm} {corrected_next}",
-                                "meaning": self.meaning_for(corrected_next),
-                            },
-                        ]
                         is_ambiguous, is_crucial = token_choice_state(
                             phrase_choices,
                             force_crucial=True,
@@ -7040,6 +7051,7 @@ class UniversalMalteseSpellchecker:
 
         corrected_text = self._ensure_terminal_period("".join(corrected_parts))
         self._add_country_translation_choices(tokens)
+        self._mark_unrecognized_tokens(tokens)
 
         return {
             "corrected_text": corrected_text,

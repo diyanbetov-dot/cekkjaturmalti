@@ -14,6 +14,7 @@
 
         html {
             background: #f5f7fb;
+            overflow-x: hidden;
         }
 
         body {
@@ -22,6 +23,7 @@
             margin: 0;
             padding: 32px;
             background: #f5f7fb;
+            overflow-x: hidden;
         }
 
         main {
@@ -339,6 +341,17 @@
             border: 1px solid #0284c7;
         }
 
+        .unknown-word {
+            position: relative;
+            display: inline-block;
+            text-decoration-line: underline;
+            text-decoration-style: wavy;
+            text-decoration-color: #dc2626;
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 0.14em;
+            cursor: help;
+        }
+
         .name-like-word {
             border-bottom: 1px dotted #64748b;
             padding-bottom: 0.02em;
@@ -366,9 +379,16 @@
             border-color: #0284c7;
         }
 
+        .unknown-word .suggestion-popover {
+            border-color: #94a3b8;
+        }
+
         .ambiguous-word.open .suggestion-popover,
         .english-word.open .suggestion-popover,
-        .place-word.open .suggestion-popover {
+        .place-word.open .suggestion-popover,
+        .unknown-word.open .suggestion-popover,
+        .unknown-word:hover .suggestion-popover,
+        .unknown-word:focus-within .suggestion-popover {
             display: block;
         }
 
@@ -405,6 +425,19 @@
             display: inline;
             white-space: normal;
             overflow-wrap: anywhere;
+        }
+
+        .suggestion-row.info-row {
+            cursor: default;
+        }
+
+        .suggestion-row.info-row:hover {
+            background: transparent;
+        }
+
+        .suggestion-row.info-row .suggestion-meaning {
+            color: #6b7280;
+            font-style: italic;
         }
 
         .correction-timer {
@@ -612,11 +645,23 @@
             color: #f8fafc;
         }
 
+        body.dark-mode .unknown-word {
+            text-decoration-color: #f87171;
+        }
+
         body.dark-mode .english-word::before,
         body.dark-mode .place-word::before {
             background: #0284c7;
             color: white;
             border-color: #0369a1;
+        }
+
+        body.dark-mode .unknown-word .suggestion-popover {
+            border-color: #475569;
+        }
+
+        body.dark-mode .suggestion-row.info-row .suggestion-meaning {
+            color: #cbd5e1;
         }
 
         body.dark-mode pre {
@@ -900,7 +945,8 @@
                 noChanges: "No changes needed.",
                 serverChecking: "Checking server...",
                 serverReady: "Ready. Loaded {words} words and {paradigms} paradigms.",
-                serverError: "Could not reach the Flask server. Run python app.py, then open http://127.0.0.1:5000/."
+                serverError: "Could not reach the Flask server. Run python app.py, then open http://127.0.0.1:5000/.",
+                unrecognizedWord: "This word could not be recognized."
             },
 
             mt: {
@@ -951,7 +997,8 @@
                 noChanges: "M'hemmx bżonn bidliet.",
                 serverChecking: "Qed jiġi ċċekkjat is-server...",
                 serverReady: "Bil-lest.  {words} kliem u {paradigms} mudelli ġew illowdjati.",
-                serverError: "Is-server tal-Flask ma qabadx. Ikteb python app.py, imbagħad iftaħ http://127.0.0.1:5000/."
+                serverError: "Is-server tal-Flask ma qabadx. Ikteb python app.py, imbagħad iftaħ http://127.0.0.1:5000/.",
+                unrecognizedWord: "Din il-kelma ma setgħetx tingħaraf."
             }
         };
 
@@ -1321,6 +1368,77 @@
             return popover;
         }
 
+        function createInfoPopover(message) {
+            const popover = document.createElement("span");
+            popover.className = "suggestion-popover";
+
+            const row = document.createElement("span");
+            row.className = "suggestion-row info-row";
+
+            const filler = document.createElement("span");
+            filler.setAttribute("aria-hidden", "true");
+            filler.textContent = "";
+
+            const meaning = document.createElement("span");
+            meaning.className = "suggestion-meaning";
+            meaning.textContent = message;
+
+            row.appendChild(filler);
+            row.appendChild(meaning);
+            popover.appendChild(row);
+            return popover;
+        }
+
+        function closeOpenPopovers(except = null) {
+            document
+                .querySelectorAll(
+                    ".ambiguous-word.open, .english-word.open, .place-word.open, .unknown-word.open"
+                )
+                .forEach((item) => {
+                    if (item !== except) {
+                        item.classList.remove("open");
+                        const popover = item.querySelector(".suggestion-popover");
+                        if (popover) {
+                            popover.style.left = "";
+                            popover.style.right = "";
+                            popover.style.transform = "";
+                        }
+                    }
+                });
+        }
+
+        function positionPopoverWithinViewport(anchor) {
+            const popover = anchor.querySelector(".suggestion-popover");
+            if (!popover) {
+                return;
+            }
+
+            popover.style.left = "0";
+            popover.style.right = "auto";
+            popover.style.transform = "translateX(0)";
+
+            const margin = 8;
+            const rect = popover.getBoundingClientRect();
+            let shift = 0;
+
+            if (rect.right > window.innerWidth - margin) {
+                shift -= rect.right - (window.innerWidth - margin);
+            }
+            if (rect.left + shift < margin) {
+                shift += margin - (rect.left + shift);
+            }
+
+            popover.style.transform = `translateX(${shift}px)`;
+        }
+
+        function openInteractivePopover(span) {
+            closeOpenPopovers(span);
+            span.classList.toggle("open");
+            if (span.classList.contains("open")) {
+                requestAnimationFrame(() => positionPopoverWithinViewport(span));
+            }
+        }
+
         function renderCorrectedText(tokens, fallbackText = "") {
             elements.results.classList.remove("loading");
             elements.results.innerHTML = "";
@@ -1390,14 +1508,7 @@
 
                         span.addEventListener("click", (event) => {
                             event.stopPropagation();
-                            document.querySelectorAll(
-                                ".ambiguous-word.open, .english-word.open, .place-word.open"
-                            ).forEach((item) => {
-                                if (item !== span) {
-                                    item.classList.remove("open");
-                                }
-                            });
-                            span.classList.toggle("open");
+                            openInteractivePopover(span);
                         });
 
                         elements.results.appendChild(span);
@@ -1450,16 +1561,7 @@
 
                     span.addEventListener("click", (event) => {
                         event.stopPropagation();
-                        document
-                            .querySelectorAll(
-                                ".ambiguous-word.open, .english-word.open, .place-word.open"
-                            )
-                            .forEach((item) => {
-                                if (item !== span) {
-                                    item.classList.remove("open");
-                                }
-                            });
-                        span.classList.toggle("open");
+                        openInteractivePopover(span);
                     });
 
                     elements.results.appendChild(span);
@@ -1498,23 +1600,41 @@
 
                     span.addEventListener("click", (event) => {
                         event.stopPropagation();
-
-                        document
-                            .querySelectorAll(
-                                ".ambiguous-word.open, .english-word.open, .place-word.open"
-                            )
-                            .forEach((item) => {
-                                if (item !== span) {
-                                    item.classList.remove("open");
-                                }
-                            });
-
-                        span.classList.toggle("open");
+                        openInteractivePopover(span);
                     });
 
                     elements.results.appendChild(span);
                 } else {
-                    if (isNameLike) {
+                    if (token.unrecognized) {
+                        const span = document.createElement("span");
+                        span.className = "unknown-word";
+                        if (isNameLike) {
+                            span.classList.add("name-like-word");
+                        }
+                        span.tabIndex = 0;
+
+                        const wordText = document.createElement("span");
+                        wordText.textContent = corrected;
+                        span.appendChild(wordText);
+                        span.appendChild(
+                            createInfoPopover(t("unrecognizedWord"))
+                        );
+
+                        span.addEventListener("click", (event) => {
+                            event.stopPropagation();
+                            openInteractivePopover(span);
+                        });
+                        span.addEventListener("mouseenter", () => {
+                            closeOpenPopovers(span);
+                            span.classList.add("open");
+                            requestAnimationFrame(() => positionPopoverWithinViewport(span));
+                        });
+                        span.addEventListener("mouseleave", () => {
+                            span.classList.remove("open");
+                        });
+
+                        elements.results.appendChild(span);
+                    } else if (isNameLike) {
                         const span = document.createElement("span");
                         span.className = "name-like-word";
                         span.textContent = corrected;
@@ -1529,13 +1649,7 @@
         }
 
         document.addEventListener("click", () => {
-            document
-                .querySelectorAll(
-                    ".ambiguous-word.open, .english-word.open, .place-word.open"
-                )
-                .forEach((item) => {
-                item.classList.remove("open");
-            });
+            closeOpenPopovers();
         });
 
         function updateShowSuggestionsButton() {
