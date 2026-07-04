@@ -1823,11 +1823,69 @@
             }).join("");
         }
 
+        function suggestionJoinsNextWord(chosenWord) {
+            return (
+                chosenWord.endsWith("-") ||
+                chosenWord.endsWith("'") ||
+                chosenWord.endsWith("’")
+            );
+        }
+
+        function updateFollowingWhitespace(tokenIndex, chosenWord) {
+            const currentToken = latestTokens[tokenIndex];
+            const nextToken = latestTokens[tokenIndex + 1];
+
+            if (!currentToken || !nextToken || nextToken.type !== "text") {
+                return;
+            }
+
+            /*
+             * Restore whitespace previously removed by another clicked
+             * suggestion before deciding whether the new suggestion joins.
+             */
+            if (
+                typeof currentToken.consumedFollowingWhitespace === "string" &&
+                currentToken.consumedFollowingWhitespace
+            ) {
+                nextToken.text =
+                    currentToken.consumedFollowingWhitespace +
+                    (nextToken.text || "");
+
+                currentToken.consumedFollowingWhitespace = "";
+            }
+
+            if (!suggestionJoinsNextWord(chosenWord)) {
+                return;
+            }
+
+            const followingText = nextToken.text || "";
+            const whitespaceMatch = followingText.match(/^[ \t]+/);
+
+            if (!whitespaceMatch) {
+                return;
+            }
+
+            currentToken.consumedFollowingWhitespace = whitespaceMatch[0];
+            nextToken.text = followingText.slice(whitespaceMatch[0].length);
+        }
+
         function chooseSuggestion(tokenIndex, chosenWord) {
             if (!latestTokens[tokenIndex]) {
                 return;
             }
 
+            latestTokens[tokenIndex].corrected = chosenWord;
+
+            updateFollowingWhitespace(tokenIndex, chosenWord);
+
+            latestCorrectedText =
+                rebuildCorrectedTextFromTokens(latestTokens);
+
+            renderCorrectedText(
+                latestTokens,
+                latestCorrectedText
+            );
+        }
             latestTokens[tokenIndex].corrected = chosenWord;
 
             latestCorrectedText = rebuildCorrectedTextFromTokens(latestTokens);
