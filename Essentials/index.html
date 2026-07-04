@@ -749,7 +749,7 @@
 
         </section>
 
-        <section id="devPanel" class="panel hidden">
+        <section id="devPanel" class="panel">
             <div id="editDistanceContainer" class="dev-tools">
                 <div class="dev-tools-row">
                     <div>
@@ -841,7 +841,7 @@
     <script src="/devtoy.js"></script>
     <script>
         // These config variables will be replaced dynamically by the backend in app.py
-        const ENABLE_DEV_TOOLS = "REPLACE_ME_ENABLE_DEV_TOOLS" === "False";
+        const ENABLE_DEV_TOOLS = "REPLACE_ME_ENABLE_DEV_TOOLS" === "True";
         const SHOW_STATUS_MESSAGES = "REPLACE_ME_SHOW_STATUS_MESSAGES" === "True";
         const SHOW_EDIT_DISTANCE_SETTINGS = true;
         const EDIT_DISTANCE_TOLERANCE = 2;
@@ -1823,69 +1823,11 @@
             }).join("");
         }
 
-        function suggestionJoinsNextWord(chosenWord) {
-            return (
-                chosenWord.endsWith("-") ||
-                chosenWord.endsWith("'") ||
-                chosenWord.endsWith("’")
-            );
-        }
-
-        function updateFollowingWhitespace(tokenIndex, chosenWord) {
-            const currentToken = latestTokens[tokenIndex];
-            const nextToken = latestTokens[tokenIndex + 1];
-
-            if (!currentToken || !nextToken || nextToken.type !== "text") {
-                return;
-            }
-
-            /*
-             * Restore whitespace previously removed by another clicked
-             * suggestion before deciding whether the new suggestion joins.
-             */
-            if (
-                typeof currentToken.consumedFollowingWhitespace === "string" &&
-                currentToken.consumedFollowingWhitespace
-            ) {
-                nextToken.text =
-                    currentToken.consumedFollowingWhitespace +
-                    (nextToken.text || "");
-
-                currentToken.consumedFollowingWhitespace = "";
-            }
-
-            if (!suggestionJoinsNextWord(chosenWord)) {
-                return;
-            }
-
-            const followingText = nextToken.text || "";
-            const whitespaceMatch = followingText.match(/^[ \t]+/);
-
-            if (!whitespaceMatch) {
-                return;
-            }
-
-            currentToken.consumedFollowingWhitespace = whitespaceMatch[0];
-            nextToken.text = followingText.slice(whitespaceMatch[0].length);
-        }
-
         function chooseSuggestion(tokenIndex, chosenWord) {
             if (!latestTokens[tokenIndex]) {
                 return;
             }
 
-            latestTokens[tokenIndex].corrected = chosenWord;
-
-            updateFollowingWhitespace(tokenIndex, chosenWord);
-
-            latestCorrectedText =
-                rebuildCorrectedTextFromTokens(latestTokens);
-
-            renderCorrectedText(
-                latestTokens,
-                latestCorrectedText
-            );
-        }
             latestTokens[tokenIndex].corrected = chosenWord;
 
             latestCorrectedText = rebuildCorrectedTextFromTokens(latestTokens);
