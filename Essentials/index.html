@@ -692,7 +692,7 @@
 
         <div class="title-line">
             <h1 id="mainTitle">Maltese Spell Checker</h1>
-            <p id="alphaNote" class="alpha-note">Alpha 0.1.0</p>
+            <p id="alphaNote" class="alpha-note">Alpha 0.1.1</p>
         </div>
         <p id="mainSubtitle" class="subtitle"></p>
         <p id="usageNote" class="usage-note">
@@ -744,7 +744,7 @@
 
             <div id="status" class="status">Checking server...</div>
         <p id="Notice" class="usage-note">
-            Alpha 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of outputted corrected text as per expected standards. Since it is still in the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!
+            Alpha 0.1.1 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of outputted corrected text as per expected standards. Since it is still in the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!
         </p>
             
         </section>
@@ -793,7 +793,9 @@
             <pre id="debugOutput">Debug output will appear here.</pre>
         </section>
         <p id="sourcesNote" class="sources-note">
-            Sources and References: Verbs: verb.mt, Other: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)
+            Sources and References:
+            Verbs: verb.mt
+            Other: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)
         </p>
     </main>
 
@@ -863,8 +865,8 @@
                 darkModeBtn: "🌙 Change to Dark Mode",
                 lightModeBtn: "☀️ Change to Light Mode",
                 title: "Maltese Spell Checker",
-                alphaNote: "Alpha 0.1.0",
-                Notice: "Alpha 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!",
+                alphaNote: "Alpha 0.1.1",
+                Notice: "Alpha 0.1.1 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!",
                 subtitle: "",
                 usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
                 sourcesNote: "Sources and References:\nVerbs: verb.mt\nOther: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -916,8 +918,8 @@
                 darkModeBtn: "🌙 Aqleb għall-Mudlam",
                 lightModeBtn: "☀️ Aqleb għall-Mudwal",
                 title: "Ċekkjatur tal-Malti",
-                alphaNote: "Alfa 0.1.0",
-                Notice: "Avviż dwar Alfa 0.1.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
+                alphaNote: "Alfa 0.1.1",
+                Notice: "Avviż dwar Alfa 0.1.1: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
                 subtitle: "",
                 usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
                 sourcesNote: "Sorsi u Referenzi:\nVerbi: verb.mt\nKliem Ieħor: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -1792,6 +1794,20 @@
             }
 
             latestTokens[tokenIndex].corrected = chosenWord;
+
+            // A suggestion ending in a hyphen must join directly to the next word.
+            // Example: "għall- problema" becomes "għall-problema".
+            if (chosenWord.endsWith("-")) {
+                const nextToken = latestTokens[tokenIndex + 1];
+
+                if (
+                    nextToken
+                    && nextToken.type === "text"
+                    && typeof nextToken.text === "string"
+                ) {
+                    nextToken.text = nextToken.text.replace(/^[ \t]+/, "");
+                }
+            }
 
             latestCorrectedText = rebuildCorrectedTextFromTokens(latestTokens);
 
