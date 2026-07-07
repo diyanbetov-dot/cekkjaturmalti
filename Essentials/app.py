@@ -49,11 +49,22 @@ BASE_DIR = Path(__file__).resolve().parent
 
 FINAL_DICS_DIR = BASE_DIR / "finaldics"
 EU_COUNTRIES_DIC = FINAL_DICS_DIR / "eu_countries.dic"
+NAMES_DIC = FINAL_DICS_DIR / "names.dic"
+PLACES_DIC = FINAL_DICS_DIR / "places.dic"
+NO_POSSESSION_NOUNS_DIC = FINAL_DICS_DIR / "nopossessionnouns.dic"
+PROTECTED_NAMES_DIC = FINAL_DICS_DIR / "protected_names.dic"
 
 DICTIONARY_FILES = sorted(
     path
     for path in FINAL_DICS_DIR.glob("*.dic")
-    if path.name not in {"places.dic", EU_COUNTRIES_DIC.name}
+    if path.name
+    not in {
+        NAMES_DIC.name,
+        PLACES_DIC.name,
+        EU_COUNTRIES_DIC.name,
+        NO_POSSESSION_NOUNS_DIC.name,
+        PROTECTED_NAMES_DIC.name,
+    }
 )
 VERB_DICTIONARY_NAMES = {"verbmt_semitic.dic", "verbmt_nonsemitic.dic"}
 MEANING_DICTIONARY_FILES = [
@@ -290,6 +301,26 @@ class UniversalMalteseSpellchecker:
 
     CAPITALIZED_PLACE_CANDIDATE_LIMIT = 5
     SENTENCE_INITIAL_CANDIDATE_LIMIT = 10
+    TIME_EXPRESSION_WORDS = {
+        "filghodu": "filgħodu",
+        "filgħaxija": "filgħaxija",
+        "dalghodu": "dalgħodu",
+        "nofsinhar": "nofsinhar",
+        "waranofsinhar": "waranofsinhar",
+        "llum": "illum",
+        "illum": "illum",
+        "lbierah": "ilbieraħ",
+        "ilbierah": "ilbieraħ",
+        "lbirahtlula": "ilbiraħtlula",
+        "ilbirahtlula": "ilbiraħtlula",
+        "llajs": "llajs",
+        "illajs": "llajs",
+        "llahwa": "llaħwa",
+        "illahwa": "llaħwa",
+        "llami": "llami",
+        "illami": "llami",
+        "llejla": "llejla",
+    }
     COMPACT_XI_ARTICLE_PREFIXES = (
         "x'l-",
         "x'l",
@@ -379,6 +410,13 @@ class UniversalMalteseSpellchecker:
 
     EXACT_SUGGESTION_OVERRIDES = {
         "biex": (),
+        "xhin": ("xħin", "x'ħin"),
+        "xħin": ("x'ħin",),
+        "x'ħin": ("xħin",),
+        "għalaq": ("agħlaq",),
+        "ghalaq": ("agħlaq",),
+        "waranofsinhar": ("wara nofsinhar",),
+        "llejla": ("il-lejla",),
         "min": ("minn",),
         "qalu": ("qallu",),
         "hu": ("ħu", "u"),
@@ -406,6 +444,12 @@ class UniversalMalteseSpellchecker:
         )
         self.instance_id = uuid.uuid4().hex[:12]
         self._local = threading.local()
+        self._no_possession_nouns: frozenset[str] | None = None
+        self._protected_names: frozenset[str] | None = None
+        self._given_names: frozenset[str] | None = None
+        self._surnames: frozenset[str] | None = None
+        self._noun_number_index: dict[str, dict[str, tuple[str, ...]]] | None = None
+        self._noun_number_prefix_index: dict[str, dict[str, tuple[str, ...]]] | None = None
         self.dictionary: list[str] = []
         self.dictionary_set: set[str] = set()
         self.place_entries: list[str] = []
@@ -449,9 +493,7 @@ class UniversalMalteseSpellchecker:
         if dictionary_files:
             raw_entries.extend(self._load_dictionary_files(list(dictionary_files)))
         raw_entries.extend(self._load_eu_single_word_entries(EU_COUNTRIES_DIC))
-
-        places_file = FINAL_DICS_DIR / "places.dic"
-        raw_entries.extend(self._load_eu_single_word_entries(places_file))
+        raw_entries.extend(self._load_eu_single_word_entries(PLACES_DIC))
         self.raw_entries = raw_entries
 
         seen_words: set[str] = set()
@@ -480,7 +522,7 @@ class UniversalMalteseSpellchecker:
 
         self.dictionary_set = set(self.dictionary)
         self._load_country_place_index(FINAL_DICS_DIR / "eu_countries.json")
-        self._load_places_dictionary(FINAL_DICS_DIR / "places.dic")
+        self._load_places_dictionary(PLACES_DIC)
         self._build_word_metadata()
         self._build_anchor_index()
 
@@ -904,6 +946,46 @@ class UniversalMalteseSpellchecker:
 
         return next(iter(matches)) if len(matches) == 1 else None
 
+    def _initial_i_variants(self, word: str) -> list[str]:
+        normalized = self._normalize_word(word)
+        graphemes = self._graphemes(normalized)
+        variants: list[str] = []
+
+        def add(candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+            if candidate and candidate != normalized and candidate not in variants:
+                variants.append(candidate)
+
+        if (
+            len(graphemes) >= 2
+            and graphemes[0] not in self.VOWELS
+            and graphemes[1] == graphemes[0]
+            and len(graphemes[0]) == 1
+        ):
+            add("i" + normalized)
+
+        if (
+            len(graphemes) >= 3
+            and graphemes[0] == "i"
+            and graphemes[1] not in self.VOWELS
+            and len(graphemes[1]) == 1
+        ):
+            add(self._from_graphemes(["i", graphemes[1]] + graphemes[1:]))
+
+        return variants
+
+    def _validated_initial_i_match(self, word: str) -> str | None:
+        for candidate in self._initial_i_variants(word):
+            if (
+                candidate in self.dictionary_set
+                or self._is_verb_tagged_word(candidate)
+                or bool(self._valid_suffix_surface_candidates(candidate))
+            ):
+                return candidate
+            if self._normalize_word(self.correct_word(candidate)) == candidate:
+                return candidate
+        return None
+
     def _is_probable_noun(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         if not normalized:
@@ -1103,10 +1185,127 @@ class UniversalMalteseSpellchecker:
                 return normalized.endswith("a")
         return False
 
+    def _auxiliary_word_list_paths(self, *names: str) -> list[Path]:
+        paths: list[Path] = []
+        for name in names:
+            for candidate in (
+                FINAL_DICS_DIR / name,
+                BASE_DIR / name,
+                BASE_DIR.parent / name,
+            ):
+                if candidate not in paths:
+                    paths.append(candidate)
+        return paths
+
+    def _load_auxiliary_word_list(self, paths: Iterable[Path]) -> frozenset[str]:
+        words: list[str] = []
+        seen: set[str] = set()
+
+        for path in paths:
+            if not path.exists():
+                continue
+            try:
+                with open(path, "r", encoding="utf-8") as handle:
+                    for raw_line in handle:
+                        line = raw_line.split("#", 1)[0].strip()
+                        if not line:
+                            continue
+                        entry = line.split("/", 1)[0].strip()
+                        normalized = self._normalize_word(entry)
+                        if normalized and normalized not in seen:
+                            seen.add(normalized)
+                            words.append(normalized)
+            except OSError:
+                continue
+
+        return frozenset(words)
+
+    def _load_tagged_auxiliary_word_list(
+        self,
+        paths: Iterable[Path],
+        allowed_tags: Iterable[str],
+    ) -> frozenset[str]:
+        words: list[str] = []
+        seen: set[str] = set()
+        allowed = {str(tag).strip().upper() for tag in allowed_tags}
+
+        for path in paths:
+            if not path.exists():
+                continue
+            try:
+                with open(path, "r", encoding="utf-8") as handle:
+                    for raw_line in handle:
+                        line = raw_line.split("#", 1)[0].strip()
+                        if not line or "/" not in line:
+                            continue
+                        entry, raw_tag = line.split("/", 1)
+                        normalized = self._normalize_word(entry.strip())
+                        tag = raw_tag.strip().split("-", 1)[0].upper()
+                        if (
+                            normalized
+                            and tag in allowed
+                            and normalized not in seen
+                        ):
+                            seen.add(normalized)
+                            words.append(normalized)
+            except OSError:
+                continue
+
+        return frozenset(words)
+
+    def _no_possession_noun_set(self) -> frozenset[str]:
+        if self._no_possession_nouns is None:
+            self._no_possession_nouns = self._load_auxiliary_word_list(
+                self._auxiliary_word_list_paths(
+                    NO_POSSESSION_NOUNS_DIC.name,
+                    "nopossessionnouns.txt",
+                )
+            )
+        return self._no_possession_nouns
+
+    def _protected_name_set(self) -> frozenset[str]:
+        if self._protected_names is None:
+            self._protected_names = self._load_auxiliary_word_list(
+                self._auxiliary_word_list_paths(
+                    PROTECTED_NAMES_DIC.name,
+                    "protected_names.txt",
+                )
+            )
+        return self._protected_names
+
+    def _given_name_set(self) -> frozenset[str]:
+        if self._given_names is None:
+            self._given_names = self._load_tagged_auxiliary_word_list(
+                self._auxiliary_word_list_paths(NAMES_DIC.name),
+                {"NAME"},
+            )
+        return self._given_names
+
+    def _surname_set(self) -> frozenset[str]:
+        if self._surnames is None:
+            self._surnames = self._load_tagged_auxiliary_word_list(
+                self._auxiliary_word_list_paths(NAMES_DIC.name),
+                {"SNAME"},
+            )
+        return self._surnames
+
+    def _capitalized_name_kind(self, word: str) -> str | None:
+        if not self._is_initial_capitalized(word):
+            return None
+        normalized = self._normalize_word(word)
+        if normalized in self._given_name_set():
+            return "NAME"
+        if normalized in self._surname_set():
+            return "SNAME"
+        return None
+
     @lru_cache(maxsize=4096)
     def _noun_possessive_base_is_enabled(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         mode = self.NOUN_POSSESSIVE_MODE.lower().strip()
+
+        if normalized in self._no_possession_noun_set():
+            return False
 
         if mode == "off":
             return False
@@ -1736,6 +1935,34 @@ class UniversalMalteseSpellchecker:
                 variants.add(normalized[: -len(suffix)] + replacement)
         return variants
 
+    def _collapse_vowel_around_token_variants(
+        self,
+        word: str,
+        token: str,
+    ) -> list[str]:
+        normalized = self._normalize_word(word)
+        graphemes = self._graphemes(normalized)
+        variants: list[str] = []
+
+        def add(candidate_graphemes: list[str]) -> None:
+            candidate = self._from_graphemes(candidate_graphemes)
+            candidate = self._normalize_word(candidate)
+            if candidate and candidate != normalized and candidate not in variants:
+                variants.append(candidate)
+
+        for index in range(1, len(graphemes) - 1):
+            if graphemes[index] != token:
+                continue
+            if graphemes[index - 1] not in self.VOWELS:
+                continue
+            if graphemes[index + 1] not in self.VOWELS:
+                continue
+
+            add(graphemes[: index - 1] + graphemes[index:])
+            add(graphemes[: index + 1] + graphemes[index + 2 :])
+
+        return variants
+
     def _validated_liex_to_lix_repair(self, word: str) -> str | None:
         normalized = self._normalize_word(word)
 
@@ -2297,6 +2524,138 @@ class UniversalMalteseSpellchecker:
             .replace("ù", "u")
         )
 
+    def _is_safe_capitalized_repair(
+        self,
+        original_word: str,
+        candidate_word: str,
+    ) -> bool:
+        original_norm = self._normalize_word(original_word)
+        candidate_norm = self._normalize_word(candidate_word)
+
+        if not candidate_norm or candidate_norm == original_norm:
+            return True
+
+        safe_variants: list[str] = []
+        seen: set[str] = set()
+
+        def add(candidate: str) -> None:
+            normalized = self._normalize_word(candidate)
+            if normalized and normalized not in seen:
+                seen.add(normalized)
+                safe_variants.append(normalized)
+
+        add(original_norm)
+
+        for variant in self._strict_lookup_variants(original_norm):
+            add(variant)
+        for variant in self._manual_repair_variants(original_norm):
+            add(variant)
+        for variant in self._pattern_repair_variants(original_norm):
+            add(variant)
+        for variant in self._initial_i_variants(original_norm):
+            add(variant)
+        for variant in self._collapse_vowel_around_token_variants(original_norm, "għ"):
+            add(variant)
+        for variant in self._collapse_vowel_around_token_variants(original_norm, "h"):
+            add(variant)
+
+        for source in tuple(safe_variants):
+            for variant in self._insert_token_next_to_vowels(source, "għ"):
+                add(variant)
+            for variant in self._insert_token_next_to_vowels(source, "h"):
+                add(variant)
+            for variant in self._remove_token(source, "għ"):
+                add(variant)
+            for variant in self._remove_token(source, "h"):
+                add(variant)
+
+        return candidate_norm in seen
+
+    def _time_expression_key(self, word: str) -> str:
+        return self._strip_maltese_shortcuts(word).replace("-", "").replace("'", "")
+
+    def _fixed_time_expression_word(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        fixed = self.TIME_EXPRESSION_WORDS.get(self._time_expression_key(normalized))
+        if fixed:
+            return fixed
+        return None
+
+    def _fixed_time_phrase_match(
+        self,
+        word_tokens: list[WordToken],
+        index: int,
+        sentence_initial: bool,
+    ) -> tuple[str, list[dict[str, str]], int] | None:
+        current_norm = self._normalize_word(word_tokens[index].text)
+        next_norm = (
+            self._normalize_word(word_tokens[index + 1].text)
+            if index + 1 < len(word_tokens)
+            else ""
+        )
+        third_norm = (
+            self._normalize_word(word_tokens[index + 2].text)
+            if index + 2 < len(word_tokens)
+            else ""
+        )
+
+        def display(text: str) -> str:
+            return self._apply_surface_case(
+                word_tokens[index].text,
+                text,
+                sentence_initial=sentence_initial,
+            )
+
+        if current_norm == "fil" and next_norm in {"ghodu", "għodu"}:
+            corrected = display("filgħodu")
+            return corrected, [{"word": corrected, "meaning": self.meaning_for("filgħodu")}], 2
+
+        if current_norm == "fil" and next_norm in {"ghaxija", "għaxija"}:
+            corrected = display("filgħaxija")
+            return corrected, [{"word": corrected, "meaning": self.meaning_for("filgħaxija")}], 2
+
+        if current_norm == "dal" and next_norm in {"ghodu", "għodu"}:
+            corrected = display("dalgħodu")
+            return corrected, [{"word": corrected, "meaning": self.meaning_for("dalgħodu")}], 2
+
+        if current_norm == "nofs" and next_norm in {"in-nhar", "innhar", "inhar"}:
+            corrected = display("nofsinhar")
+            return corrected, [{"word": corrected, "meaning": self.meaning_for("nofsinhar")}], 2
+
+        if current_norm == "wara" and next_norm == "nofsinhar":
+            corrected = display("wara nofsinhar")
+            return corrected, [
+                {"word": corrected, "meaning": self.meaning_for("waranofsinhar")},
+                {
+                    "word": self._apply_surface_case(
+                        word_tokens[index].text,
+                        "waranofsinhar",
+                        sentence_initial=sentence_initial,
+                    ),
+                    "meaning": self.meaning_for("waranofsinhar"),
+                },
+            ], 2
+
+        if (
+            current_norm == "wara"
+            and next_norm == "nofs"
+            and third_norm in {"in-nhar", "innhar", "inhar"}
+        ):
+            corrected = display("wara nofsinhar")
+            return corrected, [
+                {"word": corrected, "meaning": self.meaning_for("waranofsinhar")},
+                {
+                    "word": self._apply_surface_case(
+                        word_tokens[index].text,
+                        "waranofsinhar",
+                        sentence_initial=sentence_initial,
+                    ),
+                    "meaning": self.meaning_for("waranofsinhar"),
+                },
+            ], 3
+
+        return None
+
     def _collapse_doubles(self, word: str) -> str:
         out: list[str] = []
         for token in self._graphemes(word):
@@ -2695,6 +3054,15 @@ class UniversalMalteseSpellchecker:
 
     def _canonical_suggestion_key(self, word: str) -> str:
         normalized = self._normalize_word(word)
+        if normalized in {
+            "xħin",
+            "x'ħin",
+            "waranofsinhar",
+            "wara nofsinhar",
+            "llejla",
+            "il-lejla",
+        }:
+            return normalized
         return "".join(char for char in normalized if char.isalnum())
 
     def _limited_candidates_from_pool(
@@ -2847,7 +3215,14 @@ class UniversalMalteseSpellchecker:
         normalized = self._normalize_word(word)
         if not normalized:
             return True
+        if self._capitalized_name_kind(word):
+            return True
+        initial_vowel_surfaces = self._initial_vowel_surface_options(word)
+        if any(initial_vowel_surfaces):
+            return True
         if normalized in self.dictionary_set:
+            return True
+        if normalized in self._no_possession_noun_set():
             return True
         if self._exact_place_word(word):
             return True
@@ -2998,6 +3373,10 @@ class UniversalMalteseSpellchecker:
         normalized = self._normalize_word(word)
         if not normalized:
             return word
+        if self._capitalized_name_kind(word):
+            return word
+        if normalized in self._protected_name_set():
+            return word
         if normalized in self.dictionary_set:
             return word
         if normalized in self.country_english_to_maltese:
@@ -3035,13 +3414,17 @@ class UniversalMalteseSpellchecker:
             score_limit=0.45,
             candidate_limit=self.SENTENCE_INITIAL_CANDIDATE_LIMIT,
         )
-        if best:
+        if best and self._is_safe_capitalized_repair(word, best):
             return self._match_capitalisation(word, best)
 
         return word
 
     def _conservative_capitalized_word(self, word: str) -> str:
         original_norm = self._normalize_word(word)
+        if self._capitalized_name_kind(word):
+            return word
+        if original_norm in self._protected_name_set():
+            return word
         corrected_place_word = self._exact_place_word(word)
         if corrected_place_word:
             return corrected_place_word
@@ -3061,6 +3444,10 @@ class UniversalMalteseSpellchecker:
             diacritic_candidate = self.correct_word(original_norm)
             if (
                 self._normalize_word(diacritic_candidate) in self.dictionary_set
+                and self._is_safe_capitalized_repair(
+                    original_norm,
+                    diacritic_candidate,
+                )
                 and self._word_distance(
                     original_norm,
                     self._normalize_word(diacritic_candidate),
@@ -3169,30 +3556,143 @@ class UniversalMalteseSpellchecker:
             return False
         return self._word_starts_with_two_consonants(normalized[1:])
 
-    def _apply_empathetic_i(
+    def _blocks_initial_vowel_insertion(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        return normalized.startswith("pr")
+
+    def _starts_with_consonant(self, word: str) -> bool:
+        graphemes = self._graphemes(self._normalize_word(word))
+        for token in graphemes:
+            if token and any(ch.isalpha() for ch in token):
+                return token not in self.VOWELS
+        return False
+
+    def _is_initial_vowel_base_candidate(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if not normalized:
+            return False
+        return any(
+            (
+                normalized in self.dictionary_set,
+                self._valid_suffix_surface_candidates(normalized),
+                self._is_verb_tagged_word(normalized),
+                self._is_noun_tagged_word(normalized),
+                self._is_pronoun_tagged_word(normalized),
+                self._is_adjective_tagged_word(normalized),
+                self._is_adverb_tagged_word(normalized),
+                normalized in self.place_word_set,
+                normalized in self.country_english_to_maltese,
+                normalized in self.country_maltese_to_english,
+            )
+        )
+
+    def _initial_vowel_surface_options(
         self,
-        previous_word: str | None,
         corrected_word: str,
-    ) -> str:
+    ) -> tuple[list[str], list[str]]:
         normalized = self._normalize_word(corrected_word)
         if (
-            not previous_word
-            or not normalized
+            not normalized
             or " " in corrected_word
             or "-" in corrected_word
             or "'" in corrected_word
-            or normalized in self.dictionary_set
-            or normalized.startswith("i")
-            or normalized.startswith("t")
-            or not self._word_ends_with_consonant(previous_word)
-            or not self._word_starts_with_two_consonants(normalized)
         ):
-            return corrected_word
+            return [], []
 
-        return self._match_capitalisation(corrected_word, f"i{normalized}")
+        prefer_vowel: list[str] = []
+        prefer_plain: list[str] = []
+
+        def add_unique(items: list[str], candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+            if candidate and candidate not in items:
+                items.append(candidate)
+
+        if normalized.startswith("i") and len(normalized) > 1:
+            plain_cluster = normalized[1:]
+            if (
+                not plain_cluster.startswith(("j", "w"))
+                and
+                self._word_starts_with_two_consonants(plain_cluster)
+                and not self._blocks_initial_vowel_insertion(plain_cluster)
+                and self._is_initial_vowel_base_candidate(plain_cluster)
+            ):
+                add_unique(prefer_plain, plain_cluster)
+
+            plain_j = f"j{normalized[1:]}"
+            if (
+                self._starts_with_consonant(normalized[1:])
+                and self._is_initial_vowel_base_candidate(plain_j)
+            ):
+                add_unique(prefer_plain, plain_j)
+
+        if normalized.startswith("u") and len(normalized) > 1:
+            plain_w = f"w{normalized[1:]}"
+            if (
+                self._starts_with_consonant(normalized[1:])
+                and self._is_initial_vowel_base_candidate(plain_w)
+            ):
+                add_unique(prefer_plain, plain_w)
+
+        if (
+            not normalized.startswith(("j", "w"))
+            and
+            self._word_starts_with_two_consonants(normalized)
+            and not self._blocks_initial_vowel_insertion(normalized)
+            and self._is_initial_vowel_base_candidate(normalized)
+        ):
+            add_unique(prefer_vowel, f"i{normalized}")
+
+        if (
+            normalized.startswith("j")
+            and self._starts_with_consonant(normalized[1:])
+            and self._is_initial_vowel_base_candidate(normalized)
+        ):
+            add_unique(prefer_vowel, f"i{normalized[1:]}")
+
+        if (
+            normalized.startswith("w")
+            and self._starts_with_consonant(normalized[1:])
+            and self._is_initial_vowel_base_candidate(normalized)
+        ):
+            add_unique(prefer_vowel, f"u{normalized[1:]}")
+
+        return prefer_vowel, prefer_plain
+
+    def _apply_initial_vowel_surface(
+        self,
+        original_word: str,
+        corrected_word: str,
+        *,
+        prefer_vowel_surface: bool,
+    ) -> str:
+        original_norm = self._normalize_word(original_word)
+        if original_norm:
+            original_vowel, original_plain = self._initial_vowel_surface_options(
+                original_word
+            )
+            if original_norm.startswith(("i", "u")):
+                if prefer_vowel_surface and (original_vowel or original_plain):
+                    return original_word
+                original_ordered = original_vowel if prefer_vowel_surface else original_plain
+                if original_ordered:
+                    return self._match_capitalisation(original_word, original_ordered[0])
+
+        prefer_vowel, prefer_plain = self._initial_vowel_surface_options(corrected_word)
+        ordered = prefer_vowel if prefer_vowel_surface else prefer_plain
+        if not ordered:
+            return corrected_word
+        return self._match_capitalisation(corrected_word, ordered[0])
 
     def _breaks_empathetic_i_context(self, raw_text: str) -> bool:
         return any(mark in raw_text for mark in ",;:")
+
+    def _starts_initial_vowel_context(self, raw_text: str) -> bool:
+        for char in raw_text:
+            if char.isspace():
+                continue
+            if unicodedata.category(char).startswith("P"):
+                return True
+        return False
 
     def _apostrophe_tail_variants(
         self,
@@ -3291,6 +3791,354 @@ class UniversalMalteseSpellchecker:
         )
         if article_match is not None:
             return article_match.corrected
+        return None
+
+    def _word_tag_markers(self, word: str) -> set[str]:
+        normalized = self._normalize_word(word)
+        markers: set[str] = set()
+        for tag in self.word_tags.get(normalized, ()):
+            marker = tag.split("-", 1)[0].upper()
+            if marker:
+                markers.add(marker)
+        return markers
+
+    def _noun_number_markers(self, word: str) -> set[str]:
+        markers = self._word_tag_markers(word)
+        out: set[str] = set()
+        for marker in markers:
+            if marker.startswith("SINGNOUN"):
+                out.add("SINGNOUN")
+            elif marker in {"PLUNOUN", "PAUCNOUN", "COLLNOUN"}:
+                out.add(marker)
+        return out
+
+    def _is_plural_like_noun(self, word: str) -> bool:
+        return bool(self._noun_number_markers(word) & {"PLUNOUN", "PAUCNOUN", "COLLNOUN"})
+
+    def _english_meaning_key(self, meaning: str) -> str:
+        cleaned = re.sub(r"[^\w\s]", " ", str(meaning or "").casefold())
+        parts: list[str] = []
+        for token in cleaned.split():
+            if token in {"the", "a", "an", "or", "of", "and"}:
+                continue
+            if len(token) > 4 and token.endswith("ies"):
+                token = token[:-3] + "y"
+            elif len(token) > 4 and token.endswith("es") and not token.endswith(("ses", "xes", "zes")):
+                token = token[:-2]
+            elif len(token) > 3 and token.endswith("s") and not token.endswith(("ss", "us", "is")):
+                token = token[:-1]
+            parts.append(token)
+        return " ".join(parts)
+
+    def _noun_meaning_keys(self, word: str) -> set[str]:
+        keys: set[str] = set()
+        for meaning in meaning_index.meanings_for(word):
+            key = self._english_meaning_key(meaning)
+            if key:
+                keys.add(key)
+        fallback = self._english_meaning_key(self.meaning_for(word))
+        if fallback:
+            keys.add(fallback)
+        return keys
+
+    def _ensure_noun_number_index(self) -> None:
+        if self._noun_number_index is not None and self._noun_number_prefix_index is not None:
+            return
+
+        index: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+        prefix_index: dict[str, dict[str, list[str]]] = defaultdict(lambda: defaultdict(list))
+        for word, tags in self.word_tags.items():
+            marker: str | None = None
+            for tag in tags:
+                prefix = tag.split("-", 1)[0].upper()
+                if prefix.startswith("SINGNOUN"):
+                    marker = "SINGNOUN"
+                    break
+                if prefix in {"PLUNOUN", "PAUCNOUN", "COLLNOUN"}:
+                    marker = prefix
+                    break
+            if marker is None:
+                continue
+            anchor = self.word_anchors.get(word) or self._extract_consonant_anchor(word)
+            if not anchor:
+                continue
+            index[anchor][marker].append(word)
+            prefix_index[word[:3]][marker].append(word)
+
+        self._noun_number_index = {
+            anchor: {
+                marker: tuple(sorted(words))
+                for marker, words in marker_map.items()
+            }
+            for anchor, marker_map in index.items()
+        }
+        self._noun_number_prefix_index = {
+            prefix: {
+                marker: tuple(sorted(words))
+                for marker, words in marker_map.items()
+            }
+            for prefix, marker_map in prefix_index.items()
+        }
+
+    def _best_numbered_noun_variant(
+        self,
+        word: str,
+        target_markers: tuple[str, ...],
+    ) -> str | None:
+        normalized = self._normalize_word(word)
+        if not normalized:
+            return None
+
+        current_markers = self._noun_number_markers(normalized)
+        for marker in target_markers:
+            if marker in current_markers:
+                return normalized
+
+        self._ensure_noun_number_index()
+        if self._noun_number_index is None or self._noun_number_prefix_index is None:
+            return None
+
+        anchor = self.word_anchors.get(normalized) or self._extract_consonant_anchor(normalized)
+        candidate_pool: list[tuple[int, int, str]] = []
+        if anchor in self._noun_number_index:
+            for priority, marker in enumerate(target_markers):
+                candidate_pool.extend(
+                    (priority, 0, candidate)
+                    for candidate in self._noun_number_index[anchor].get(marker, ())
+                )
+        if normalized[:3] in self._noun_number_prefix_index:
+            existing_candidates = {candidate for _, _, candidate in candidate_pool}
+            for priority, marker in enumerate(target_markers):
+                candidate_pool.extend(
+                    (priority, 1, candidate)
+                    for candidate in self._noun_number_prefix_index[normalized[:3]].get(marker, ())
+                    if candidate not in existing_candidates
+                )
+
+        if not candidate_pool:
+            return None
+
+        source_meanings = self._noun_meaning_keys(normalized)
+        source_prefix = normalized[:3]
+
+        def score(item: tuple[int, int, str]) -> tuple[int, int, int, int, int, int, str]:
+            marker_priority, source_priority, candidate = item
+            candidate_meanings = self._noun_meaning_keys(candidate)
+            shares_meaning = bool(source_meanings and candidate_meanings & source_meanings)
+            same_prefix = candidate[:3] == source_prefix
+            return (
+                marker_priority,
+                source_priority,
+                0 if shares_meaning else 1,
+                0 if same_prefix else 1,
+                self._word_distance(normalized, candidate),
+                abs(len(candidate) - len(normalized)),
+                candidate,
+            )
+
+        _, _, best = min(candidate_pool, key=score)
+        return best
+
+    def _attnum_needs_initial_vowel_surface(self, noun: str) -> bool:
+        normalized = self._normalize_word(noun)
+        if not normalized:
+            return False
+        if normalized.startswith("i") and len(normalized) > 1:
+            tail = normalized[1:]
+            return (
+                not tail.startswith(("j", "w"))
+                and self._word_starts_with_two_consonants(tail)
+                and not self._blocks_initial_vowel_insertion(tail)
+                and self._is_noun_tagged_word(tail)
+            )
+        return (
+            self._word_starts_with_two_consonants(normalized)
+            and not self._blocks_initial_vowel_insertion(normalized)
+            and self._is_noun_tagged_word(normalized)
+        )
+
+    def _attnum_surface_noun(self, noun: str) -> str:
+        normalized = self._normalize_word(noun)
+        if not normalized:
+            return normalized
+        if normalized.startswith("i") and len(normalized) > 1:
+            tail = normalized[1:]
+            if (
+                not tail.startswith(("j", "w"))
+                and self._word_starts_with_two_consonants(tail)
+                and not self._blocks_initial_vowel_insertion(tail)
+                and self._is_noun_tagged_word(tail)
+            ):
+                return normalized
+        if (
+            self._word_starts_with_two_consonants(normalized)
+            and not self._blocks_initial_vowel_insertion(normalized)
+            and self._is_noun_tagged_word(normalized)
+        ):
+            return f"i{normalized}"
+        return normalized
+
+    def _cardinal_attnum_surface(self, numeral: str, *, require_long: bool) -> str:
+        normalized = self._normalize_word(numeral)
+        short_to_long = {
+            "żewġ": "żewġt",
+            "ġiex": "ġixt",
+            "tliet": "tlitt",
+            "erba'": "erbat",
+            "ħames": "ħamest",
+            "sitt": "sitt",
+            "seba'": "sebat",
+            "tmien": "tmint",
+            "disa'": "disat",
+            "għaxar": "għaxart",
+        }
+        if require_long:
+            return short_to_long.get(normalized, normalized)
+        return normalized
+
+    def _split_article_token(self, word: str) -> tuple[str, str] | None:
+        normalized = self._normalize_word(word)
+        if "-" not in normalized:
+            return None
+        prefix, tail = normalized.split("-", 1)
+        if not self._article_like_token(prefix):
+            return None
+        return prefix, tail
+
+    def _number_phrase_payload(
+        self,
+        numeral_word: str,
+        noun_word: str,
+        *,
+        sentence_initial: bool,
+        article_word: str | None = None,
+    ) -> tuple[str, list[dict], bool] | None:
+        numeral_norm = self._normalize_word(numeral_word)
+        article_prefix: str | None = None
+        article_numeral = article_word
+
+        if article_word is None:
+            split_article = self._split_article_token(numeral_word)
+            if split_article is not None:
+                article_prefix, numeral_norm = split_article
+                article_numeral = numeral_word
+        else:
+            article_prefix = self._normalize_word(article_word)
+
+        markers = self._word_tag_markers(numeral_norm)
+        has_short_attnum = "SHORTATTNUM" in markers
+        has_long_attnum = "LONGATTNUM" in markers
+        has_ordnum = "ORDNUM" in markers
+        has_cardnum = "CARDNUM" in markers
+        if not any((has_short_attnum, has_long_attnum, has_ordnum, has_cardnum)):
+            return None
+
+        corrected_noun = self._normalize_word(self.correct_word(noun_word))
+        if not corrected_noun:
+            return None
+
+        def compose_number(base: str) -> str:
+            if article_prefix is None:
+                return base
+            if article_prefix in {"l", "il"}:
+                if self._normalize_word(base).startswith(
+                    ("għ", "gh", "a", "e", "i", "o", "u", "à", "è", "ì", "ò", "ù")
+                ):
+                    return f"l-{base}"
+                return f"il-{base}"
+            inline = self._correct_inline_article_word(
+                f"{article_prefix}-{base}",
+                previous=None,
+            )
+            return inline or f"{article_prefix}-{base}"
+
+        def compose_phrase(number_surface: str, noun_surface: str) -> str:
+            phrase = f"{number_surface} {noun_surface}"
+            original_head = article_numeral or numeral_word
+            phrase = self._match_capitalisation(
+                f"{original_head} {noun_word}",
+                phrase,
+            )
+            if sentence_initial:
+                phrase = self._capitalize_first_letter(phrase)
+            return phrase
+
+        singular_candidate = self._best_numbered_noun_variant(
+            corrected_noun,
+            ("SINGNOUN",),
+        ) or corrected_noun
+        plural_candidate = self._best_numbered_noun_variant(
+            corrected_noun,
+            ("PAUCNOUN", "PLUNOUN", "COLLNOUN"),
+        ) or corrected_noun
+
+        require_long = self._attnum_needs_initial_vowel_surface(plural_candidate)
+        plural_surface_noun = self._attnum_surface_noun(plural_candidate) if require_long else plural_candidate
+        cardinal_surface = self._cardinal_attnum_surface(
+            numeral_norm,
+            require_long=require_long,
+        )
+
+        singular_phrase = compose_phrase(compose_number(numeral_norm), singular_candidate)
+        plural_phrase = compose_phrase(compose_number(cardinal_surface), plural_surface_noun)
+
+        current_is_singular = "SINGNOUN" in self._noun_number_markers(corrected_noun)
+        current_is_plural = self._is_plural_like_noun(corrected_noun)
+
+        if has_long_attnum:
+            return singular_phrase, [
+                {
+                    "word": singular_phrase,
+                    "meaning": self.meaning_for(singular_candidate),
+                }
+            ], True
+
+        if has_short_attnum:
+            if article_prefix is not None and has_ordnum:
+                corrected_phrase = singular_phrase if current_is_singular else plural_phrase
+                alternate_phrase = plural_phrase if corrected_phrase == singular_phrase else singular_phrase
+                choices = [
+                    {
+                        "word": corrected_phrase,
+                        "meaning": self.meaning_for(
+                            singular_candidate if corrected_phrase == singular_phrase else plural_candidate
+                        ),
+                    }
+                ]
+                if alternate_phrase != corrected_phrase:
+                    choices.append(
+                        {
+                            "word": alternate_phrase,
+                            "meaning": self.meaning_for(
+                                plural_candidate if corrected_phrase == singular_phrase else singular_candidate
+                            ),
+                        }
+                    )
+                return corrected_phrase, choices, True
+
+            return plural_phrase, [
+                {
+                    "word": plural_phrase,
+                    "meaning": self.meaning_for(plural_candidate),
+                }
+            ], True
+
+        if has_cardnum and not has_short_attnum and not has_long_attnum:
+            return singular_phrase, [
+                {
+                    "word": singular_phrase,
+                    "meaning": self.meaning_for(singular_candidate),
+                }
+            ], True
+
+        if has_ordnum:
+            return singular_phrase, [
+                {
+                    "word": singular_phrase,
+                    "meaning": self.meaning_for(singular_candidate),
+                }
+            ], True
+
         return None
 
     def _expand_compact_xi_article(self, word: str) -> str | None:
@@ -3477,6 +4325,22 @@ class UniversalMalteseSpellchecker:
         apostrophe_prefix_word = self._valid_apostrophe_prefix_word(normalized)
         if apostrophe_prefix_word is not None:
             return self._match_capitalisation(word, apostrophe_prefix_word)
+
+        fixed_time_expression = self._fixed_time_expression_word(normalized)
+        if fixed_time_expression and self._normalize_word(fixed_time_expression) != normalized:
+            corrected = self._match_capitalisation(word, fixed_time_expression)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
+        if normalized in self._no_possession_noun_set():
+            return self._store_correct_word_result(
+                word,
+                word,
+                is_deterministic=True,
+            )
 
         if any(mark in normalized for mark in ("'", "-")):
             return self._store_correct_word_result(
@@ -3965,6 +4829,14 @@ class UniversalMalteseSpellchecker:
                 is_deterministic=True,
             )
 
+        initial_i_match = self._validated_initial_i_match(normalized)
+        if initial_i_match:
+            return self._store_correct_word_result(
+                word,
+                self._match_capitalisation(word, initial_i_match),
+                is_deterministic=True,
+            )
+
         suffix_parse_guard = False
 
         # Stage 1.5: Real-time generated DO/IDO suffix forms.
@@ -4049,6 +4921,21 @@ class UniversalMalteseSpellchecker:
         max_distance = self._max_distance(normalized)
         target_vowel_count = self._count_vowels(normalized)
         target_vowel_sequence = self._vowel_sequence(normalized)
+
+        collapsed_vowel_variants = (
+            self._collapse_vowel_around_token_variants(normalized, "għ")
+            + self._collapse_vowel_around_token_variants(normalized, "h")
+        )
+        exact_collapsed_vowel = self._try_exact_variants(
+            word,
+            collapsed_vowel_variants,
+        )
+        if exact_collapsed_vowel:
+            return self._store_correct_word_result(
+                word,
+                exact_collapsed_vowel,
+                is_deterministic=True,
+            )
 
         # Stage 7: Remove h and check again
         remove_h = self._remove_token(normalized, "h")
@@ -4673,7 +5560,10 @@ class UniversalMalteseSpellchecker:
 
         priority_variant_groups = [
             self._strict_lookup_variants(normalized),
+            self._initial_i_variants(normalized),
             self._suffix_repair_variants(normalized),
+            self._collapse_vowel_around_token_variants(normalized, "għ"),
+            self._collapse_vowel_around_token_variants(normalized, "h"),
             self._insert_token_next_to_vowels(
                 normalized,
                 "għ",
@@ -5081,6 +5971,8 @@ class UniversalMalteseSpellchecker:
             return "brother, male sibling"
         if normalized == "ħi":
             return "friend"
+        if normalized in {"llajs", "llaħwa", "llami"}:
+            return "expression of awe"
         if normalized in {"u"}:
             return "and"
         if normalized in {"innerdjat", "innerdjata", "innerdjati"}:
@@ -5252,6 +6144,16 @@ class UniversalMalteseSpellchecker:
                 ordered.append(norm)
 
         add(corrected_norm)
+
+        if original_norm in {"xhin", "xħin", "x'ħin"}:
+            add("xħin")
+            add("x'ħin")
+            return self._finalize_ambiguity_choices(
+                original_word,
+                corrected_norm,
+                ordered,
+                limit=limit,
+            )
 
         if corrected_norm == original_norm and original_norm in self.EXACT_SUGGESTION_OVERRIDES:
             for candidate in self.EXACT_SUGGESTION_OVERRIDES[original_norm]:
@@ -5478,6 +6380,7 @@ class UniversalMalteseSpellchecker:
         article_rules = getattr(self, "article_phrase_rules", None)
         fused_preposition_rules = getattr(self, "fused_preposition_rules", None)
         previous_surface_word: str | None = None
+        after_punctuation_initial_vowel = True
 
         def token_choice_state(
             choices: list[dict],
@@ -5512,6 +6415,8 @@ class UniversalMalteseSpellchecker:
                 corrected_parts.append(raw_text)
                 if self._breaks_empathetic_i_context(raw_text):
                     previous_surface_word = None
+                if self._starts_initial_vowel_context(raw_text):
+                    after_punctuation_initial_vowel = True
 
             if getattr(match, "is_quote", False):
                 inner_text = match.inner_text
@@ -5537,6 +6442,85 @@ class UniversalMalteseSpellchecker:
             original_word = match.group(0)
             original_norm = self._normalize_word(original_word)
             sentence_initial = self._is_sentence_initial_position(text, match.start())
+            prefer_initial_vowel_surface = (
+                sentence_initial
+                or after_punctuation_initial_vowel
+                or self._word_ends_with_vowel(previous_surface_word)
+            )
+            after_punctuation_initial_vowel = False
+
+            number_phrase = None
+            if index + 1 < len(matches) and not getattr(matches[index + 1], "is_quote", False):
+                number_phrase = self._number_phrase_payload(
+                    original_word,
+                    word_tokens[index + 1].text,
+                    sentence_initial=sentence_initial,
+                )
+                if number_phrase is not None:
+                    corrected_phrase, phrase_choices, is_crucial = number_phrase
+                    is_ambiguous, _ = token_choice_state(
+                        phrase_choices,
+                        force_crucial=is_crucial,
+                    )
+                    tokens.append(
+                        {
+                            "type": "phrase",
+                            "original": text[
+                                matches[index].start() : matches[index + 1].end()
+                            ],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": bool(is_crucial),
+                            "choices": phrase_choices,
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(corrected_phrase)
+                    previous_surface_word = self._normalize_word(
+                        corrected_phrase.split()[-1]
+                    )
+                    last_end = matches[index + 1].end()
+                    index += 2
+                    continue
+
+            if (
+                self._article_like_token(original_word)
+                and index + 2 < len(matches)
+                and not getattr(matches[index + 1], "is_quote", False)
+                and not getattr(matches[index + 2], "is_quote", False)
+            ):
+                number_phrase = self._number_phrase_payload(
+                    word_tokens[index + 1].text,
+                    word_tokens[index + 2].text,
+                    sentence_initial=sentence_initial,
+                    article_word=original_word,
+                )
+                if number_phrase is not None:
+                    corrected_phrase, phrase_choices, is_crucial = number_phrase
+                    is_ambiguous, _ = token_choice_state(
+                        phrase_choices,
+                        force_crucial=is_crucial,
+                    )
+                    tokens.append(
+                        {
+                            "type": "phrase",
+                            "original": text[
+                                matches[index].start() : matches[index + 2].end()
+                            ],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": bool(is_crucial),
+                            "choices": phrase_choices,
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(corrected_phrase)
+                    previous_surface_word = self._normalize_word(
+                        corrected_phrase.split()[-1]
+                    )
+                    last_end = matches[index + 2].end()
+                    index += 3
+                    continue
 
             if index + 1 < len(matches) and not getattr(
                 matches[index + 1], "is_quote", False
@@ -5599,6 +6583,37 @@ class UniversalMalteseSpellchecker:
                     "mid", "lil", "lill", "ghall", "għall", "mic", "miċ",
                 }
                 article_rules = getattr(self, "article_phrase_rules", None)
+                fixed_time_phrase = self._fixed_time_phrase_match(
+                    word_tokens,
+                    index,
+                    sentence_initial,
+                )
+                if fixed_time_phrase is not None:
+                    corrected_phrase, phrase_choices, consumed = fixed_time_phrase
+                    is_ambiguous, is_crucial = token_choice_state(
+                        phrase_choices,
+                        force_crucial=False,
+                    )
+                    tokens.append(
+                        {
+                            "type": "phrase",
+                            "original": text[
+                                matches[index].start() : matches[index + consumed - 1].end()
+                            ],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
+                            "choices": phrase_choices,
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(corrected_phrase)
+                    previous_surface_word = self._normalize_word(
+                        corrected_phrase.split()[-1]
+                    )
+                    last_end = matches[index + consumed - 1].end()
+                    index += consumed
+                    continue
                 if original_norm in {"ghall", "għall"} and next_norm_for_phrase == "xi":
                     corrected_word = self._apply_surface_case(
                         original_word,
@@ -5686,6 +6701,50 @@ class UniversalMalteseSpellchecker:
                     last_end = matches[index + 1].end()
                     index += 2
                     continue
+
+            fixed_compound_word = self._fixed_time_expression_word(original_word)
+            if (
+                fixed_compound_word
+                and self._normalize_word(fixed_compound_word) != original_norm
+            ):
+                corrected_word = self._apply_surface_case(
+                    original_word,
+                    fixed_compound_word,
+                    sentence_initial=sentence_initial,
+                )
+                tokens.append(
+                    {
+                        "type": "word",
+                        "original": original_word,
+                        "corrected": corrected_word,
+                        "ambiguous": False,
+                        "choices": [],
+                        "name_like": False,
+                    }
+                )
+                corrected_parts.append(corrected_word)
+                previous_surface_word = self._normalize_word(corrected_word)
+                last_end = match.end()
+                index += 1
+                continue
+
+            exact_name_kind = self._capitalized_name_kind(original_word)
+            if exact_name_kind is not None:
+                tokens.append(
+                    {
+                        "type": "word",
+                        "original": original_word,
+                        "corrected": original_word,
+                        "ambiguous": False,
+                        "choices": [],
+                        "name_like": True,
+                    }
+                )
+                corrected_parts.append(original_word)
+                previous_surface_word = self._normalize_word(original_word)
+                last_end = match.end()
+                index += 1
+                continue
 
             token_repairs = []
             social_comment_repair = self.SOCIAL_COMMENT_REPAIRS.get(original_norm)
@@ -5920,6 +6979,38 @@ class UniversalMalteseSpellchecker:
                 next_word = word_tokens[index + 1].text
                 current_norm = self._normalize_word(original_word)
                 next_norm = self._normalize_word(next_word)
+
+                fixed_time_phrase = self._fixed_time_phrase_match(
+                    word_tokens,
+                    index,
+                    sentence_initial,
+                )
+                if fixed_time_phrase is not None:
+                    corrected_phrase, phrase_choices, consumed = fixed_time_phrase
+                    is_ambiguous, is_crucial = token_choice_state(
+                        phrase_choices,
+                        force_crucial=False,
+                    )
+                    tokens.append(
+                        {
+                            "type": "phrase",
+                            "original": text[
+                                matches[index].start() : matches[index + consumed - 1].end()
+                            ],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
+                            "choices": phrase_choices,
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(corrected_phrase)
+                    previous_surface_word = self._normalize_word(
+                        corrected_phrase.split()[-1]
+                    )
+                    last_end = matches[index + consumed - 1].end()
+                    index += consumed
+                    continue
 
                 if current_norm == "ma" and next_norm in {"lahhar", "l-aħħar"}:
                     corrected_phrase = self._match_capitalisation(
@@ -6537,6 +7628,38 @@ class UniversalMalteseSpellchecker:
                     index += 2
                     continue
 
+                fixed_time_phrase = self._fixed_time_phrase_match(
+                    word_tokens,
+                    index,
+                    sentence_initial,
+                )
+                if fixed_time_phrase is not None:
+                    corrected_phrase, phrase_choices, consumed = fixed_time_phrase
+                    is_ambiguous, is_crucial = token_choice_state(
+                        phrase_choices,
+                        force_crucial=False,
+                    )
+                    tokens.append(
+                        {
+                            "type": "phrase",
+                            "original": text[
+                                matches[index].start() : matches[index + consumed - 1].end()
+                            ],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
+                            "choices": phrase_choices,
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(corrected_phrase)
+                    previous_surface_word = self._normalize_word(
+                        corrected_phrase.split()[-1]
+                    )
+                    last_end = matches[index + consumed - 1].end()
+                    index += consumed
+                    continue
+
                 if (
                     current_norm in {"f", "b"}
                     and next_norm not in {"l", "il"}
@@ -6611,12 +7734,26 @@ class UniversalMalteseSpellchecker:
                     index += 2
                     continue
 
-                # Special case: fi xħin → fi x'ħin
-                if current_norm == "fi" and next_norm in {"xhin", "xħin"}:
-                    corrected_phrase = "fi x'ħin"
+                # Special case: fi xħin → fi x'ħin, while always exposing xħin too.
+                if current_norm == "fi" and next_norm in {"xhin", "xħin", "x'ħin"}:
+                    corrected_phrase = self._apply_surface_case(
+                        original_word,
+                        "fi x'ħin",
+                        sentence_initial=sentence_initial,
+                    )
+                    alternate_phrase = self._apply_surface_case(
+                        original_word,
+                        "fi xħin",
+                        sentence_initial=sentence_initial,
+                    )
                     phrase_choices = [
-                        {"word": corrected_phrase, "meaning": self.meaning_for("x'ħin")}
+                        {"word": corrected_phrase, "meaning": self.meaning_for("x'ħin")},
+                        {"word": alternate_phrase, "meaning": self.meaning_for("xħin")},
                     ]
+                    is_ambiguous, is_crucial = token_choice_state(
+                        phrase_choices,
+                        force_crucial=False,
+                    )
                     tokens.append(
                         {
                             "type": "phrase",
@@ -6624,8 +7761,8 @@ class UniversalMalteseSpellchecker:
                                 matches[index].start() : matches[index + 1].end()
                             ],
                             "corrected": corrected_phrase,
-                            "ambiguous": False,
-                            "crucial": False,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
                             "choices": phrase_choices,
                         }
                     )
@@ -6943,17 +8080,6 @@ class UniversalMalteseSpellchecker:
                 else self.correct_word(original_word)
             )
             corrected_word = self._contract_negative_ma(corrected_word)
-            preserved_empathetic_i = False
-            if (
-                previous_surface_word
-                and self._word_ends_with_consonant(previous_surface_word)
-                and self._has_empathetic_i_shape(original_word)
-            ):
-                corrected_word = self._match_capitalisation(
-                    original_word,
-                    self._normalize_word(original_word),
-                )
-                preserved_empathetic_i = True
             choices = self.ambiguity_choices(
                 original_word,
                 corrected_word,
@@ -6989,13 +8115,13 @@ class UniversalMalteseSpellchecker:
                     limit=3,
                 )
 
-            surface_word = self._apply_empathetic_i(
-                previous_surface_word, corrected_word
+            surface_word = self._apply_initial_vowel_surface(
+                original_word,
+                corrected_word,
+                prefer_vowel_surface=prefer_initial_vowel_surface,
             )
 
-            if preserved_empathetic_i or self._normalize_word(
-                surface_word
-            ) != self._normalize_word(corrected_word):
+            if self._normalize_word(surface_word) != self._normalize_word(corrected_word):
                 choices = []
 
             if sentence_initial:
