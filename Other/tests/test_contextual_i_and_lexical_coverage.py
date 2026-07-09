@@ -31,7 +31,14 @@ def token_for(source: str, original: str):
 
 
 assert corrected_text("qal, programm") == "Qal, programm."
-assert corrected_text("qal programm") == "Qal iprogramm."
+assert corrected_text("qal programm") == "Qal programm."
+assert corrected_text("Wara jmorru d-dar") == "Wara imorru d-dar."
+assert corrected_text("Kien imorru d-dar") == "Kien jmorru d-dar."
+assert corrected_text("uriet kollox") == "Wriet kollox."
+assert corrected_text("uċuħ sbieħ") == "Uċuħ sbieħ."
+assert corrected_text("wċuħ sbieħ") == "Uċuħ sbieħ."
+assert corrected_text("uġigħ kbir") == "Uġigħ kbir."
+assert corrected_text("wġigħ kbir") == "Uġigħ kbir."
 
 assert corrected_text("misterjuz") == "Misterjuż."
 assert corrected_text("gustuz") == "Gustuż."
@@ -51,5 +58,7 @@ assert spellchecker.correct_word("gustuż") == "gustuż"
 assert spellchecker.correct_word("kontestant") == "kontestant"
 assert spellchecker.correct_word("apparti") == "apparti"
 assert spellchecker.correct_word("sew") == "sew"
+assert spellchecker.correct_word("wġigħ") == "wġigħ"
+assert spellchecker.correct_word("uġigħ") == "uġigħ"
 
 print("contextual i and lexical coverage checks passed")

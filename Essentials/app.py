@@ -427,6 +427,13 @@ class UniversalMalteseSpellchecker:
         "kief": ("kif",),
     }
 
+    INITIAL_VOWEL_NOUN_EXCEPTIONS = {
+        "uċuħ": ("wċuħ",),
+        "wċuħ": ("uċuħ",),
+        "uġigħ": ("wġigħ",),
+        "wġigħ": ("uġigħ",),
+    }
+
     def __init__(
         self,
         dictionary_words: Iterable[str] | None = None,
@@ -3556,6 +3563,30 @@ class UniversalMalteseSpellchecker:
             return False
         return self._word_starts_with_two_consonants(normalized[1:])
 
+    def _manual_initial_vowel_variants(self, word: str) -> tuple[str, ...]:
+        normalized = self._normalize_word(word)
+        return tuple(
+            self._normalize_word(candidate)
+            for candidate in self.INITIAL_VOWEL_NOUN_EXCEPTIONS.get(normalized, ())
+        )
+
+    def _is_manual_initial_vowel_exception(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if normalized in self.INITIAL_VOWEL_NOUN_EXCEPTIONS:
+            return True
+        return any(
+            normalized == candidate
+            for variants in self.INITIAL_VOWEL_NOUN_EXCEPTIONS.values()
+            for candidate in variants
+        )
+
+    def _is_imperfect_surface_candidate(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if not normalized:
+            return False
+        records = self._verb_records_for_surface(normalized)
+        return bool(records) and all(record.tense == "MPERF" for record in records)
+
     def _blocks_initial_vowel_insertion(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         return normalized.startswith("pr")
@@ -3571,19 +3602,9 @@ class UniversalMalteseSpellchecker:
         normalized = self._normalize_word(word)
         if not normalized:
             return False
-        return any(
-            (
-                normalized in self.dictionary_set,
-                self._valid_suffix_surface_candidates(normalized),
-                self._is_verb_tagged_word(normalized),
-                self._is_noun_tagged_word(normalized),
-                self._is_pronoun_tagged_word(normalized),
-                self._is_adjective_tagged_word(normalized),
-                self._is_adverb_tagged_word(normalized),
-                normalized in self.place_word_set,
-                normalized in self.country_english_to_maltese,
-                normalized in self.country_maltese_to_english,
-            )
+        return (
+            self._is_imperfect_surface_candidate(normalized)
+            or self._is_manual_initial_vowel_exception(normalized)
         )
 
     def _initial_vowel_surface_options(
@@ -3606,6 +3627,12 @@ class UniversalMalteseSpellchecker:
             candidate = self._normalize_word(candidate)
             if candidate and candidate not in items:
                 items.append(candidate)
+
+        for candidate in self._manual_initial_vowel_variants(normalized):
+            if normalized.startswith(("i", "u")):
+                add_unique(prefer_plain, candidate)
+            else:
+                add_unique(prefer_vowel, candidate)
 
         if normalized.startswith("i") and len(normalized) > 1:
             plain_cluster = normalized[1:]
@@ -4336,6 +4363,13 @@ class UniversalMalteseSpellchecker:
             )
 
         if normalized in self._no_possession_noun_set():
+            return self._store_correct_word_result(
+                word,
+                word,
+                is_deterministic=True,
+            )
+
+        if self._is_manual_initial_vowel_exception(normalized):
             return self._store_correct_word_result(
                 word,
                 word,
