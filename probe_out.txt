@@ -1,0 +1,21 @@
+correct_word('ifettilu') -> 'jfettillu'
+correct_word('ifitex') -> 'jfittex'
+correct_word('inhalasa') -> 'nħallasha'
+correct_word('xhar') -> 'xahar'
+correct_word('landu') -> "l'għandu"
+correct_word('nmut') -> 'mmut'
+correct_word('deru') -> 'dehru'
+correct_word('ta') -> 'ta'
+correct_word('malta') -> 'malta'
+correct_word('xahad') -> 'xagħat'
+correct_word('qiedgha') -> 'qdieha'
+correct_word('edd') -> 'qed'
+correct_word('skond') -> 'skont'
+correct_word('presentuza') -> 'preżentuża'
+correct_word('gismek') -> 'ġissemk'
+correct_word('qazzist') -> 'razzist'
+suggest('ntbat') -> ['ntbagħat', 'ntbagħt']
+suggest('xar') -> ['xahar', 'xagħar', 'xgħar']
+suggest('narma') -> ['narma']
+suggest('daqsek') -> ['daqqsek', 'ddaqqsek', 'daqshekk']
+suggest('nagħmel') -> ['nagħmel']
