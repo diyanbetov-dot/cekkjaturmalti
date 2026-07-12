@@ -174,7 +174,39 @@ class UniversalMalteseSpellchecker:
         "background": ["sfond"],
         "genie": ["ġinn"],  # The mythical creature, not the software tool.
         "algorithm": ["algoritmu"],
+        "car": ["karozza"],
+        "max": ["mg\u0127ax"],
         "shark": ["kelb il-baħar"]
+    }
+
+    ACCEPTED_ENGLISH_WORDS = {
+        "a",
+        "about",
+        "and",
+        "at",
+        "automatic",
+        "car",
+        "day",
+        "end",
+        "fan",
+        "hello",
+        "hi",
+        "max",
+        "morning",
+        "of",
+        "ok",
+        "okay",
+        "please",
+        "the",
+    }
+
+    ACCEPTED_ENGLISH_PHRASES = {
+        "at the end of the day",
+        "good morning",
+    }
+
+    ENGLISH_DISPLAY_NOTES = {
+        "max": "il-kelma massimu bl-Ingli\u017c",
     }
 
     # Noun possessive suffixes can be tested conservatively before enabling
@@ -255,11 +287,41 @@ class UniversalMalteseSpellchecker:
         "nowmu": "ngħumu",
         "towm": "tgħum",
         "towmu": "tgħumu",
+        "xahad": "xi ħadd",
+        "qiedgha": "qiegħda",
+        "qedgha": "qiegħda",
+        "qedgħa": "qiegħda",
+        "ghet": "qed",
+        "et": "qed",
+        "ett": "qed",
+        "ed": "qed",
+        "qet": "qed",
+        "qett": "qed",
+        "skond": "skont",
+        "prezentuz": "preżentuż",
+        "presentuz": "preżentuż",
+        "preżentuz": "preżentuż",
+        "presentuż": "preżentuż",
+        "prezentuż": "preżentuż",
+        "prezentuza": "preżentuża",
+        "presentuza": "preżentuża",
+        "preżentuza": "preżentuża",
+        "presentuża": "preżentuża",
+        "prezentuża": "preżentuża",
+        "prezentuzi": "preżentużi",
+        "presentuzi": "preżentużi",
+        "preżentuzi": "preżentużi",
+        "presentużi": "preżentużi",
+        "prezentużi": "preżentużi",
     }
 
     MANUAL_WORD_SUGGESTIONS = {
         "ilbierah": ("ilbieraħ",),
         "shark": ("xark",),
+        "ajru": ("ajruplan",),
+        "qalb": ("qalb", "qalbi"),
+        "mhabba": ("imħabba",),
+        "tbatija": ("tbatija",),
     }
 
     MANUAL_EJD_AJD_TAILS = (
@@ -406,6 +468,9 @@ class UniversalMalteseSpellchecker:
         "principju": "prinċipju",
         "x'taghmel": "x'tagħmel",
         "faqqalu": "faqqagħlu",
+        "malta": "Malta",
+        "qazzist": "qażżiżt",
+        "qazzisti": "qażżiżti",
     }
 
     EXACT_SUGGESTION_OVERRIDES = {
@@ -425,6 +490,14 @@ class UniversalMalteseSpellchecker:
         "għal": ("għall-",),
         "kif": ("kief",),
         "kief": ("kif",),
+        "nixxi": ("nixtri",),
+        "tixxi": ("tixtri",),
+        "jixxi": ("jixtri",),
+        "nixxu": ("nixtru",),
+        "tixxu": ("tixtru",),
+        "jixxu": ("jixtru",),
+        "ixxi": ("ixtri",),
+        "ixxu": ("ixtru",),
     }
 
     INITIAL_VOWEL_NOUN_EXCEPTIONS = {
@@ -566,6 +639,64 @@ class UniversalMalteseSpellchecker:
             .replace("\u02bc", "'")
         )
 
+    def _english_key(self, text: str) -> str:
+        return " ".join(str(text).casefold().strip().split())
+
+    def _accepted_exact_english(self, text: str) -> bool:
+        key = self._english_key(text)
+        if not key:
+            return False
+        if " " in key:
+            return key in self.ACCEPTED_ENGLISH_PHRASES or key in self.ENGLISH_MAPPINGS
+        return key in self.ACCEPTED_ENGLISH_WORDS or key in self.ENGLISH_MAPPINGS
+
+    def _near_accepted_english_word(self, text: str) -> bool:
+        key = self._english_key(text)
+        if " " in key or len(key) < 6 or not key.isalpha():
+            return False
+        if (
+            key in self.dictionary_set
+            or key in self._no_possession_noun_set()
+            or key in self.country_english_to_maltese
+            or key in self.country_maltese_to_english
+            or self._exact_place_word(key)
+        ):
+            return False
+
+        accepted_words = set(self.ACCEPTED_ENGLISH_WORDS)
+        accepted_words.update(
+            word for word in self.ENGLISH_MAPPINGS if " " not in word and len(word) >= 6
+        )
+        for accepted in accepted_words:
+            if (
+                len(accepted) >= 6
+                and key[:1] == accepted[:1]
+                and abs(len(key) - len(accepted)) <= 2
+                and self._word_distance(key, accepted) <= 2
+            ):
+                return True
+        return False
+
+    def _english_token(
+        self,
+        *,
+        original: str,
+        corrected: str,
+        inner_text: str,
+    ) -> dict:
+        key = self._english_key(inner_text)
+        token = {
+            "type": "english_phrase",
+            "original": original,
+            "corrected": corrected,
+            "inner_text": inner_text,
+            "maltese_suggestion": self.ENGLISH_MAPPINGS.get(key),
+        }
+        note = self.ENGLISH_DISPLAY_NOTES.get(key)
+        if note:
+            token["english_note"] = note
+        return token
+
     def _graphemes(self, word: str) -> list[str]:
         """Split a word into rough graphemes, keeping għ as one item."""
         return list(self._graphemes_cached(self._normalize_word(word)))
@@ -669,6 +800,26 @@ class UniversalMalteseSpellchecker:
         is_deterministic: bool = False,
         candidates: Iterable[str] | None = None,
     ) -> str:
+        normalized_orig = self._normalize_word(word)
+        normalized_corr = self._normalize_word(corrected)
+        if normalized_orig and normalized_corr and " " not in normalized_corr:
+            if normalized_orig.startswith(("i", "u")) and normalized_corr.startswith(("j", "w")):
+                prefer_vowel, prefer_plain = self._initial_vowel_surface_options(normalized_corr)
+                matching_vowel = next(
+                    (
+                        option
+                        for option in prefer_vowel
+                        if self._normalize_word(option) == normalized_orig
+                    ),
+                    None,
+                )
+                if matching_vowel:
+                    corrected = self._match_capitalisation(word, matching_vowel)
+            elif normalized_orig.startswith(("j", "w")) and normalized_corr.startswith(("i", "u")):
+                prefer_vowel, prefer_plain = self._initial_vowel_surface_options(normalized_corr)
+                if prefer_plain:
+                    corrected = self._match_capitalisation(word, prefer_plain[0])
+
         candidate_list = list(candidates or ())
         if not candidate_list:
             candidate_list = [corrected]
@@ -731,6 +882,21 @@ class UniversalMalteseSpellchecker:
         add(analysis.corrected)
         for candidate in analysis.candidates:
             add(candidate)
+
+        for candidate in self._medial_guttural_vowel_restoration_variants(word):
+            add(candidate)
+            if len(ordered) >= limit:
+                return ordered[:limit]
+
+        for candidate in self._missing_medial_guttural_variants(word):
+            add(candidate)
+            if len(ordered) >= limit:
+                return ordered[:limit]
+
+        for candidate in self._missing_h_before_r_verb_variants(word):
+            add(candidate)
+            if len(ordered) >= limit:
+                return ordered[:limit]
 
         orthographic_generator = getattr(self, "orthographic_generator", None)
         if orthographic_generator is not None:
@@ -989,8 +1155,6 @@ class UniversalMalteseSpellchecker:
                 or bool(self._valid_suffix_surface_candidates(candidate))
             ):
                 return candidate
-            if self._normalize_word(self.correct_word(candidate)) == candidate:
-                return candidate
         return None
 
     def _is_probable_noun(self, word: str) -> bool:
@@ -1183,7 +1347,7 @@ class UniversalMalteseSpellchecker:
     def _is_feminine_noun(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         tags = self.word_tags.get(normalized, set())
-        if any(tag == "SINGNOUNF" for tag in tags):
+        if any(tag.split("-", 1)[0] == "SINGNOUNF" for tag in tags):
             return True
 
         # Fallback for manual words lacking dictionary tags: assume feminine if ending in 'a'
@@ -1450,6 +1614,10 @@ class UniversalMalteseSpellchecker:
 
             possible_bases.append(stem + "n")
             possible_bases.append(stem)
+            
+            if len(stem) >= 2:
+                possible_bases.append(stem[:-1] + "e" + stem[-1])
+                possible_bases.append(stem[:-1] + "i" + stem[-1])
 
             for base in possible_bases:
                 if (
@@ -1503,6 +1671,49 @@ class UniversalMalteseSpellchecker:
                 reduced = variant.replace("jjt", "jt")
                 if self._noun_possessive_base_for_surface(reduced):
                     return reduced
+
+        return None
+
+    def _collapse_invalid_glide_doubling(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        graphemes = self._graphemes(normalized)
+        if len(graphemes) < 3:
+            return None
+
+        candidates: list[str] = []
+        for index in range(len(graphemes) - 2):
+            glide = graphemes[index]
+            if (
+                glide not in {"j", "w"}
+                or graphemes[index + 1] != glide
+                or graphemes[index + 2] in self.VOWELS
+            ):
+                continue
+            candidate = self._from_graphemes(
+                graphemes[: index + 1] + graphemes[index + 2 :]
+            )
+            if candidate != normalized and candidate not in candidates:
+                candidates.append(candidate)
+
+        orthographic_generator = getattr(self, "orthographic_generator", None)
+        for candidate in candidates:
+            if (
+                candidate in self.dictionary_set
+                or self._noun_possessive_base_for_surface(candidate)
+                or self._valid_suffix_surface_candidates(candidate)
+            ):
+                return candidate
+            if orthographic_generator is not None and hasattr(
+                orthographic_generator,
+                "correct_shortcut_letters",
+            ):
+                shortcut = orthographic_generator.correct_shortcut_letters(candidate)
+                if shortcut and (
+                    shortcut in self.dictionary_set
+                    or self._noun_possessive_base_for_surface(shortcut)
+                    or self._valid_suffix_surface_candidates(shortcut)
+                ):
+                    return shortcut
 
         return None
 
@@ -2369,7 +2580,16 @@ class UniversalMalteseSpellchecker:
 
     def _lookup_anchors(self, word: str) -> set[str]:
         variants = self._strict_lookup_variants(word)
-        return {self._extract_consonant_anchor(v) for v in variants if v}
+        anchors = {self._extract_consonant_anchor(v) for v in variants if v}
+        normalized = self._normalize_word(word)
+        if normalized:
+            if normalized.startswith("i"):
+                j_variant = "j" + normalized[1:]
+                anchors.add(self._extract_consonant_anchor(j_variant))
+            elif normalized.startswith("u"):
+                w_variant = "w" + normalized[1:]
+                anchors.add(self._extract_consonant_anchor(w_variant))
+        return anchors
 
     def _get_paradigm_candidates_for_anchor(self, anchor: str) -> list[str]:
         forms = self.anchor_map.get(anchor, [])
@@ -2902,7 +3122,7 @@ class UniversalMalteseSpellchecker:
         stage: str,
         score_limit: float,
     ) -> str | None:
-        max_distance = self._max_distance(original_word)
+        max_distance = min(1, self._max_distance(original_word))
         rows: list[ScoreRow] = []
         for variant in variants:
             best = self._best_ranked_candidate(
@@ -4194,6 +4414,370 @@ class UniversalMalteseSpellchecker:
                 return f"xi {article_match.corrected}"
         return None
 
+    def _compact_preposition_tail_variants(self, tail: str) -> list[str]:
+        normalized = self._normalize_word(tail)
+        variants: list[str] = []
+
+        def add(candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+            if (
+                candidate
+                and candidate not in variants
+                and self._valid_generated_surface(candidate)
+            ):
+                variants.append(candidate)
+
+        if normalized.startswith("i") and len(normalized) > 1:
+            stripped = normalized[1:]
+            j_variant = "j" + stripped
+            if self._is_imperfect_surface_candidate(j_variant):
+                add(j_variant)
+                add(stripped)
+            else:
+                add(stripped)
+                add(j_variant)
+        elif normalized.startswith("u") and len(normalized) > 1:
+            add(normalized[1:])
+            add("w" + normalized[1:])
+        add(normalized)
+        return variants
+
+    def _expand_compact_long_preposition_phrase(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        prefix_map = {
+            "x'": "xi",
+            "b'": "bi",
+            "f'": "fi",
+            "l'": "li",
+        }
+
+        for compact_prefix, long_prefix in prefix_map.items():
+            if not normalized.startswith(compact_prefix):
+                continue
+            tail = normalized[len(compact_prefix) :]
+            if not tail:
+                return None
+            if compact_prefix == "l'" and not tail.startswith(("i", "u")):
+                return None
+            variants = self._compact_preposition_tail_variants(tail)
+            if variants:
+                return f"{long_prefix} {variants[0]}"
+            return None
+
+        if normalized.startswith("x") and len(normalized) > 2 and normalized[1] in {"i", "u"}:
+            variants = self._compact_preposition_tail_variants(normalized[1:])
+            if variants:
+                return f"xi {variants[0]}"
+
+        if normalized.startswith("xi") and len(normalized) > 2:
+            tail = normalized[2:]
+            variants = self._compact_preposition_tail_variants(tail)
+            if variants:
+                return f"xi {variants[0]}"
+
+        return None
+
+    def _attached_l_apostrophe_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        if (
+            not normalized.startswith("l")
+            or normalized.startswith(("l'", "l-"))
+            or len(normalized) <= 2
+        ):
+            return None
+
+        tail = normalized[1:]
+        if tail[0] not in self.VOWELS:
+            return None
+
+        tail_variants = [tail]
+        if tail.endswith("om"):
+            tail_variants.append(tail[:-2] + "hom")
+
+        for tail_variant in tail_variants:
+            for onset in ("għ", "h"):
+                candidate = f"l'{onset}{tail_variant}"
+                if self._valid_apostrophe_prefix_word(candidate) is not None:
+                    return candidate
+        return None
+
+    def _simple_noun_possessive_surface_base(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        suffixes = ("kom", "hom", "ek", "ok", "ha", "na", "i", "u", "h", "k")
+        for suffix in suffixes:
+            if not normalized.endswith(suffix) or len(normalized) <= len(suffix):
+                continue
+            base = normalized[: -len(suffix)]
+            if (
+                base in self.dictionary_set
+                and self._is_probable_noun(base)
+                and base not in self._no_possession_noun_set()
+                and (
+                    self._noun_possessive_base_is_enabled(base)
+                    or self._is_noun_tagged_word(base)
+                )
+            ):
+                return base
+        return None
+
+    def _valid_initial_vowel_surface_word(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if not normalized.startswith(("i", "u")) or len(normalized) < 3:
+            return False
+        if normalized.startswith("u"):
+            return False
+
+        candidates: list[str] = []
+        if normalized.startswith("i"):
+            rest = normalized[1:]
+            candidates.append("j" + rest)
+            if len(rest) >= 2 and rest[0] == rest[1]:
+                candidates.append(rest)
+                candidates.append("j" + rest[1:])
+        else:
+            rest = normalized[1:]
+            candidates.append("w" + rest)
+
+        for candidate in candidates:
+            if (
+                self._valid_generated_surface(candidate)
+                or self._is_imperfect_surface_candidate(candidate)
+            ):
+                return True
+        return False
+
+    def _initial_u_to_w_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        if (
+            not normalized.startswith("u")
+            or len(normalized) < 3
+            or self._is_manual_initial_vowel_exception(normalized)
+        ):
+            return None
+        candidate = "w" + normalized[1:]
+        if self._valid_generated_surface(candidate):
+            return candidate
+        return None
+
+    def _adjacent_n_m_confusion_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        replacements: list[str] = []
+
+        if "nm" in normalized:
+            replacements.append(normalized.replace("nm", "mm", 1))
+        if "mn" in normalized:
+            replacements.append(normalized.replace("mn", "nn", 1))
+
+        for candidate in replacements:
+            if (
+                self._valid_generated_surface(candidate)
+                or self._valid_initial_vowel_surface_word(candidate)
+            ):
+                return candidate
+        return None
+
+    def _suffix_surface_vowel_swap_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        suffix_generator = getattr(self, "suffix_generator", None)
+        if suffix_generator is None:
+            return None
+
+        swaps = {"u": "o", "o": "u", "i": "e", "e": "i"}
+        for index, char in enumerate(normalized):
+            replacement = swaps.get(char)
+            if replacement is None:
+                continue
+            candidate = normalized[:index] + replacement + normalized[index + 1 :]
+            if suffix_generator.exact_suffix_matches(candidate):
+                return candidate
+        return None
+
+    def _initial_i_imperfect_spelling_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        if not normalized.startswith("i") or len(normalized) < 4:
+            return None
+
+        candidate = "j" + normalized[1:]
+        variants = [candidate]
+        doubled = None
+        if hasattr(self, "doubled_letter_generator"):
+            doubled = self.doubled_letter_generator.correct_missing_double(candidate)
+        if doubled:
+            variants.insert(0, self._normalize_word(doubled))
+
+        for variant in variants:
+            if self._is_imperfect_surface_candidate(variant):
+                return variant
+        return None
+
+    def _multi_insert_suffix_verb_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        if "h" not in normalized or len(normalized) > 16:
+            return None
+
+        seeds = [normalized]
+        if normalized.startswith("in") and len(normalized) > 3:
+            seeds.append(normalized[1:])
+
+        checked: set[str] = set()
+        candidates: list[str] = []
+
+        def add(candidate: str) -> None:
+            candidate = self._normalize_word(candidate)
+            if candidate and candidate not in checked:
+                checked.add(candidate)
+                candidates.append(candidate)
+
+        for seed in seeds:
+            h_positions = [index for index, char in enumerate(seed) if char == "h"]
+            for h_index in h_positions:
+                hbar_seed = seed[:h_index] + "ħ" + seed[h_index + 1 :]
+                add(hbar_seed)
+                graphemes = list(self._graphemes(hbar_seed))
+                for index, token in enumerate(graphemes):
+                    if (
+                        token in self.VOWELS
+                        or not token.isalpha()
+                        or index + 1 >= len(graphemes)
+                        or graphemes[index + 1] == token
+                    ):
+                        continue
+                    doubled = self._from_graphemes(
+                        graphemes[: index + 1] + [token] + graphemes[index + 1 :]
+                    )
+                    add(doubled)
+                    if doubled.endswith("a"):
+                        add(doubled[:-1] + "ha")
+                    if doubled.endswith("om"):
+                        add(doubled[:-2] + "hom")
+                    if doubled.endswith("u"):
+                        add(doubled[:-1] + "hu")
+
+        for candidate in candidates:
+            if self._valid_generated_surface(candidate):
+                return candidate
+        return None
+
+    def _short_guttural_repair_shape(self, graphemes: list[str]) -> bool:
+        skeleton = "".join(
+            "V" if token in self.VOWELS else "C"
+            for token in graphemes
+            if token.isalpha() or token == "għ"
+        )
+        if (
+            3 <= len(skeleton) <= 7
+            and skeleton.count("V") == 1
+            and skeleton[0] == "C"
+            and skeleton[-1] == "C"
+        ):
+            return True
+        if graphemes and graphemes[0] in {"n", "t", "j"}:
+            prefixed_skeleton = "".join(
+                "V" if token in self.VOWELS else "C"
+                for token in graphemes[1:]
+                if token.isalpha() or token == "għ"
+            )
+            return (
+                3 <= len(prefixed_skeleton) <= 7
+                and prefixed_skeleton.count("V") == 1
+                and prefixed_skeleton[0] == "C"
+                and prefixed_skeleton[-1] == "C"
+            )
+        return False
+
+    def _missing_medial_guttural_variants(self, word: str) -> list[str]:
+        normalized = self._normalize_word(word)
+        graphemes = list(self._graphemes(normalized))
+        if len(graphemes) < 3 or len(graphemes) > 8:
+            return []
+        if not self._short_guttural_repair_shape(graphemes):
+            return []
+
+        variants: list[str] = []
+
+        def add(candidate_tokens: list[str]) -> None:
+            candidate = self._from_graphemes(candidate_tokens)
+            if (
+                candidate
+                and candidate != normalized
+                and candidate not in variants
+                and self._valid_generated_surface(candidate)
+            ):
+                variants.append(candidate)
+
+        for index in range(1, len(graphemes)):
+            previous = graphemes[index - 1]
+            current = graphemes[index]
+            if not previous.isalpha() or not current.isalpha():
+                continue
+            for guttural in ("għ", "ħ", "h"):
+                add(graphemes[:index] + [guttural] + graphemes[index:])
+                if previous in self.VOWELS:
+                    add(graphemes[:index] + [guttural, previous] + graphemes[index:])
+
+        return variants
+
+    def _medial_guttural_vowel_restoration_variants(self, word: str) -> list[str]:
+        normalized = self._normalize_word(word)
+        graphemes = list(self._graphemes(normalized))
+        if len(graphemes) < 4 or len(graphemes) > 10:
+            return []
+        if not self._short_guttural_repair_shape(graphemes):
+            return []
+
+        variants: list[str] = []
+
+        def add(candidate_tokens: list[str]) -> None:
+            candidate = self._from_graphemes(candidate_tokens)
+            if (
+                candidate
+                and candidate != normalized
+                and candidate not in variants
+                and self._valid_generated_surface(candidate)
+            ):
+                variants.append(candidate)
+
+        for index, token in enumerate(graphemes):
+            if token not in {"h", "ħ", "għ"} or index == 0 or index + 1 >= len(graphemes):
+                continue
+            previous = graphemes[index - 1]
+            following = graphemes[index + 1]
+            if previous not in self.VOWELS and following in self.VOWELS:
+                add(graphemes[:index] + [following] + graphemes[index:])
+            if previous in self.VOWELS and following not in self.VOWELS:
+                add(graphemes[: index + 1] + [previous] + graphemes[index + 1 :])
+
+        return variants
+
+    def _missing_h_before_r_verb_variants(self, word: str) -> list[str]:
+        normalized = self._normalize_word(word)
+        graphemes = list(self._graphemes(normalized))
+        if len(graphemes) < 4 or len(graphemes) > 10:
+            return []
+
+        variants: list[str] = []
+
+        def add(candidate_tokens: list[str]) -> None:
+            candidate = self._from_graphemes(candidate_tokens)
+            if (
+                candidate
+                and candidate != normalized
+                and candidate not in variants
+                and (
+                    self._is_verb_tagged_word(candidate)
+                    or self._valid_generated_surface(candidate)
+                )
+            ):
+                variants.append(candidate)
+
+        for index in range(1, len(graphemes)):
+            if graphemes[index] != "r":
+                continue
+            if graphemes[index - 1] in self.VOWELS:
+                add(graphemes[:index] + ["h"] + graphemes[index:])
+
+        return variants
+
     def _build_missing_h_verb_repairs(self) -> dict[str, str]:
         suffix_generator = getattr(self, "suffix_generator", None)
         verb_index = getattr(suffix_generator, "verb_index", None)
@@ -4332,12 +4916,43 @@ class UniversalMalteseSpellchecker:
                     )
                 return self._match_capitalisation(word, f"l-{corrected_tail}")
 
+        compact_long_preposition = self._expand_compact_long_preposition_phrase(normalized)
+        if compact_long_preposition is not None:
+            corrected = self._match_capitalisation(word, compact_long_preposition)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
+        attached_l_apostrophe = self._attached_l_apostrophe_repair(normalized)
+        if attached_l_apostrophe is not None:
+            corrected = self._match_capitalisation(word, attached_l_apostrophe)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
         contracted_fb = self._repair_contracted_fb_word(word)
         if contracted_fb is not None:
             corrected_word, _ = contracted_fb
             return self._store_correct_word_result(
                 word,
                 corrected_word,
+                is_deterministic=True,
+            )
+
+        medial_guttural_vowel = []
+        if not self._is_recognized_surface(normalized):
+            medial_guttural_vowel = self._medial_guttural_vowel_restoration_variants(
+                normalized
+            )
+        if medial_guttural_vowel:
+            corrected = self._match_capitalisation(word, medial_guttural_vowel[0])
+            return self._store_correct_word_result(
+                word,
+                corrected,
                 is_deterministic=True,
             )
 
@@ -4376,6 +4991,22 @@ class UniversalMalteseSpellchecker:
                 is_deterministic=True,
             )
 
+        if self._valid_initial_vowel_surface_word(normalized):
+            return self._store_correct_word_result(
+                word,
+                word,
+                is_deterministic=True,
+            )
+
+        initial_u_w_repair = self._initial_u_to_w_repair(normalized)
+        if initial_u_w_repair:
+            corrected = self._match_capitalisation(word, initial_u_w_repair)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
         if any(mark in normalized for mark in ("'", "-")):
             return self._store_correct_word_result(
                 word,
@@ -4403,11 +5034,29 @@ class UniversalMalteseSpellchecker:
                     is_deterministic=True,
                 )
 
+        initial_i_imperfect = self._initial_i_imperfect_spelling_repair(normalized)
+        if initial_i_imperfect:
+            corrected = self._match_capitalisation(word, initial_i_imperfect)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
         orthographic_generator = getattr(
             self,
             "orthographic_generator",
             None,
         )
+
+        noun_suffix_match = self._correct_noun_possessive_suffix(normalized)
+        if noun_suffix_match:
+            corrected = self._match_capitalisation(word, noun_suffix_match)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         if orthographic_generator is not None and hasattr(
             orthographic_generator,
@@ -4458,6 +5107,14 @@ class UniversalMalteseSpellchecker:
                 is_deterministic=True,
             )
 
+        simple_noun_possessive = self._simple_noun_possessive_surface_base(normalized)
+        if simple_noun_possessive:
+            return self._store_correct_word_result(
+                word,
+                word,
+                is_deterministic=True,
+            )
+
         lexicalized_forms = self._lexicalized_form_variants(normalized)
         if lexicalized_forms:
             corrected = self._match_capitalisation(word, lexicalized_forms[0])
@@ -4481,6 +5138,33 @@ class UniversalMalteseSpellchecker:
         manual_repairs = self._manual_repair_variants(normalized)
         if manual_repairs and normalized not in self.dictionary_set:
             corrected = self._match_capitalisation(word, manual_repairs[0])
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
+        adjacent_nm_repair = self._adjacent_n_m_confusion_repair(normalized)
+        if adjacent_nm_repair:
+            corrected = self._match_capitalisation(word, adjacent_nm_repair)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
+        suffix_vowel_swap = self._suffix_surface_vowel_swap_repair(normalized)
+        if suffix_vowel_swap:
+            corrected = self._match_capitalisation(word, suffix_vowel_swap)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
+        multi_insert_suffix = self._multi_insert_suffix_verb_repair(normalized)
+        if multi_insert_suffix:
+            corrected = self._match_capitalisation(word, multi_insert_suffix)
             return self._store_correct_word_result(
                 word,
                 corrected,
@@ -4537,6 +5221,15 @@ class UniversalMalteseSpellchecker:
         noun_suffix_match = self._correct_noun_possessive_suffix(normalized)
         if noun_suffix_match:
             corrected = self._match_capitalisation(word, noun_suffix_match)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
+
+        collapsed_glide = self._collapse_invalid_glide_doubling(normalized)
+        if collapsed_glide:
+            corrected = self._match_capitalisation(word, collapsed_glide)
             return self._store_correct_word_result(
                 word,
                 corrected,
@@ -5233,6 +5926,8 @@ class UniversalMalteseSpellchecker:
                 return
             suffix_candidates = self._valid_suffix_surface_candidates(candidate)
             if (
+                candidate not in trusted_generated
+                and
                 suffix_candidates == []
                 and hasattr(self, "suffix_generator")
                 and self.suffix_generator.candidates_for_surface(candidate)
@@ -5288,6 +5983,22 @@ class UniversalMalteseSpellchecker:
                         add_generated(candidate)
                         if len(suggestions) >= limit:
                             return suggestions[:limit]
+            early_orthographic = getattr(self, "orthographic_generator", None)
+            if early_orthographic is not None and hasattr(
+                early_orthographic,
+                "dictionary_insert_h_after_d_variants",
+            ):
+                for candidate in early_orthographic.dictionary_insert_h_after_d_variants(
+                    normalized
+                ):
+                    add_generated(candidate)
+                    if len(suggestions) >= limit:
+                        return suggestions[:limit]
+            for candidate in self._missing_h_before_r_verb_variants(normalized):
+                trusted_generated.add(self._normalize_word(candidate))
+                add_generated(candidate)
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
             if lexicalized_forms and self._normalize_word(lexicalized_forms[0]) == normalized:
                 for candidate in lexicalized_forms[1:]:
                     add_generated(candidate)
@@ -5325,6 +6036,20 @@ class UniversalMalteseSpellchecker:
                 return suggestions[:limit]
 
         if pattern_repairs:
+            restorative_candidates = (
+                self._medial_guttural_vowel_restoration_variants(normalized)
+                + self._missing_medial_guttural_variants(normalized)
+            )
+            trusted_generated.update(
+                self._normalize_word(candidate)
+                for candidate in restorative_candidates
+            )
+            for candidate in restorative_candidates:
+                add_generated(candidate)
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
+
+        if pattern_repairs:
             return suggestions[:limit]
 
         manual_repair_variants = self._manual_repair_variants(normalized)
@@ -5357,6 +6082,18 @@ class UniversalMalteseSpellchecker:
             if shortcut_matches:
                 for candidate in shortcut_matches:
                     add_generated(candidate)
+                restorative_candidates = (
+                    self._medial_guttural_vowel_restoration_variants(normalized)
+                    + self._missing_medial_guttural_variants(normalized)
+                )
+                trusted_generated.update(
+                    self._normalize_word(candidate)
+                    for candidate in restorative_candidates
+                )
+                for candidate in restorative_candidates:
+                    add_generated(candidate)
+                    if len(suggestions) >= limit:
+                        return suggestions[:limit]
                 if normalized not in {"habba", "ħabba"}:
                     return suggestions[:limit]
 
@@ -5379,6 +6116,18 @@ class UniversalMalteseSpellchecker:
         if corrected_norm != normalized:
             add_generated(corrected_word)
             correction_changed = True
+            restorative_candidates = (
+                self._medial_guttural_vowel_restoration_variants(normalized)
+                + self._missing_medial_guttural_variants(normalized)
+            )
+            trusted_generated.update(
+                self._normalize_word(candidate)
+                for candidate in restorative_candidates
+            )
+            for candidate in restorative_candidates:
+                add_generated(candidate)
+                if len(suggestions) >= limit:
+                    return suggestions[:limit]
             if normalized.startswith("ghand") and corrected_norm.startswith("għand"):
                 return suggestions[:limit]
 
@@ -6454,20 +7203,14 @@ class UniversalMalteseSpellchecker:
 
             if getattr(match, "is_quote", False):
                 inner_text = match.inner_text
-                maltese_suggestion = self.ENGLISH_MAPPINGS.get(
-                    inner_text.lower().strip()
-                )
-
                 tokens.append(
-                    {
-                        "type": "english_phrase",
-                        "original": match.group(0),
-                        "corrected": match.group(0),
-                        "inner_text": inner_text,
-                        "maltese_suggestion": maltese_suggestion,
-                    }
+                    self._english_token(
+                        original=match.group(0),
+                        corrected=inner_text,
+                        inner_text=inner_text,
+                    )
                 )
-                corrected_parts.append(match.group(0))
+                corrected_parts.append(inner_text)
                 previous_surface_word = None
                 last_end = match.end()
                 index += 1
@@ -6482,6 +7225,71 @@ class UniversalMalteseSpellchecker:
                 or self._word_ends_with_vowel(previous_surface_word)
             )
             after_punctuation_initial_vowel = False
+
+            if self._accepted_exact_english(original_word):
+                tokens.append(
+                    self._english_token(
+                        original=original_word,
+                        corrected=original_word,
+                        inner_text=original_word,
+                    )
+                )
+                corrected_parts.append(original_word)
+                previous_surface_word = original_word
+                last_end = match.end()
+                index += 1
+                continue
+
+            if self._near_accepted_english_word(original_word):
+                tokens.append(
+                    {
+                        "type": "word",
+                        "original": original_word,
+                        "corrected": original_word,
+                        "meaning": "",
+                        "ambiguous": False,
+                        "choices": [],
+                        "name_like": False,
+                    }
+                )
+                corrected_parts.append(original_word)
+                previous_surface_word = original_word
+                last_end = match.end()
+                index += 1
+                continue
+
+            compact_long_phrase = self._expand_compact_long_preposition_phrase(
+                original_word
+            )
+            if compact_long_phrase is not None:
+                corrected_phrase = self._apply_surface_case(
+                    original_word,
+                    compact_long_phrase,
+                    sentence_initial=sentence_initial,
+                )
+                phrase_choices = [
+                    {
+                        "word": corrected_phrase,
+                        "meaning": self.meaning_for(compact_long_phrase.split()[-1]),
+                    }
+                ]
+                tokens.append(
+                    {
+                        "type": "word",
+                        "original": original_word,
+                        "corrected": corrected_phrase,
+                        "ambiguous": False,
+                        "choices": phrase_choices,
+                        "name_like": False,
+                    }
+                )
+                corrected_parts.append(corrected_phrase)
+                previous_surface_word = self._normalize_word(
+                    corrected_phrase.split()[-1]
+                )
+                last_end = match.end()
+                index += 1
+                continue
 
             number_phrase = None
             if index + 1 < len(matches) and not getattr(matches[index + 1], "is_quote", False):
@@ -6776,6 +7584,34 @@ class UniversalMalteseSpellchecker:
                 )
                 corrected_parts.append(original_word)
                 previous_surface_word = self._normalize_word(original_word)
+                last_end = match.end()
+                index += 1
+                continue
+
+            early_restorative = []
+            if not self._is_recognized_surface(original_norm):
+                early_restorative = self._medial_guttural_vowel_restoration_variants(
+                    original_word
+                )
+            if early_restorative:
+                corrected_word = self._apply_surface_case(
+                    original_word,
+                    early_restorative[0],
+                    sentence_initial=sentence_initial,
+                )
+                tokens.append(
+                    {
+                        "type": "word",
+                        "original": original_word,
+                        "corrected": corrected_word,
+                        "meaning": self.meaning_for(early_restorative[0]),
+                        "ambiguous": False,
+                        "choices": [],
+                        "name_like": False,
+                    }
+                )
+                corrected_parts.append(corrected_word)
+                previous_surface_word = self._normalize_word(corrected_word)
                 last_end = match.end()
                 index += 1
                 continue
@@ -7859,6 +8695,39 @@ class UniversalMalteseSpellchecker:
                         continue
 
                 if (
+                    match.end() == matches[index + 1].start()
+                    and current_norm == "x"
+                    and next_norm
+                ):
+                    combined_original = text[
+                        matches[index].start() : matches[index + 1].end()
+                    ]
+                    restored_combined = self._medial_guttural_vowel_restoration_variants(
+                        combined_original
+                    )
+                    if restored_combined:
+                        corrected_word = self._apply_surface_case(
+                            combined_original,
+                            restored_combined[0],
+                            sentence_initial=sentence_initial,
+                        )
+                        tokens.append(
+                            {
+                                "type": "word",
+                                "original": combined_original,
+                                "corrected": corrected_word,
+                                "ambiguous": False,
+                                "choices": [],
+                                "name_like": False,
+                            }
+                        )
+                        corrected_parts.append(corrected_word)
+                        previous_surface_word = self._normalize_word(corrected_word)
+                        last_end = matches[index + 1].end()
+                        index += 2
+                        continue
+
+                if (
                     current_norm == "x"
                     and next_norm not in {"l", "il"}
                     and not next_norm.startswith(("l-", "il-"))
@@ -8113,6 +8982,37 @@ class UniversalMalteseSpellchecker:
                 if sentence_initial and self._is_initial_capitalized(original_word)
                 else self.correct_word(original_word)
             )
+            restorative_norms = set()
+            if not self._is_recognized_surface(original_norm):
+                restorative_norms = {
+                    self._normalize_word(candidate)
+                    for candidate in self._medial_guttural_vowel_restoration_variants(
+                        original_word
+                    )
+                }
+            if restorative_norms and self._normalize_word(corrected_word) in restorative_norms:
+                surface_word = self._apply_surface_case(
+                    original_word,
+                    corrected_word,
+                    sentence_initial=sentence_initial,
+                )
+                tokens.append(
+                    {
+                        "type": "word",
+                        "original": original_word,
+                        "corrected": surface_word,
+                        "meaning": self.meaning_for(corrected_word),
+                        "ambiguous": False,
+                        "choices": [],
+                        "name_like": False,
+                    }
+                )
+                corrected_parts.append(surface_word)
+                previous_surface_word = self._normalize_word(surface_word)
+                last_end = match.end()
+                index += 1
+                continue
+
             corrected_word = self._contract_negative_ma(corrected_word)
             choices = self.ambiguity_choices(
                 original_word,
@@ -8136,7 +9036,9 @@ class UniversalMalteseSpellchecker:
             preferred_apostrophe = self._preferred_apostrophe_choice(choices)
             if preferred_apostrophe and self._normalize_word(
                 preferred_apostrophe
-            ) != self._normalize_word(corrected_word):
+            ) != self._normalize_word(corrected_word) and self._normalize_word(
+                corrected_word
+            ) not in restorative_norms:
                 corrected_word = preferred_apostrophe
                 choices = self.ambiguity_choices(
                     original_word,

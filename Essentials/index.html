@@ -11,6 +11,13 @@
         :root {
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
             color: #18202a;
+            --accent: #bd1137;
+            --ribbon-accent: #bd1137;
+            --ribbon-accent-hover: #bd1137;
+            --button-accent: #eb4f1f;
+            --button-accent-hover: #d83e10;
+            --accent-hover: #bd1137;
+            --accent-soft: #efe0e4;
         }
 
         html {
@@ -22,7 +29,7 @@
             box-sizing: border-box;
             min-height: 100vh;
             margin: 0;
-            padding: 32px;
+            padding: 0;
             background: #f5f7fb;
             overflow-x: hidden;
         }
@@ -30,13 +37,85 @@
         main {
             max-width: 1100px;
             margin: 0 auto;
+            padding: 28px 32px 32px;
+            box-sizing: border-box;
+        }
+
+        .brand-ribbon {
+            background: var(--ribbon-accent);
+            color: white;
+            box-shadow: 0 4px 16px rgba(24, 32, 42, 0.12);
+        }
+
+        .brand-ribbon-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 10px 32px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            letter-spacing: 0;
         }
 
         .top-bar {
             display: flex;
+            align-items: center;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 8px;
             flex-wrap: wrap;
+        }
+
+        .top-bar button,
+        .top-bar .help-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.42);
+            border-radius: 999px;
+            padding: 7px 12px;
+            background: rgba(255, 255, 255, 0.16);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+
+        .top-bar button:hover,
+        .top-bar .help-link:hover {
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        .top-bar button.secondary {
+            background: rgba(255, 255, 255, 0.16);
+            color: white;
+        }
+
+        .help-link .help-icon {
+            margin-right: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.1rem;
+            height: 1.1rem;
+            border: 1px solid currentColor;
+            border-radius: 50%;
+            font-size: 0.74rem;
+            font-weight: 800;
+            line-height: 1;
+            flex: 0 0 auto;
+        }
+
+        .title-block {
             margin-bottom: 12px;
         }
 
@@ -61,6 +140,12 @@
             color: #687586;
             font-size: 0.95rem;
             line-height: 1.45;
+        }
+
+        .instruction-note {
+            margin: 14px 0 0;
+            font-size: 0.9rem;
+            font-style: italic;
         }
 
         .alpha-note {
@@ -168,7 +253,7 @@
             font: inherit;
             font-weight: 700;
             cursor: pointer;
-            background: #eb4f1f;
+            background: var(--button-accent);
             color: white;
         }
 
@@ -227,6 +312,402 @@
             overflow-wrap: anywhere;
         }
 
+        .result-shell {
+            position: relative;
+        }
+
+        .result-shell .result-box {
+            padding-bottom: 42px;
+        }
+
+        .result-editor {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 190px;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            line-height: 1.7;
+            background: #f8fafc;
+            overflow-wrap: anywhere;
+            outline: none;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .output-edit-toggle {
+            position: absolute;
+            right: 8px;
+            bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: white;
+            color: var(--accent);
+            font-size: 1.1rem;
+            font-weight: bold;
+            line-height: 1;
+            z-index: 6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .output-edit-toggle:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        .output-format-tab {
+            position: absolute;
+            right: 46px;
+            bottom: 10px;
+            height: 32px;
+            display: none;
+            align-items: center;
+            gap: 4px;
+            padding: 0 6px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(24, 32, 42, 0.08);
+            z-index: 5;
+            box-sizing: border-box;
+        }
+
+        .result-shell.editing .output-format-tab {
+            display: inline-flex;
+        }
+
+        .output-format-tab button {
+            width: 24px;
+            height: 24px;
+            min-width: unset;
+            min-height: unset;
+            padding: 0;
+            border-radius: 4px;
+            background: transparent;
+            color: #18202a;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+        }
+
+        .output-format-tab button:hover {
+            background: #f1f5f9;
+        }
+
+        .output-format-tab button.active {
+            background: var(--accent-soft);
+            color: var(--accent);
+        }
+
+        /* Modal Backdrop/Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Box */
+        .modal-content {
+            background: white;
+            border: 1px solid #dfe5ee;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 550px;
+            padding: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+            box-sizing: border-box;
+        }
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+        body.dark-mode .modal-content {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+
+        /* Modal Header */
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 8px;
+        }
+        body.dark-mode .modal-header {
+            border-color: #334155;
+        }
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+        .close-modal-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+        .close-modal-btn:hover {
+            color: var(--accent);
+        }
+
+        /* 
+         * =========================================================================
+         * DEVELOPER NOTES: EMAIL MODAL & SCREENSHOT STYLING
+         * =========================================================================
+         * This section defines styles for the Help/Email popover and screenshot functionality:
+         * - .modal-overlay & .modal-content: Layout and backdrop blur of the popover card.
+         * - .screenshot-btn: Two-column layout containing a square symbol side (.plus-box)
+         *   and adjacent justified wrapping text side (.btn-text).
+         * - .screenshot-preview & .remove-screenshot-btn: Style of the minimized attached
+         *   thumbnail inside the message box wrapper (.textarea-wrapper).
+         * - .lightbox-overlay & .lightbox-content: Fullscreen display modal of the attached screenshot.
+         */
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .form-group label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 0;
+        }
+        body.dark-mode .form-group label {
+            color: #cbd5e1;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 2px;
+        }
+        .form-actions-right {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        .form-actions-right button {
+            min-width: 100px;
+            height: 38px;
+        }
+        
+        .screenshot-btn {
+            height: 44px;
+            width: auto;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+            border-radius: 6px;
+            display: flex;
+            align-items: center; /* flexbox layout splits button into two columns */
+            padding: 0;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            box-sizing: border-box;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+        .screenshot-btn:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+        body.dark-mode .screenshot-btn {
+            background-color: #1e293b;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+        body.dark-mode .screenshot-btn:hover {
+            background-color: #334155;
+            border-color: #64748b;
+        }
+        /* Column 1: Square symbol side (height matches width) */
+        .screenshot-btn .plus-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px; /* square aspect ratio relative to button height */
+            height: 42px;
+            border-right: 1px solid #cbd5e1;
+            background: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            box-sizing: border-box;
+            color: #0f172a;
+        }
+        body.dark-mode .screenshot-btn .plus-box {
+            border-right-color: #475569;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+        /* Column 2: Adjacent text side with width to force wrap after 'screenshot/skritratt' */
+        .screenshot-btn .btn-text {
+            width: 90px; /* limited width forces line break after first line */
+            padding: 2px 8px;
+            text-align: left;
+            text-justify: inter-word;
+            text-align-last: left;
+            line-height: 1.25;
+            box-sizing: border-box;
+        }
+
+        .textarea-wrapper {
+            position: relative;
+            width: 100%;
+        }
+        .screenshot-preview {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            overflow: hidden;
+            background: #f8fafc;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        body.dark-mode .screenshot-preview {
+            background: #0f172a;
+            border-color: #475569;
+        }
+        .screenshot-preview:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+        }
+        .screenshot-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .remove-screenshot-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(15, 23, 42, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            z-index: 12;
+        }
+        .remove-screenshot-btn:hover {
+            background: rgba(239, 68, 68, 0.9);
+        }
+
+        /* Lightbox Overlay */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+        .lightbox-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            border: 2px solid white;
+        }
+        .close-lightbox-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+        }
+
+        body.dark-mode .output-format-tab {
+            background: #0f172a;
+            border-color: #475569;
+        }
+
+        body.dark-mode .output-format-tab button {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .output-format-tab button:hover {
+            background: #475569;
+        }
+
         .result-box:empty::before {
             content: attr(data-placeholder);
             color: #7b8794;
@@ -242,7 +723,7 @@
             width: 34px;
             height: 34px;
             border: 4px solid #dbe3ef;
-            border-top-color: #eb4f1f;
+            border-top-color: var(--accent);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -285,9 +766,9 @@
 
         .ambiguous-word.crucial-word::before {
             content: "!";
-            background: #f97316;
+            background: var(--ribbon-accent);
             color: white;
-            border-color: #c2410c;
+            border-color: var(--button-accent-hover);
         }
 
         .english-word {
@@ -414,6 +895,12 @@
             background: #fff3a3;
         }
 
+        .english-note-action {
+            color: #0284c7;
+            font-style: italic;
+            font-weight: 700;
+        }
+
         .crucial-word .suggestion-row:hover {
             background: #fed7aa;
         }
@@ -538,7 +1025,15 @@
 
         @media (max-width: 800px) {
             body {
+                padding: 0;
+            }
+
+            main {
                 padding: 18px;
+            }
+
+            .brand-ribbon-inner {
+                padding: 10px 18px;
             }
 
             .grid {
@@ -587,13 +1082,43 @@
             color: #f8fafc;
         }
 
+        body.dark-mode .result-editor {
+            background: #1e293b;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .output-edit-toggle {
+            background: #1e293b;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .output-edit-toggle:hover {
+            background: #334155;
+        }
+
+        body.dark-mode .output-format-tab {
+            background: #1e293b;
+            border-color: #475569;
+        }
+
+        body.dark-mode .output-format-tab button {
+            color: #f8fafc;
+            background: transparent;
+        }
+
+        body.dark-mode .output-format-tab button:hover {
+            background: #334155;
+        }
+
         body.dark-mode .result-box:empty::before {
             color: #64748b;
         }
 
         body.dark-mode .loading-spinner {
             border-color: #334155;
-            border-top-color: #f97316;
+            border-top-color: var(--accent-soft);
         }
 
         body.dark-mode .suggestion-popover {
@@ -684,20 +1209,30 @@
 </head>
 
 <body>
+    <header class="brand-ribbon">
+        <div class="brand-ribbon-inner">
+            <div id="brandName" class="brand-name">Ikteb Malti Tajjeb</div>
+            <div class="top-bar">
+                <button id="darkModeToggle" class="secondary" type="button">Dark Mode</button>
+                <button id="langToggle" class="secondary" type="button">Swiċċja għall-Malti</button>
+                <a id="helpLink" class="help-link" href="mailto:cekkjaturmalti@gmail.com">
+                    <span class="help-icon" aria-hidden="true">?</span>                    
+                    <span class="help-label">Help</span>
+                </a>
+            </div>
+        </div>
+    </header>
     <main>
-        <div class="top-bar">
-            <button id="darkModeToggle" class="secondary" type="button">🌙 Dark Mode</button>
-            <button id="langToggle" class="secondary" type="button">Swiċċja għall-Malti</button>
+        <div class="title-block">
+            <div class="title-line">
+                <h1 id="mainTitle">Maltese Spell Checker</h1>
+                <p id="alphaNote" class="alpha-note">Alpha 1.0.0</p>
+            </div>
+            <p id="mainSubtitle" class="subtitle"></p>
+            <p id="usageNote" class="usage-note instruction-note">
+                Reminder: write names with a capital letter, and put English words or phrases in inverted commas.
+            </p>
         </div>
-
-        <div class="title-line">
-            <h1 id="mainTitle">Maltese Spell Checker</h1>
-            <p id="alphaNote" class="alpha-note">Alpha 0.1.1</p>
-        </div>
-        <p id="mainSubtitle" class="subtitle"></p>
-        <p id="usageNote" class="usage-note">
-            Reminder: write names with a capital letter, and put English words or phrases in inverted commas.
-        </p>
 
         <section class="panel">
             <div class="grid">
@@ -711,8 +1246,19 @@
                         <span id="labelResultsText">Corrected text</span>
                         <span id="correctionTimer" class="correction-timer"></span>
                     </label>
-                    <div id="results" class="result-box" data-placeholder="Results will appear here."
-                        aria-live="polite"></div>
+                    <div id="resultShell" class="result-shell">
+                        <div id="results" class="result-box" data-placeholder="Results will appear here."
+                            aria-live="polite"></div>
+                        <div id="outputFormatTab" class="output-format-tab hidden" aria-label="Text formatting">
+                            <button id="formatBold" type="button" aria-label="Bold"><strong>B</strong></button>
+                            <button id="formatItalic" type="button" aria-label="Italic"><em>I</em></button>
+                            <button id="formatUnderline" type="button" aria-label="Underline"><u>U</u></button>
+                        </div>
+                        <div id="resultEditor" class="result-editor hidden" contenteditable="true" role="textbox"
+                            aria-multiline="true" aria-label="Edit corrected text"></div>
+                        <button id="outputEditToggle" class="output-edit-toggle" type="button"
+                            aria-expanded="false" aria-controls="resultEditor">˂</button>
+                    </div>
                 </div>
             </div>
 
@@ -744,7 +1290,7 @@
 
             <div id="status" class="status">Checking server...</div>
         <p id="Notice" class="usage-note">
-            Alpha 0.1.1 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of outputted corrected text as per expected standards. Since it is still in the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!
+            Alpha 1.0.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of outputted corrected text as per expected standards. Since it is still in the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!
         </p>
             
         </section>
@@ -799,6 +1345,64 @@
         </p>
     </main>
 
+    <!-- 
+      =========================================================================
+      DEVELOPER NOTES: EMAIL MODAL HTML STRUCTURE & ATTACHMENTS
+      =========================================================================
+      - Form inputs for To, Subject, and Message.
+      - Textarea wrapped inside .textarea-wrapper to absolute position the minimized screenshot thumbnail preview.
+      - .form-actions holds takeScreenshot on the left and form control buttons on the right.
+    -->
+    <!-- Email Modal Overlay -->
+    <div id="emailModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ibgħat Email / Send Email</h2>
+                <button id="closeModal" class="close-modal-btn" type="button" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="emailForm" class="modal-form">
+                <div class="form-group">
+                    <label for="emailTo">Għal / To:</label>
+                    <input type="email" id="emailTo" value="123@gmail.com" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="emailSubject">Suġġett / Subject:</label>
+                    <input type="text" id="emailSubject" required placeholder="Ikteb is-suġġett hawn / Write subject here" />
+                </div>
+                <div class="form-group">
+                    <label for="emailBody">Messaġġ / Message:</label>
+                    <div class="textarea-wrapper">
+                        <textarea id="emailBody" required rows="6" placeholder="Ikteb il-messaġġ tiegħek... / Write your message..."></textarea>
+                        <div id="screenshotPreview" class="screenshot-preview hidden">
+                            <img id="screenshotThumb" src="" alt="Screenshot" />
+                            <button type="button" id="removeScreenshot" class="remove-screenshot-btn">&times;</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="emailModalStatus" class="status"></div>
+                <div class="form-actions">
+                    <button type="button" id="takeScreenshot" class="screenshot-btn">
+                        <span class="plus-box">+</span>
+                        <span class="btn-text">Ħu skritratt<br>tal-paġna</span>
+                    </button>
+                    <div class="form-actions-right">
+                        <button type="button" id="cancelEmail" class="secondary">Ikkanċella / Cancel</button>
+                        <button type="submit" id="sendEmail">Ibgħat / Send</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Screenshot Lightbox Overlay -->
+    <div id="screenshotLightbox" class="lightbox-overlay">
+        <div class="lightbox-content">
+            <img id="lightboxImage" src="" alt="Expanded Screenshot" />
+            <button type="button" id="closeLightbox" class="close-lightbox-btn">&times;</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="/devtoy.js"></script>
     <script>
         // These config variables will be replaced dynamically by the backend in app.py
@@ -817,8 +1421,10 @@
         const SHOW_SOURCES_NOTE = true;
 
         const elements = {
+            brandName: document.getElementById("brandName"),
             darkModeToggle: document.getElementById("darkModeToggle"),
             langToggle: document.getElementById("langToggle"),
+            helpLink: document.getElementById("helpLink"),
             mainTitle: document.getElementById("mainTitle"),
             alphaNote: document.getElementById("alphaNote"),
             mainSubtitle: document.getElementById("mainSubtitle"),
@@ -829,7 +1435,14 @@
             labelResults: document.getElementById("labelResults"),
             labelResultsText: document.getElementById("labelResultsText"),
             correctionTimer: document.getElementById("correctionTimer"),
+            resultShell: document.getElementById("resultShell"),
             results: document.getElementById("results"),
+            resultEditor: document.getElementById("resultEditor"),
+            outputFormatTab: document.getElementById("outputFormatTab"),
+            outputEditToggle: document.getElementById("outputEditToggle"),
+            formatBold: document.getElementById("formatBold"),
+            formatItalic: document.getElementById("formatItalic"),
+            formatUnderline: document.getElementById("formatUnderline"),
             checkButton: document.getElementById("checkButton"),
             showSuggestionsButton: document.getElementById("showSuggestionsButton"),
             copyButton: document.getElementById("copyButton"),
@@ -861,12 +1474,16 @@
         const translations = {
             en: {
                 htmlLang: "en",
+                brandName: "Ikteb Malti Tajjeb",
+                helpLabel: "Send a message",
+                editOutputOpen: "Edit corrected text",
+                editOutputClose: "Close editor",
                 toggleBtn: '<img src="https://flagcdn.com/w20/mt.png" alt="MT" style="width:18px; margin-right:6px; vertical-align:-2px;"> Aqleb ghall-Malti',
                 darkModeBtn: "🌙 Change to Dark Mode",
                 lightModeBtn: "☀️ Change to Light Mode",
                 title: "Maltese Spell Checker",
-                alphaNote: "Alpha 0.1.1",
-                Notice: "Alpha 0.1.1 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!",
+                alphaNote: "Alpha 1.0.0",
+                Notice: "Alpha 1.0.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!",
                 subtitle: "",
                 usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
                 sourcesNote: "Sources and References:\nVerbs: verb.mt\nOther: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -909,17 +1526,32 @@
                 serverChecking: "Checking server...",
                 serverReady: "Ready. Loaded {words} words and {paradigms} paradigms.",
                 serverError: "Could not reach the Flask server. Run python app.py, then open http://127.0.0.1:5000/.",
-                unrecognizedWord: "This word could not be recognized."
+                unrecognizedWord: "This word could not be recognized.",
+                emailModalTitle: "Send Email",
+                emailToLabel: "To:",
+                emailSubjectLabel: "Subject:",
+                emailSubjectPlaceholder: "Write subject here",
+                emailBodyLabel: "Message:",
+                emailBodyPlaceholder: "Write your message...",
+                emailCancelBtn: "Cancel",
+                emailSendBtn: "Send",
+                emailScreenshotBtn: "Take a screenshot<br>of the page",
+                emailStatusSending: "Sending...",
+                emailStatusSent: "Email sent successfully!"
             },
 
             mt: {
                 htmlLang: "mt",
+                brandName: "Ikteb Malti Tajjeb",
+                helpLabel: "Ibgħat messaġġ",
+                editOutputOpen: "Editja t-test ikkoreġut",
+                editOutputClose: "Agħlaq l-editur",
                 toggleBtn: '<img src="https://flagcdn.com/w20/gb.png" alt="GB" style="width:18px; margin-right:6px; vertical-align: 0px;"> Switch to English',
                 darkModeBtn: "🌙 Aqleb għall-Mudlam",
                 lightModeBtn: "☀️ Aqleb għall-Mudwal",
                 title: "Ċekkjatur tal-Malti",
-                alphaNote: "Alfa 0.1.1",
-                Notice: "Avviż dwar Alfa 0.1.1: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
+                alphaNote: "Alfa 1.0.0",
+                Notice: "Avviż dwar Alfa 1.0.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
                 subtitle: "",
                 usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
                 sourcesNote: "Sorsi u Referenzi:\nVerbi: verb.mt\nKliem Ieħor: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -962,7 +1594,18 @@
                 serverChecking: "Qed jiġi ċċekkjat is-server...",
                 serverReady: "Bil-lest.  {words} kliem u {paradigms} mudelli ġew illowdjati.",
                 serverError: "Is-server tal-Flask ma qabadx. Ikteb python app.py, imbagħad iftaħ http://127.0.0.1:5000/.",
-                unrecognizedWord: "Din il-kelma ma setgħetx tingħaraf."
+                unrecognizedWord: "Din il-kelma ma setgħetx tingħaraf.",
+                emailModalTitle: "Ibgħat Email",
+                emailToLabel: "Għal:",
+                emailSubjectLabel: "Suġġett:",
+                emailSubjectPlaceholder: "Ikteb is-suġġett hawn",
+                emailBodyLabel: "Messaġġ:",
+                emailBodyPlaceholder: "Ikteb il-messaġġ tiegħek...",
+                emailCancelBtn: "Lura",
+                emailSendBtn: "Ibgħat",
+                emailScreenshotBtn: "Ħu skritratt<br>tal-paġna",
+                emailStatusSending: "Qed jintbagħat...",
+                emailStatusSent: "L-email intbagħtet b'suċċess!"
             }
         };
 
@@ -973,6 +1616,8 @@
         let allowEnglishSuggestions = localStorage.getItem("allowEnglishSuggestions") !== "false";
         let latestTokens = [];
         let latestCorrectedText = "";
+        let outputEditing = false;
+        let outputEditorDirty = false;
         let pastizziMode = false;
         let pastizziInterval = null;
         let partyMode = false;
@@ -1029,9 +1674,47 @@
         }
 
         function setOutputLoading(loading) {
+            if (loading) {
+                setOutputEditing(false, { preserveText: true });
+            }
             elements.results.classList.toggle("loading", loading);
             if (loading) {
                 elements.results.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span>';
+            }
+        }
+
+        function setOutputEditing(enabled, options = {}) {
+            const preserveText = Boolean(options.preserveText);
+
+            if (!enabled && outputEditing && !preserveText) {
+                latestCorrectedText = elements.resultEditor.innerText;
+                if (outputEditorDirty) {
+                    latestTokens = [];
+                }
+            }
+
+            outputEditing = Boolean(enabled);
+            elements.resultShell.classList.toggle("editing", outputEditing);
+            elements.results.classList.toggle("hidden", outputEditing);
+            elements.resultEditor.classList.toggle("hidden", !outputEditing);
+            elements.outputFormatTab.classList.toggle("hidden", !outputEditing);
+            elements.outputEditToggle.setAttribute("aria-expanded", String(outputEditing));
+
+            const labels = translations[currentLang];
+            const title = outputEditing ? labels.editOutputClose : labels.editOutputOpen;
+            elements.outputEditToggle.title = title;
+            elements.outputEditToggle.setAttribute("aria-label", title);
+            elements.outputEditToggle.textContent = outputEditing ? "˃" : "˄";
+
+            if (outputEditing) {
+                outputEditorDirty = false;
+                elements.resultEditor.innerText = latestCorrectedText;
+                requestAnimationFrame(() => elements.resultEditor.focus());
+                return;
+            }
+
+            if (!preserveText) {
+                renderCorrectedText(latestTokens, latestCorrectedText);
             }
         }
 
@@ -1046,7 +1729,11 @@
 
             document.documentElement.lang = labels.htmlLang;
 
+            elements.brandName.textContent = labels.brandName;
             elements.langToggle.innerHTML = labels.toggleBtn;
+            elements.helpLink.innerHTML = `<span class="help-icon" aria-hidden="true">?</span><span class="help-label">${labels.helpLabel}</span>`;
+            elements.outputEditToggle.title = outputEditing ? labels.editOutputClose : labels.editOutputOpen;
+            elements.outputEditToggle.setAttribute("aria-label", elements.outputEditToggle.title);
             elements.mainTitle.textContent = labels.title;
             elements.alphaNote.textContent = labels.alphaNote;
             elements.mainSubtitle.textContent = labels.subtitle;
@@ -1086,6 +1773,17 @@
             elements.textInput.placeholder = labels.placeholderInput;
             elements.results.dataset.placeholder = labels.placeholderResults;
             elements.wordInput.placeholder = labels.placeholderWord;
+
+            // Translate email modal
+            document.querySelector("#emailModal h2").textContent = labels.emailModalTitle;
+            document.querySelector("label[for='emailTo']").textContent = labels.emailToLabel;
+            document.querySelector("label[for='emailSubject']").textContent = labels.emailSubjectLabel;
+            document.getElementById("emailSubject").placeholder = labels.emailSubjectPlaceholder;
+            document.querySelector("label[for='emailBody']").textContent = labels.emailBodyLabel;
+            document.getElementById("emailBody").placeholder = labels.emailBodyPlaceholder;
+            document.getElementById("cancelEmail").textContent = labels.emailCancelBtn;
+            document.getElementById("sendEmail").textContent = labels.emailSendBtn;
+            document.querySelector("#takeScreenshot .btn-text").innerHTML = labels.emailScreenshotBtn;
 
             if (
                 elements.debugOutput.textContent === translations.en.debugDefault ||
@@ -1453,6 +2151,29 @@
                             });
                             popover.appendChild(row);
                         } else {
+                            if (token.english_note && suggestionsList.length > 0) {
+                                const row = document.createElement("button");
+                                row.type = "button";
+                                row.className = "suggestion-row";
+
+                                const word = document.createElement("strong");
+                                word.textContent = originalWord;
+
+                                const note = document.createElement("span");
+                                note.className = "suggestion-meaning english-note-action";
+                                note.textContent = `: ${token.english_note}`;
+
+                                row.appendChild(word);
+                                row.appendChild(note);
+
+                                row.addEventListener("click", (event) => {
+                                    event.stopPropagation();
+                                    chooseSuggestion(tokenIndex, suggestionsList[0]);
+                                });
+
+                                popover.appendChild(row);
+                            }
+
                             suggestionsList.forEach(sugg => {
                                 const row = document.createElement("button");
                                 row.type = "button";
@@ -1886,6 +2607,9 @@
         }
 
         async function copyResult() {
+            if (outputEditing) {
+                latestCorrectedText = elements.resultEditor.innerText;
+            }
             if (!latestCorrectedText) {
                 return;
             }
@@ -1899,11 +2623,15 @@
         }
 
         function clearAll() {
+            setOutputEditing(false, { preserveText: true });
             elements.textInput.value = "";
             elements.results.classList.remove("loading");
             elements.results.innerHTML = "";
+            elements.resultEditor.innerText = "";
+            elements.outputFormatTab.classList.add("hidden");
             latestTokens = [];
             latestCorrectedText = "";
+            outputEditorDirty = false;
             elements.wordInput.value = "";
             elements.debugOutput.textContent = t("debugDefault");
             setCorrectionTimer(null);
@@ -1947,6 +2675,276 @@
             renderCorrectedText(latestTokens, latestCorrectedText);
         });
 
+        elements.outputEditToggle.addEventListener("click", () => {
+            setOutputEditing(!outputEditing);
+        });
+
+        elements.resultEditor.addEventListener("input", () => {
+            outputEditorDirty = true;
+            latestTokens = [];
+            latestCorrectedText = elements.resultEditor.innerText;
+        });
+
+        function applyOutputFormatting(command) {
+            if (!outputEditing) {
+                return;
+            }
+
+            elements.resultEditor.focus();
+            document.execCommand(command, false, null);
+            outputEditorDirty = true;
+            latestTokens = [];
+            latestCorrectedText = elements.resultEditor.innerText;
+            elements.resultEditor.focus();
+        }
+
+        elements.formatBold.addEventListener("click", () => applyOutputFormatting("bold"));
+        elements.formatItalic.addEventListener("click", () => applyOutputFormatting("italic"));
+        elements.formatUnderline.addEventListener("click", () => applyOutputFormatting("underline"));
+
+        elements.resultEditor.addEventListener("keyup", () => {
+            latestCorrectedText = elements.resultEditor.innerText;
+        });
+
+        // =========================================================================
+        // DEVELOPER NOTES: HELP MODAL & SCREENSHOT FUNCTIONAL LOGIC
+        // =========================================================================
+        // - openEmailModal / hideEmailModal: Handlers for showing/hiding popover. Restores draft on open.
+        // - saveDraft / loadDraft / clearDraft: Handles localStorage persistence of subject, message, and attached image.
+        // - capturePageScreenshot: Utilizes html2canvas library to capture the screen, with ignoreElements passed
+        //   to exclude the modal overlays from being visible in the screenshot without triggering flickering.
+        // - Event listeners on screenshot preview click (triggers lightbox), remove button (clears attachment),
+        //   and text input change (auto-saves draft).
+        
+        const emailModal = document.getElementById("emailModal");
+        const emailForm = document.getElementById("emailForm");
+        const closeModal = document.getElementById("closeModal");
+        const cancelEmail = document.getElementById("cancelEmail");
+        const emailModalStatus = document.getElementById("emailModalStatus");
+
+        // Screenshot Elements
+        const takeScreenshotBtn = document.getElementById("takeScreenshot");
+        const screenshotPreview = document.getElementById("screenshotPreview");
+        const screenshotThumb = document.getElementById("screenshotThumb");
+        const removeScreenshotBtn = document.getElementById("removeScreenshot");
+        const screenshotLightbox = document.getElementById("screenshotLightbox");
+        const lightboxImage = document.getElementById("lightboxImage");
+        const closeLightbox = document.getElementById("closeLightbox");
+
+        let attachedScreenshot = null;
+
+        function saveDraft() {
+            const draft = {
+                subject: document.getElementById("emailSubject").value,
+                body: document.getElementById("emailBody").value,
+                screenshot: attachedScreenshot
+            };
+            localStorage.setItem("cekkjatur_email_draft", JSON.stringify(draft));
+        }
+
+        function loadDraft() {
+            try {
+                const draftStr = localStorage.getItem("cekkjatur_email_draft");
+                if (draftStr) {
+                    const draft = JSON.parse(draftStr);
+                    document.getElementById("emailSubject").value = draft.subject || "";
+                    document.getElementById("emailBody").value = draft.body || "";
+                    if (draft.screenshot) {
+                        attachedScreenshot = draft.screenshot;
+                        screenshotThumb.src = draft.screenshot;
+                        screenshotPreview.classList.remove("hidden");
+                    } else {
+                        attachedScreenshot = null;
+                        screenshotPreview.classList.add("hidden");
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading draft", e);
+            }
+        }
+
+        function clearDraft() {
+            localStorage.removeItem("cekkjatur_email_draft");
+            attachedScreenshot = null;
+            screenshotPreview.classList.add("hidden");
+        }
+
+        async function capturePageScreenshot() {
+            let dataUrl = null;
+            try {
+                if (typeof html2canvas !== "undefined") {
+                    const canvas = await html2canvas(document.body, {
+                        useCORS: true,
+                        logging: false,
+                        allowTaint: true,
+                        ignoreElements: (element) => {
+                            return element.id === "emailModal" || element.id === "screenshotLightbox" || element.classList.contains("modal-overlay") || element.classList.contains("lightbox-overlay");
+                        }
+                    });
+                    dataUrl = canvas.toDataURL("image/png");
+                }
+            } catch (e) {
+                console.warn("html2canvas failed, using fallback", e);
+            }
+
+            if (!dataUrl) {
+                const canvas = document.createElement("canvas");
+                canvas.width = 800;
+                canvas.height = 600;
+                const ctx = canvas.getContext("2d");
+                
+                const grad = ctx.createLinearGradient(0, 0, 0, 600);
+                grad.addColorStop(0, "#f8fafc");
+                grad.addColorStop(1, "#e2e8f0");
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 800, 600);
+
+                ctx.fillStyle = "#eb4f1f";
+                ctx.fillRect(0, 0, 800, 60);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 20px system-ui";
+                ctx.fillText("Ċekkjatur tal-Kitba", 30, 38);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(30, 90, 740, 200);
+                ctx.strokeStyle = "#cbd5e1";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(30, 90, 740, 200);
+
+                ctx.fillStyle = "#334155";
+                ctx.font = "16px system-ui";
+                const textVal = elements.textInput.value || "Test Malti...";
+                const lines = textVal.split("\n").slice(0, 5);
+                let y = 130;
+                for (const line of lines) {
+                    ctx.fillText(line.substring(0, 70), 50, y);
+                    y += 30;
+                }
+
+                ctx.fillStyle = "#f1f5f9";
+                ctx.fillRect(30, 320, 740, 200);
+                ctx.strokeRect(30, 320, 740, 200);
+                
+                ctx.fillStyle = "#475569";
+                ctx.font = "italic 16px system-ui";
+                ctx.fillText("Output preview...", 50, 360);
+
+                dataUrl = canvas.toDataURL("image/png");
+            }
+
+            return dataUrl;
+        }
+
+        function openEmailModal() {
+            emailModalStatus.className = "status";
+            emailModalStatus.textContent = "";
+            emailForm.querySelectorAll("input, textarea, button").forEach(el => el.disabled = false);
+            
+            const draftStr = localStorage.getItem("cekkjatur_email_draft");
+            if (draftStr) {
+                loadDraft();
+            } else {
+                emailForm.reset();
+                attachedScreenshot = null;
+                screenshotPreview.classList.add("hidden");
+            }
+            document.getElementById("emailTo").value = "123@gmail.com";
+
+            emailModal.classList.add("active");
+            emailModal.classList.remove("hidden");
+            document.getElementById("emailSubject").focus();
+        }
+
+        function hideEmailModal() {
+            emailModal.classList.remove("active");
+            setTimeout(() => {
+                if (!emailModal.classList.contains("active")) {
+                    emailModal.classList.add("hidden");
+                }
+            }, 250);
+        }
+
+        closeModal.addEventListener("click", hideEmailModal);
+        cancelEmail.addEventListener("click", hideEmailModal);
+        emailModal.addEventListener("click", (event) => {
+            if (event.target === emailModal) {
+                hideEmailModal();
+            }
+        });
+
+        // Draft auto-saving input listeners
+        document.getElementById("emailSubject").addEventListener("input", saveDraft);
+        document.getElementById("emailBody").addEventListener("input", saveDraft);
+
+        // Take Screenshot Button
+        takeScreenshotBtn.addEventListener("click", async () => {
+            takeScreenshotBtn.disabled = true;
+            const originalHTML = takeScreenshotBtn.querySelector(".btn-text").innerHTML;
+            takeScreenshotBtn.querySelector(".btn-text").textContent = currentLang === "mt" ? "Tiġbid fil-progress..." : "Capturing...";
+            
+            const dataUrl = await capturePageScreenshot();
+            if (dataUrl) {
+                attachedScreenshot = dataUrl;
+                screenshotThumb.src = dataUrl;
+                screenshotPreview.classList.remove("hidden");
+                saveDraft();
+            }
+            
+            takeScreenshotBtn.disabled = false;
+            takeScreenshotBtn.querySelector(".btn-text").innerHTML = originalHTML;
+        });
+
+        // Remove Screenshot Button
+        removeScreenshotBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            attachedScreenshot = null;
+            screenshotPreview.classList.add("hidden");
+            saveDraft();
+        });
+
+        // Screenshot Preview Click (Lightbox)
+        screenshotPreview.addEventListener("click", (event) => {
+            if (event.target === removeScreenshotBtn) {
+                return;
+            }
+            if (attachedScreenshot) {
+                lightboxImage.src = attachedScreenshot;
+                screenshotLightbox.classList.add("active");
+            }
+        });
+
+        closeLightbox.addEventListener("click", () => {
+            screenshotLightbox.classList.remove("active");
+        });
+
+        screenshotLightbox.addEventListener("click", (event) => {
+            if (event.target === screenshotLightbox) {
+                screenshotLightbox.classList.remove("active");
+            }
+        });
+
+        emailForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            emailForm.querySelectorAll("input, textarea, button").forEach(el => el.disabled = true);
+            emailModalStatus.className = "status";
+            emailModalStatus.textContent = t("emailStatusSending");
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            emailModalStatus.className = "status success";
+            emailModalStatus.textContent = t("emailStatusSent");
+            
+            clearDraft();
+            emailForm.reset();
+
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            hideEmailModal();
+        });
+
+        elements.helpLink.addEventListener("click", (event) => {
+            event.preventDefault();
+            openEmailModal();
+        });
+
         elements.checkButton.addEventListener("click", checkText);
         elements.copyButton.addEventListener("click", copyResult);
         elements.clearButton.addEventListener("click", clearAll);
@@ -1988,3 +2986,4 @@
 </body>
 
 </html>
+

@@ -3319,7 +3319,6 @@ fwiħat
 ġirjiet
 ġirun
 ġiruni
-ġisem
 ġiża
 ġiżell
 ġiżelli
@@ -8749,7 +8748,6 @@ sibt
 Sibtijiet
 Siċiljan
 Siċiljani
-sid
 sidien
 sidrija
 sidt

@@ -1,0 +1,211 @@
+﻿Continue work on my `cekkjaturmalti` / `Ċekkjatur tal-Kitba` Maltese spellchecker project.
+
+Workspace:
+- `C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba`
+- Main file: `Essentials/app.py`
+- Main regression file: `Other/tests/test_contextual_i_and_lexical_coverage.py`
+- Dictionaries: `Essentials/finaldics`
+
+General working rules:
+- Do not push to GitHub unless I explicitly ask.
+- Work step by step. Fix one coherent group, test it, report results, then wait for me to approve the next group.
+- Prefer general/code-path fixes over one-off manual mappings, unless I explicitly say a word should be added to a dictionary.
+- Do not restart Flask until `Essentials/app.py` passes syntax checks.
+- If the Windows sandbox blocks normal reads/writes, use the safest narrow alternative and verify the exact diff.
+
+Critical interrupted-state warning:
+- A previous edit was interrupted while changing `Essentials/app.py`.
+- First action next time must be a safety check:
+  1. Run `py_compile` on `Essentials/app.py`.
+  2. Inspect recently edited blocks for literal `` `r`n `` artifacts or malformed indentation.
+  3. Check `git diff -- Essentials/app.py Other/tests/test_contextual_i_and_lexical_coverage.py Essentials/finaldics/maltese_adverbs.dic`.
+  4. Fix syntax/format issues before doing behavioral work.
+
+Already verified working before the interruption:
+- `nmut -> mmut`
+- `inmut -> immut`
+- `nmutu -> mmutu`
+- `inmutu -> immutu`
+- `landu -> l'għandu`
+- `landom` / `landhom -> l'għandhom`
+- `inhalasa -> nħallasha`
+- `inhalasom -> nħallashom`
+- `x'ikun -> xi jkun`
+- `x'imkien -> xi mkien`
+
+Phase 1: Repair interrupted code and verify core behavior
+- Verify/fix the recently added helpers and call sites:
+  - deterministic suggestion variants
+  - `_suffix_surface_vowel_swap_repair`
+  - `_simple_noun_possessive_surface_base`
+  - `correct_word` guard for noun possessives
+  - suffix-generation call site
+  - `_apply_initial_vowel_surface`
+- Run:
+  - `py_compile Essentials/app.py`
+  - `Other/tests/test_contextual_i_and_lexical_coverage.py`
+
+Phase 2: Generated suffix and stem/internal-vowel corrections
+- `tibblukkali -> tibblokkali`
+- This is not a literal dictionary word. `tibblokkali` is generated from `tibblokka + li`.
+- Add/verify suffix-aware internal vowel repair:
+  - `u/o`
+  - `i/e`
+  - accepted only when the repaired whole word is a valid generated suffix surface.
+- Test similar non-Semitic suffixed forms where the typo is inside the root/base.
+
+Phase 3: Possessive noun surfaces blocking bad verb repairs
+- `sidha` should stay `sidha`, not become `saddha`.
+- Diagnosis: `saddha` is a valid generated verb form, but `sidha` should be recognized as `sid + ha`.
+- Add a general noun-possessive recognition guard before accepting distant generated verb repairs.
+- Verify:
+  - `sidha`
+  - `sidi`
+  - `sidek`
+  - `sidu`
+  - `sidna`
+  - `sidhom`
+- Also keep previous no-possession noun logic intact, especially for files like `nopossessions`.
+
+Phase 4: Missing medial guttural / vowel-restoration suggestions
+- `xar` should suggest `xahar`; it may also suggest valid `xgħar`.
+- `ntbat` should suggest both `ntbagħat` and `ntbagħt`.
+- Make sure deterministic correction does not suppress other important generated suggestions.
+- Test:
+  - `suggest("xar")`
+  - `suggest("ntbat")`
+  - similar KVK / missing `h` / missing `għ` structures.
+
+Phase 5: Initial i-/u- behavior
+- Direct `correct_word("irrid")` was fine, but full text changed `irrid` to `rrid`.
+- `_apply_initial_vowel_surface` must not strip initial `i`/`u` if the original and corrected word are already the same recognized valid surface.
+- Keep the already agreed rule:
+  - initial `i-`/`u-` is mainly for imperfect verbs, except manual noun exceptions like `wċuħ/uċuħ`, `wġigħ/uġigħ`.
+  - number cases such as `ħamest itfal` must keep their special i-insertion behavior.
+- Verify:
+  - `correct_word("irrid") == "irrid"`
+  - In full text, `jien irrid noħroġ` stays `jien irrid noħroġ`, not `jien rrid noħroġ`.
+  - `nmut -> mmut`
+  - `inmut -> immut`
+  - `wara inmut`
+  - `issa nmut`
+
+Phase 6: Compact `xi` / apostrophe forms
+- Direct `correct_word("xikun") -> "xi jkun"` worked, but full text produced `Xi kun jaf`.
+- Text-level compact-`xi` handling should use `_expand_compact_xi_phrase` before or alongside `_expand_compact_xi_article`.
+- Verify:
+  - `xikun jaf -> Xi jkun jaf.`
+  - `x'ikun jaf -> Xi jkun jaf.`
+  - `x'imkien -> xi mkien`
+  - forms like `b'imkien`, `f'imkien`, etc. should preserve the intended long/short preposition behavior when needed.
+
+Phase 7: English and quoted text behavior
+- There is still an open decision about English words/phrases in inverted commas.
+- Current observed behavior preserved `'Hi'`.
+- Earlier issue: `'Hi'` did not have inverted commas removed.
+- Before changing code, confirm desired behavior:
+  - Should quoted English words/phrases stay quoted in corrected output?
+  - Or should quotes be removed while still protecting English from Maltese correction?
+- Also verify English phrases like:
+  - `'Hi'`
+  - `'Fan'`
+  - `'at the end of the day'`
+  - `please`
+- Important: English words/phrases should not be corrected as Maltese. Quoted English should be protected.
+
+Phase 8: Manual dictionary corrections / lexical additions
+- Add only when dictionary addition is genuinely appropriate.
+- Known/pending dictionary-style items:
+  - `paxxut`, `paxxuta`, `paxxuti` meaning easy-going / relaxed.
+  - Verify `paxxuta` and `paxxuti` are actually loaded, because a probe said they had no suggestions but dictionary membership looked inconsistent.
+  - `paxxut` was missing and incorrectly became `paxxejt`.
+- Keep previous dictionary additions/regressions in mind:
+  - `panda`, `koala`, animal words that are valid in Maltese/English.
+  - `misterjuż`, `gustuż` and morphs.
+  - `kontestant/i`.
+  - `apparti`.
+  - `sew`.
+  - `larinġa`.
+  - names/surnames/places/demonyms logic should remain lazy-loaded and should not allow ordinary words to be corrected into names.
+- Manual fixes should not become broad one-off correction mappings unless explicitly requested.
+
+Phase 9: Names, places, and no-possession dictionaries
+- Names/surnames should verify capitalized words and stop far-off corrections like `Michael -> Miehel`.
+- Names/surnames should be tagged as `NAME` / `SNAME` and should not become correction targets for ordinary lowercase words.
+- Places and demonyms can still be lightly corrected through:
+  - double/single consonants
+  - `i/ie`
+  - Maltese special characters
+- Check `nopossessions` file status if still relevant:
+  - It should prevent false possessive derivations like `larinġa -> larinġha`.
+  - It should not be fully loaded unless needed, if that lazy strategy is still intended.
+
+Phase 10: UI fixes still relevant
+- Verify whether the UI still has the intended:
+  - title + grey italic `Alfa 0.1.0` text, controlled by true/false option.
+  - sources/references list below the main panel/notice area, controlled by true/false option.
+  - notice under the main panel, then spacing, then references.
+- Existing UI issue to preserve/fix:
+  - unrecognized words should get a red squiggly underline.
+  - hover/click on unrecognized word should show translatable grey italic text:
+    - English: `This word could not be recognized.`
+    - Maltese: `Din il-kelma ma setgħetx tingħaraf.`
+  - popovers must stay inside the visible page on mobile and must not create horizontal white overflow.
+- Suggestion boxes:
+  - Do not make all boxes fixed width.
+  - Small boxes should remain compact.
+  - Long boxes should cap at a reasonable max width and wrap meaning text below the word after the colon, like:
+    `agħlqu: lorem...`
+    next line aligned under the meaning, not under the word.
+- Blue highlights with meanings should appear only for words with actual suggestions/ambiguity, not every recognized word.
+
+Phase 11: Grammar/phrase rules still needing later verification
+- Number/noun rules:
+  - numbers 1-10, including `ġiex` and `żewġ`, require plural/paucal noun behavior.
+  - `ħames bozoz`, but paucal if available such as `ħames baqriet`.
+  - `ħamest` takes singular noun.
+  - with article before ordinal/cardinal ambiguity, show crucial suggestions where appropriate.
+  - 20+ numbers take singular nouns, including `l-għoxrin bozza`.
+  - `PLUNOUN` and `COLLNOUN` should both count for these cases.
+  - `ATTNUM` long form needed before nouns beginning `iKK`; if short `ATTNUM KK...` is seen, suggest long `ATTNUM iKK...`.
+- Keep this phase separate from the immediate bug fixes unless a regression appears.
+
+Phase 12: Larger sample regression text
+- Re-test this text after fixes:
+  `'Hi', fejn tista' ccempel ghax hawn karozza qed tibblukkali l- garaxx please u sidha qieghed paxxut jara n- nar x'imkien u jien irrid nohrog ghax- xoghol?`
+- Known previous bad output:
+  - `'Hi'` preserved with quotes, pending decision.
+  - `tibblukkali` stayed unchanged.
+  - `sidha -> saddha`.
+  - `paxxut -> paxxejt`.
+  - `x'imkien -> xi mkien` may be acceptable depending intended compact behavior.
+  - `irrid -> rrid`, bad.
+  - `xoghol -> xogħol`, should still work.
+- Verify the corrected output after current fixes.
+
+Phase 13: Flask/server cleanup after code is valid
+- Only after `py_compile` and focused tests pass:
+  1. Kill any Python/Flask process listening on `:5000`.
+  2. Restart Flask from:
+     `C:\Users\diyan\OneDrive\New folder\Desktop\Ċekkjatur tal-Kitba\Essentials`
+  3. Command:
+     `& "C:\Users\diyan\AppData\Local\Python\bin\python.exe" app.py`
+  4. Verify:
+     `http://127.0.0.1:5000/` returns 200.
+  5. Then test in the browser.
+
+Suggested first concrete actions next time:
+1. `py_compile Essentials/app.py`
+2. Fix any accidental literal `` `r`n `` artifacts.
+3. Inspect current diff.
+4. Run `Other/tests/test_contextual_i_and_lexical_coverage.py`.
+5. Run targeted probes for:
+   - `tibblukkali`
+   - `sidha`
+   - `paxxut`
+   - `xar`
+   - `ntbat`
+   - full text containing `irrid`
+   - full text containing `xikun jaf`
+   - the larger sample text above
+6. Only then restart Flask.
