@@ -37,6 +37,8 @@ assert corrected_text("Kien imorru d-dar") == "Kien jmorru d-dar."
 assert corrected_text("uriet kollox") == "Wriet kollox."
 assert corrected_text("ifitex") == "Ifittex."
 assert spellchecker.correct_word("ifitex") == "jfittex"
+assert spellchecker.correct_word("inkiser") == "nkiser"
+assert spellchecker.correct_word("Inkiser") == "Nkiser"
 assert corrected_text("xhar") == "Xahar."
 assert "xahar" in spellchecker.suggest("xar", limit=8)
 assert corrected_text("xgħar") == "Xgħar."

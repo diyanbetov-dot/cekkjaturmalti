@@ -4610,6 +4610,26 @@ class UniversalMalteseSpellchecker:
                 return variant
         return None
 
+    def _initial_i_form7_surface_repair(self, word: str) -> str | None:
+        normalized = self._normalize_word(word)
+        if not normalized.startswith("i") or len(normalized) < 4:
+            return None
+
+        candidate = normalized[1:]
+        if not self._word_starts_with_two_consonants(candidate):
+            return None
+
+        records = self._verb_records_for_surface(candidate)
+        if not records:
+            return None
+
+        if any(
+            record.form_class.startswith("F7") and record.tense in {"PERF", "IMP"}
+            for record in records
+        ):
+            return candidate
+        return None
+
     def _multi_insert_suffix_verb_repair(self, word: str) -> str | None:
         normalized = self._normalize_word(word)
         if "h" not in normalized or len(normalized) > 16:
@@ -5033,6 +5053,15 @@ class UniversalMalteseSpellchecker:
                     word,
                     is_deterministic=True,
                 )
+
+        initial_i_form7 = self._initial_i_form7_surface_repair(normalized)
+        if initial_i_form7:
+            corrected = self._match_capitalisation(word, initial_i_form7)
+            return self._store_correct_word_result(
+                word,
+                corrected,
+                is_deterministic=True,
+            )
 
         initial_i_imperfect = self._initial_i_imperfect_spelling_repair(normalized)
         if initial_i_imperfect:
