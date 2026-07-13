@@ -3761,6 +3761,22 @@ class UniversalMalteseSpellchecker:
             return False
         return letters[0] not in self.VOWELS and letters[1] not in self.VOWELS
 
+    def _word_starts_with_doubled_consonant(self, word: str) -> bool:
+        graphemes = self._graphemes(self._normalize_word(word))
+        letters = [
+            token for token in graphemes if token and any(ch.isalpha() for ch in token)
+        ]
+        if len(letters) < 2:
+            return False
+        return (
+            letters[0] == letters[1]
+            and len(letters[0]) == 1
+            and letters[0] not in self.VOWELS
+        )
+
+    def _prefer_plain_after_vowel_surface(self, word: str) -> bool:
+        return self._word_starts_with_doubled_consonant(word)
+
     def _is_future_particle_complement(self, word: str) -> bool:
         normalized = self._normalize_word(word)
         suffix_generator = getattr(self, "suffix_generator", None)
@@ -3827,6 +3843,15 @@ class UniversalMalteseSpellchecker:
             or self._is_manual_initial_vowel_exception(normalized)
         )
 
+    def _is_form7_perf_or_imp_surface(self, word: str) -> bool:
+        normalized = self._normalize_word(word)
+        if not normalized:
+            return False
+        return any(
+            record.form_class.startswith("F7") and record.tense in {"PERF", "IMP"}
+            for record in self._verb_records_for_surface(normalized)
+        )
+
     def _initial_vowel_surface_options(
         self,
         corrected_word: str,
@@ -3861,7 +3886,10 @@ class UniversalMalteseSpellchecker:
                 and
                 self._word_starts_with_two_consonants(plain_cluster)
                 and not self._blocks_initial_vowel_insertion(plain_cluster)
-                and self._is_initial_vowel_base_candidate(plain_cluster)
+                and (
+                    self._is_initial_vowel_base_candidate(plain_cluster)
+                    or self._is_form7_perf_or_imp_surface(plain_cluster)
+                )
             ):
                 add_unique(prefer_plain, plain_cluster)
 
@@ -3885,7 +3913,10 @@ class UniversalMalteseSpellchecker:
             and
             self._word_starts_with_two_consonants(normalized)
             and not self._blocks_initial_vowel_insertion(normalized)
-            and self._is_initial_vowel_base_candidate(normalized)
+            and (
+                self._is_initial_vowel_base_candidate(normalized)
+                or self._is_form7_perf_or_imp_surface(normalized)
+            )
         ):
             add_unique(prefer_vowel, f"i{normalized}")
 
@@ -3925,6 +3956,14 @@ class UniversalMalteseSpellchecker:
                     return self._match_capitalisation(original_word, original_ordered[0])
 
         prefer_vowel, prefer_plain = self._initial_vowel_surface_options(corrected_word)
+        if (
+            prefer_vowel_surface
+            and not prefer_vowel
+            and prefer_plain
+            and self._prefer_plain_after_vowel_surface(prefer_plain[0])
+        ):
+            return self._match_capitalisation(corrected_word, prefer_plain[0])
+
         ordered = prefer_vowel if prefer_vowel_surface else prefer_plain
         if not ordered:
             return corrected_word
@@ -8462,25 +8501,41 @@ class UniversalMalteseSpellchecker:
                     original_phrase = text[
                         matches[index].start() : matches[index + 1].end()
                     ]
+                    corrected_phrase = (
+                        self._capitalize_first_letter(article_match.corrected)
+                        if sentence_initial
+                        else article_match.corrected
+                    )
                     is_ambiguous, is_crucial = token_choice_state(
                         article_match.choices,
                         force_crucial=True,
                     )
+                    phrase_choices = article_match.choices
+                    if sentence_initial:
+                        phrase_choices = [
+                            {
+                                **choice,
+                                "word": self._capitalize_first_letter(
+                                    choice.get("word", "")
+                                ),
+                            }
+                            for choice in phrase_choices
+                        ]
 
                     tokens.append(
                         {
                             "type": "phrase",
                             "original": original_phrase,
-                            "corrected": article_match.corrected,
+                            "corrected": corrected_phrase,
                             "ambiguous": is_ambiguous,
                             "crucial": is_crucial,
-                            "choices": article_match.choices,
+                            "choices": phrase_choices,
                         }
                     )
 
-                    corrected_parts.append(article_match.corrected)
+                    corrected_parts.append(corrected_phrase)
                     previous_surface_word = self._normalize_word(
-                        article_match.corrected.split()[-1]
+                        corrected_phrase.split()[-1]
                     )
                     last_end = matches[index + 1].end()
                     index += 2
@@ -9083,7 +9138,14 @@ class UniversalMalteseSpellchecker:
             surface_word = self._apply_initial_vowel_surface(
                 original_word,
                 corrected_word,
-                prefer_vowel_surface=prefer_initial_vowel_surface,
+                prefer_vowel_surface=(
+                    not self._word_ends_with_vowel(previous_surface_word)
+                    if (
+                        previous_surface_word is not None
+                        and self._is_form7_perf_or_imp_surface(corrected_word)
+                    )
+                    else prefer_initial_vowel_surface
+                ),
             )
 
             if self._normalize_word(surface_word) != self._normalize_word(corrected_word):
