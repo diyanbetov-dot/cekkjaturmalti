@@ -353,6 +353,7 @@ class UniversalMalteseSpellchecker:
         "presentużi": "preżentużi",
         "prezentużi": "preżentużi",
         "anna": "għandna",
+        "alla": "għala",
         "ghanna": "għandna",
         "għanna": "għandna",
         "il bierah": "ilbieraħ",
@@ -627,6 +628,7 @@ class UniversalMalteseSpellchecker:
         "m’hawnx": "m'hawnx",
         "m'hawnx": "m'hawnx",
         "hadd": "ħadd",
+        "alla": "għala",
         "principju": "prinċipju",
         "x'taghmel": "x'tagħmel",
         "faqqalu": "faqqagħlu",
@@ -1597,6 +1599,7 @@ class UniversalMalteseSpellchecker:
         if (
             normalized in self.dictionary_set
             and normalized not in self.MANUAL_WORD_REPAIRS
+            and normalized not in self.SOCIAL_COMMENT_REPAIRS
             and not self._ta_direct_object_gloss(normalized)
             and not normalized.startswith("taj")
         ):
@@ -1902,9 +1905,16 @@ class UniversalMalteseSpellchecker:
     ) -> list[str]:
         seeded: list[str] = []
         seen: set[str] = set()
+        source_norm = analysis.normalized or self._normalize_word(word)
 
         def add(candidate: str) -> None:
             candidate = self._normalize_word(candidate)
+            if (
+                source_norm in self.dictionary_set
+                and source_norm.endswith("u")
+                and candidate == source_norm[:-1] + "għu"
+            ):
+                return
             if candidate and candidate not in seen:
                 seen.add(candidate)
                 seeded.append(candidate)
@@ -2076,12 +2086,21 @@ class UniversalMalteseSpellchecker:
         *,
         limit: int,
     ) -> list[str]:
+        normalized = self._normalize_word(word)
         ordered: list[str] = []
         seen_canonical: set[str] = set()
 
         def add(candidate: str) -> None:
             candidate = self._normalize_word(candidate)
             canonical = self._canonical_suggestion_key(candidate)
+            # A valid final -u form must not acquire a speculative final għ
+            # merely because a different paradigm happens to contain -għu.
+            if (
+                normalized in self.dictionary_set
+                and normalized.endswith("u")
+                and candidate == normalized[:-1] + "għu"
+            ):
+                return
             if (
                 candidate
                 and candidate not in ordered
