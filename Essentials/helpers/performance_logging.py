@@ -78,6 +78,16 @@ class RequestProfiler:
     def finish(self, *, token_count: int, unique_tokens: int) -> None:
         elapsed_ms = (time.perf_counter() - self.start_time) * 1000
         if self.profile_enabled or elapsed_ms >= self.slow_request_ms:
+            counter_fields = {
+                key: value
+                for key, value in sorted(self.counters.items())
+                if key
+                not in {
+                    "distance_calls",
+                    "candidates_generated",
+                    "candidates_scored",
+                }
+            }
             log_spellcheck_event(
                 request_id=self.request_id,
                 stage="request_complete",
@@ -89,6 +99,7 @@ class RequestProfiler:
                 distance_calls=self.counters.get("distance_calls", 0),
                 candidates_generated=self.counters.get("candidates_generated", 0),
                 candidates_scored=self.counters.get("candidates_scored", 0),
+                **counter_fields,
             )
 
 

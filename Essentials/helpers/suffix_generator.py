@@ -5,10 +5,15 @@ from functools import lru_cache
 from pathlib import Path
 
 try:
-    from .suffix_rules import GeneratedSuffixCandidate, MalteseSuffixRules, ParsedSuffix
+    from .suffix_rules import (
+        ALL_SUFFIXES,
+        GeneratedSuffixCandidate,
+        MalteseSuffixRules,
+        ParsedSuffix,
+    )
     from .verb_form_index import MalteseVerbFormIndex, VerbFormRecord
 except ImportError:  # pragma: no cover
-    from suffix_rules import GeneratedSuffixCandidate, MalteseSuffixRules, ParsedSuffix
+    from suffix_rules import ALL_SUFFIXES, GeneratedSuffixCandidate, MalteseSuffixRules, ParsedSuffix
     from verb_form_index import MalteseVerbFormIndex, VerbFormRecord
 
 
@@ -28,7 +33,19 @@ class MalteseSuffixGenerator:
         self.rules = MalteseSuffixRules(spellchecker=spellchecker, verb_index=self.verb_index)
         self._record_cache: OrderedDict[tuple[str, str, str, int], tuple[VerbFormRecord, ...]] = OrderedDict()
         self._candidate_cache: OrderedDict[tuple[str, str, str, int], tuple[GeneratedSuffixCandidate, ...]] = OrderedDict()
-        self._cache_limit = 2048
+        self._typed_suffix_endings = tuple(
+            sorted(
+                {
+                    ending
+                    for spec in ALL_SUFFIXES
+                    for ending in (*spec.typed_endings, *spec.canonical_surfaces)
+                    if ending
+                },
+                key=len,
+                reverse=True,
+            )
+        )
+        self._cache_limit = 8192
         self.generated_lhom_forms: dict[str, str] = {}
         self.generated_suffix_forms: dict[str, list[GeneratedSuffixCandidate]] = {}
 
@@ -53,6 +70,14 @@ class MalteseSuffixGenerator:
         if len(cache) > self._cache_limit:
             cache.popitem(last=False)
 
+    def might_have_suffix(self, word: str) -> bool:
+        normalized = self._normalize(word)
+        if normalized.endswith("x") and len(normalized) > 1:
+            normalized = normalized[:-1]
+        if len(normalized) < 4 or normalized.endswith("gh"):
+            return False
+        return any(normalized.endswith(ending) for ending in self._typed_suffix_endings)
+
     def parse_possible_suffixes(self, word: str) -> list[ParsedSuffix]:
         return self.rules.parse_suffixes(self._normalize(word))
 
@@ -64,10 +89,12 @@ class MalteseSuffixGenerator:
             return False
         return bool(self.parse_possible_suffixes(normalized))
 
-    @lru_cache(maxsize=2048)
+    @lru_cache(maxsize=8192)
     def exact_suffix_matches(self, word: str) -> list[GeneratedSuffixCandidate]:
         normalized = self._normalize(word)
         if not normalized:
+            return []
+        if not self.might_have_suffix(normalized):
             return []
 
         has_negative_x = normalized.endswith("x") and len(normalized) > 1
@@ -116,7 +143,7 @@ class MalteseSuffixGenerator:
         stem = self._normalize(typed_stem)
         return list(self._inverse_base_guesses_cached(stem))
 
-    @lru_cache(maxsize=2048)
+    @lru_cache(maxsize=8192)
     def _inverse_base_guesses_cached(self, stem: str) -> tuple[str, ...]:
         guesses: list[str] = []
         self._add_unique_word(guesses, stem)
@@ -325,7 +352,7 @@ class MalteseSuffixGenerator:
     def _score_candidate(self, typo: str, candidate: str, stage: str):
         return self._score_candidate_cached(typo, candidate, stage)
 
-    @lru_cache(maxsize=4096)
+    @lru_cache(maxsize=8192)
     def _score_candidate_cached(self, typo: str, candidate: str, stage: str):
         return self.spellchecker._candidate_score(typo, candidate, stage)
 
