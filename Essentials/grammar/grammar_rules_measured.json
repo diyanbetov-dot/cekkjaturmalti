@@ -1,0 +1,295 @@
+{
+  "schema_version": 1,
+  "rules": [
+    {
+      "id": "AMOD_ORDER_NOUN_BEFORE_ADJ",
+      "family": "noun_adjective",
+      "description_en": "An attributive adjective generally follows the noun it modifies.",
+      "action": "suggest",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "POS",
+        "dependency:amod"
+      ],
+      "pattern": {
+        "head_upos": [
+          "NOUN",
+          "PROPN"
+        ],
+        "dependent_upos": "ADJ"
+      },
+      "expected": {
+        "order": "head_before_dependent"
+      },
+      "exceptions": [
+        "predicative adjective",
+        "fronting/emphasis",
+        "fixed expression",
+        "title/name"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "AMOD_GENDER_AGREEMENT",
+      "family": "noun_adjective",
+      "description_en": "An attributive adjective normally agrees with its noun in gender when both forms mark gender.",
+      "action": "suggest",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "dependency:amod",
+        "Gender"
+      ],
+      "expected": {
+        "feature": "Gender",
+        "relation": "equal_when_overt"
+      },
+      "exceptions": [
+        "indeclinable adjective",
+        "unknown morphology",
+        "lexicalised expression"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "AMOD_NUMBER_AGREEMENT",
+      "family": "noun_adjective",
+      "description_en": "An attributive adjective normally agrees with its noun in number when both forms mark number.",
+      "action": "suggest",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "dependency:amod",
+        "Number"
+      ],
+      "expected": {
+        "feature": "Number",
+        "relation": "equal_when_overt"
+      },
+      "exceptions": [
+        "collective interpretation",
+        "indeclinable adjective",
+        "unknown morphology"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "DEF_NP_ARTICLE_PROPAGATION",
+      "family": "definiteness",
+      "description_en": "A definite noun phrase may require definiteness marking on an attributive adjective.",
+      "action": "suggest",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "dependency:amod",
+        "Definite",
+        "article segmentation"
+      ],
+      "expected": {
+        "check": "noun_phrase_definiteness_consistency"
+      },
+      "exceptions": [
+        "predicative adjective",
+        "proper name",
+        "fixed expression"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "PREP_ARTICLE_CONTRACTION",
+      "family": "prepositions",
+      "description_en": "Check standard preposition-plus-article contractions and orthographic attachment.",
+      "action": "correct_when_lexically_certain",
+      "evidence_status": "normative_required",
+      "required_analysis": [
+        "tokenisation",
+        "article recognition"
+      ],
+      "expected": {
+        "check": "contraction_table"
+      },
+      "exceptions": [
+        "preposition not followed by article",
+        "quoted text",
+        "name"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "NEGATION_MA_X",
+      "family": "negation",
+      "description_en": "Detect discontinuous verbal negation of the ma ... x type.",
+      "action": "suggest",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "verb morphology",
+        "clitic segmentation",
+        "dependency"
+      ],
+      "expected": {
+        "check": "paired_negative_marking"
+      },
+      "exceptions": [
+        "lexical word ending in x",
+        "elliptical speech",
+        "quoted text"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "SUBJECT_VERB_PERSON_NUMBER",
+      "family": "agreement",
+      "description_en": "Check person and number compatibility between an overt subject and its finite verb.",
+      "action": "suggest",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "dependency:nsubj",
+        "Person",
+        "Number",
+        "finite verb"
+      ],
+      "expected": {
+        "features": [
+          "Person",
+          "Number"
+        ],
+        "relation": "compatible"
+      },
+      "exceptions": [
+        "coordination",
+        "collective subject",
+        "pro-drop ambiguity",
+        "copular/impersonal construction"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "VERB_VERB_PERSON_NUMBER",
+      "family": "agreement",
+      "description_en": "Adjacent finite verbs normally agree in person, number, and gender through their shared subject.",
+      "action": "correct_when_lexically_certain",
+      "evidence_status": "lexical_rule",
+      "required_analysis": [
+        "finite verb morphology",
+        "adjacent verb chain"
+      ],
+      "expected": {
+        "check": "shared_subject_person_number"
+      },
+      "exceptions": [
+        "separate omitted subjects",
+        "quoted speech",
+        "coordination"
+      ],
+      "production_enabled": true
+    },
+    {
+      "id": "NUMERAL_NOUN_NUMBER",
+      "family": "numerals",
+      "description_en": "Check noun form selected after a numeral.",
+      "action": "suggest",
+      "evidence_status": "normative_required",
+      "required_analysis": [
+        "dependency:nummod",
+        "noun morphology",
+        "numeral value"
+      ],
+      "expected": {
+        "check": "numeral_specific_number_rule"
+      },
+      "exceptions": [
+        "measure phrase",
+        "currency",
+        "date",
+        "fixed expression"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "MIN_MINN_CONTEXT",
+      "family": "confusables",
+      "description_en": "Rank min and minn using syntactic context and lexical rules.",
+      "action": "rank_candidates",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "neighbour tokens",
+        "dependency/case",
+        "lexical context"
+      ],
+      "expected": {
+        "candidates": [
+          "min",
+          "minn"
+        ]
+      },
+      "exceptions": [
+        "tokenisation error",
+        "proper name"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "VERB_ADJECTIVE_COMPATIBILITY",
+      "family": "verb_adjective",
+      "description_en": "Check whether a finite verb can directly take a following predicative adjective.",
+      "action": "suggest",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "verb morphology",
+        "adjective morphology",
+        "lexical verb class"
+      ],
+      "expected": {
+        "check": "allowed_predicative_adjective_verb_class"
+      },
+      "exceptions": [
+        "elliptical speech",
+        "fixed expression",
+        "unknown adjective class"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "LI_ADJECTIVE_COMPATIBILITY",
+      "family": "relative_adjective",
+      "description_en": "li may directly introduce only a comparative, superlative, or exceptional adjective.",
+      "action": "suggest",
+      "evidence_status": "lexical_rule",
+      "required_analysis": [
+        "relative marker",
+        "adjective class"
+      ],
+      "expected": {
+        "check": "li_adjective_class"
+      },
+      "exceptions": [
+        "comparative adjective",
+        "superlative adjective",
+        "EXC adjective"
+      ],
+      "production_enabled": false
+    },
+    {
+      "id": "HU_U_HU_CONFUSABLE",
+      "family": "confusables",
+      "description_en": "Rank hu, u and ħu from sentence context.",
+      "action": "rank_candidates",
+      "evidence_status": "seed_only",
+      "required_analysis": [
+        "POS",
+        "dependency",
+        "capitalisation"
+      ],
+      "expected": {
+        "candidates": [
+          "hu",
+          "u",
+          "ħu"
+        ]
+      },
+      "exceptions": [
+        "sentence fragment",
+        "name",
+        "quotation"
+      ],
+      "production_enabled": false
+    }
+  ]
+}

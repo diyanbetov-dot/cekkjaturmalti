@@ -58571,11 +58571,11 @@ sofru/AS-sofr-IMP-2P-to suffer
 ssofri/AS-sofr-MPERF-2S-to suffer
 ssofri/AS-sofr-MPERF-3SF-to suffer
 ssofru/AS-sofr-MPERF-2P-to suffer
-tsofrix/AS-sofr-IMP-2S-to not suffer-N
-tsofrix/AS-sofr-MPERF-2S-to not suffer-N
-tsofrix/AS-sofr-MPERF-3SF-to not suffer-N
-tsofrux/AS-sofr-IMP-2P-to not suffer-N
-tsofrux/AS-sofr-MPERF-2P-to not suffer-N
+ssofrix/AS-sofr-IMP-2S-to not suffer-N
+ssofrix/AS-sofr-MPERF-2S-to not suffer-N
+ssofrix/AS-sofr-MPERF-3SF-to not suffer-N
+ssofrux/AS-sofr-IMP-2P-to not suffer-N
+ssofrux/AS-sofr-MPERF-2P-to not suffer-N
 jissogra/AS-sogr-•-sugr-MPERF-3SM-to take a risk
 jissograw/AS-sogr-•-sugr-MPERF-3P-to take a risk
 jissograwx/AS-sogr-•-sugr-MPERF-3P-to not take a risk-N
@@ -64428,6 +64428,8 @@ ttimbrajtx/AS-timbr-PERF-1S-to not stamp or not give a bad name-N
 ttimbrajtx/AS-timbr-PERF-2S-to not stamp or not give a bad name-N
 ttimbrat/AS-timbr-PERF-3SF-to stamp or give a bad name
 ttimbratx/AS-timbr-PERF-3SF-to not stamp or not give a bad name-N
+jiċċaqlaq/AS-ċaqlaq-MPERF-3SM-to move
+iċċaqlaq/AS-ċaqlaq-MPERF-3SM-to move
 ttimbraw/AS-timbr-IMP-2P-to stamp or give a bad name
 ttimbraw/AS-timbr-PERF-3P-to stamp or give a bad name
 ttimbrawx/AS-timbr-PERF-3P-to not stamp or not give a bad name-N

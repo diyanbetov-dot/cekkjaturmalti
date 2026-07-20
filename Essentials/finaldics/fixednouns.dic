@@ -606,6 +606,7 @@ bank/SINGNOUNM-or bench
 bankett/SINGNOUNM-banquet
 banketti/PLUNOUN-banquets
 bankina/SINGNOUNM-curb or pavement
+bankini/PLUNOUN-curbs or pavements
 baqar tal-baħar/PLUNOUN-seas cow
 baqar/PLUNOUN-cows
 baqgħa/SINGNOUN-stay; survival; permanence
@@ -2331,6 +2332,7 @@ falzità/SINGNOUNF-falseness or hypocrisy
 familista/SINGNOUNFM-familist
 familisti/PLUNOUN-familists
 familja/SINGNOUNF-family
+prijorità/SINGNOUNF-priority
 familjaritajiet/PLUNOUN-familiarities
 familjarità/SINGNOUNF-familiarity
 familjarizzazzjoni/SINGNOUNF-familiarisation
@@ -6395,8 +6397,7 @@ prinċep/SINGNOUNM-prince
 prinċipessa/SINGNOUNF-princess
 prinċipessi/PLUNOUN-princesses
 prinċpijiet/PLUNOUN-princes
-prioritajiet/PLUNOUN-priorities
-priorità/SINGNOUNF-priority
+prijoritajiet/PLUNOUN-priorities
 priġunier/SINGNOUNM-prisoner
 priġuniera/PLUNOUN-prisoners
 priġunieri/PLUNOUN-prisoners
@@ -11311,20 +11312,6 @@ zuntieri/PLUNOUN-parvises or churchyards
 żgurament/SINGNOUNF-surely or assurance
 żguramenti/PLUNOUN-surelies or assurances
 żgħaki/PLUNOUN-people of doubtful sexual morals or someones evil, base
-żgħażagħ/PLUNOUN-youngs
-żgħorija/SINGNOUNF-childhood
-żgħożija/SINGNOUNF-youth; adolescence
-żhim/SINGNOUN-neighing
-żhir/SINGNOUN-boasting
-żibel/SINGNOUN-rubbish, garbage or dung, manure
-żibeġ/SINGNOUN-beads
-żidiet/PLUNOUN-increases
-żieda/SINGNOUNF-increase
-żiemel il-baħar/SINGNOUNM-sea horse
-żiemel tal-baħar/SINGNOUNM-sea horse
-żiemel tax-xmara/SINGNOUNM-hippopotamus
-żiemel/SINGNOUNM-horse
-żiffa/SINGNOUNF-a gentle breeze; zephyr
 żiffiet/PLUNOUN-breezes
 żifna/SINGNOUNF-a dance
 żifniet/PLUNOUN-dances
@@ -11461,3 +11448,42 @@ nemusiet/PAUCNOUN-mosquitoes
 papuxiet/PAUCNOUN-slippers
 patatiet/PAUCNOUN-potatoes
 qasbiet/PAUCNOUN-canes, reeds
+silenzju/SINGNOUNM-silence
+dittatur/SINGNOUNM-dictator
+kumitat/SINGNOUNM-committee
+rabja/SINGNOUNF-anger
+revoluzzjonarju/SINGADJM-revolutionary
+prijorità/SINGNOUNF-priority
+miżerja/SINGNOUNF-misery
+miżerji/PLUNOUN-miseries
+studenti/PLUNOUN-students
+pakkett/SINGNOUNM-package
+passiġġata/SINGNOUNF-stroll, light walk
+passiġġati/PLUNOUN-strolls, light walks
+ċella/SINGNOUNF-cell
+ċintura/SINGNOUNF-belt, waist
+ċinturi/PLUNOUN-belts, waists
+żona/SINGNOUNF-zone, area
+żoni/PLUNOUN-zones, areas
+naħla/SINGNOUNF-bee
+naħliet/PLUNOUN-bees
+rixa/SINGNOUNF-feather
+rixi/PLUNOUN-feathers
+żanżar/SINGNOUNM-mosquito
+żanżariet/PLUNOUN-mosquitoes
+żrara/SINGNOUNF-small stone
+żrariet/PAUCNOUN-small stones
+
+riżultat/SINGNOUNM-result
+riżultati/PLUNOUN-results
+spezzjoni/SINGNOUNF-inspection
+spezzjonijiet/PLUNOUN-inspections
+korp/SINGNOUNM-corps, body
+korpi/PLUNOUN-corps, bodies
+materjal/SINGNOUNM-material
+materjali/PLUNOUN-materials
+kurutur/SINGNOUNM-corridor
+kuruturi/PLUNOUN-corridors
+kas/SINGNOUNM-attention
+paniku/SINGNOUNM-panic
+żibel/SINGNOUNM-rubbish, waste

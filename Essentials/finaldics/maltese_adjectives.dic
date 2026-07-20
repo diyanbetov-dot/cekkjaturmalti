@@ -47,7 +47,7 @@ agħma/SINGADJM-blind
 agħnaq/SINGADJM-long-necked
 agħqar/SINGADJM-ulcerous
 akbar/SINGADJM+SINGNOUN-larger, bigger, older
-aktar/SINGADJM+SINGNOUN-more
+aktar/EXC-SINGADJM+SINGNOUN-more
 aljenabbli/SINGADJM-alienable
 aljenabbli/SINGADJF-alienable
 aljenabbli/PLUADJ-alienable
@@ -1121,7 +1121,7 @@ frontali/SINGADJM-frontal
 frontali/SINGADJF-frontal
 frontali/PLUADJ-frontal
 frud/PLUADJ-odd
-ftit/SINGADJM-few; little
+ftit/EXC-SINGADJM-few; little
 fukran/SINGADJM-heedful
 fukrana/SINGADJF-heedful
 fukranin/PLUADJ-heedful
@@ -1253,6 +1253,8 @@ għaġulija/SINGADJF-hasty
 għaġulin/PLUADJ-hasty
 għażiż/SINGADJM-dear; cherished
 għażiża/SINGADJF-dear; cherished
+feliċi/SINGADJ-happy
+taparsi/SINGADJ-supposed, so-called
 għażli/SINGADJM-selective
 għażlija/SINGADJF-selective
 għażlin/PLUADJ-selective
@@ -1479,7 +1481,7 @@ inkorreġġibbli/PLUADJ-uncorrectable, incorrigible
 inosservabbli/SINGADJM-unobservable
 inosservabbli/SINGADJF-unobservable
 inosservabbli/PLUADJ-unobservable
-inqas/SINGADJM+SINGNOUN-fewer, less
+inqas/EXC-SINGADJM+SINGNOUN-fewer, less
 insettivora/SINGADJF-insectivorous
 insettivori/PLUADJ-insectivorous
 insettivoru/SINGADJM-insectivorous
@@ -2449,6 +2451,9 @@ psikoloġiku/SINGADJM-psychological
 psikoloġiċi/PLUADJ-psychological
 pubblika/SINGADJF-public
 pubbliku/SINGADJM-public
+privat/SINGADJM-private
+privata/SINGADJF-private
+privati/PLUADJ-private
 pubbliċi/PLUADJ-public
 pulit/SINGADJM-clean, neat, tidy
 pulita/SINGADJF-clean, neat, tidy
@@ -3616,7 +3621,7 @@ zoppa/SINGADJF-lame, unsound
 ħafifa rix/SINGADJF-very light
 ħafja/SINGADJF-barefoot
 ħafjin/PLUADJ-barefoot
-ħafna/SINGADJM-much; many
+ħafna/EXC-SINGADJM-much; many
 ħaj/SINGADJM-alive; living, unripe, immature (fruit); undercooked 
 ħajja/SINGADJF-alive; living, unripe, immature (fruit); undercooked 
 ħajjen/SINGADJM-malicious, sly
@@ -3789,3 +3794,24 @@ vulnerabbli/SINGADJM-vulnerable
 preżentuż/SINGADJM-presumptuous
 preżentuża/SINGADJF-presumptuous
 preżentużi/PLUADJ-presumptuous
+kompetenti/SINGADJM-competent
+kompetenti/SINGADJF-competent
+kompetenti/PLUADJ-competent
+inkompetenti/SINGADJM-incompetent
+inkompetenti/SINGADJF-incompetent
+inkompetenti/PLUADJ-incompetent
+preżenti/SINGADJM-present
+preżenti/SINGADJF-present
+preżenti/PLUADJ-present
+skadut/SINGADJM-expired
+skaduta/SINGADJF-expired
+skaduti/PLUADJ-expired
+minfuħ/SINGADJM-inflated, swollen
+minfuħa/SINGADJF-inflated, swollen
+minfuħin/PLUADJ-inflated, swollen
+dieħel/SINGADJM-coming in
+dieħla/SINGADJF-coming in
+deħlin/PLUADJ-coming in
+ħiereġ/SINGADJM-going out
+ħierġa/SINGADJF-going out
+ħerġin/PLUADJ-going out

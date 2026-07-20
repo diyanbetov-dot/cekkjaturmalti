@@ -28,6 +28,21 @@ result = rich("'Hi', fejn tista' ċċempel please")
 assert result["corrected_text"] == "Hi, fejn tista' ċċempel please."
 assert token_for("'Hi', fejn", "'Hi'")["corrected"] == "Hi"
 
+quoted_typo = rich("'aotomatic' illum")
+assert quoted_typo["corrected_text"] == "aotomatic illum."
+assert token_for("'aotomatic' illum", "'aotomatic'")["unrecognized"] is True
+
+quoted_unknown_phrase = rich("'This is clearly English and should stay unchanged.'")
+assert quoted_unknown_phrase["corrected_text"] == "This is clearly English and should stay unchanged."
+assert token_for(
+    "'This is clearly English and should stay unchanged.'",
+    "'This is clearly English and should stay unchanged.'",
+)["unrecognized"] is True
+
+for_granted = token_for("dan for granted", "for granted")
+assert for_granted["type"] == "english_phrase"
+assert for_granted["corrected"] == "for granted"
+
 please = token_for("fejn please issa", "please")
 assert please["type"] == "english_phrase"
 assert please["corrected"] == "please"

@@ -23,6 +23,7 @@ class UnifiedMatch:
     group0: str
     is_quote: bool = False
     inner_text: str = ""
+    is_accepted_english_quote: bool = False
 
     def start(self) -> int:
         return self.start_index

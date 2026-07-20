@@ -62,6 +62,8 @@
         .brand-name {
             font-weight: 800;
             letter-spacing: 0;
+            font-size: 1.15rem;
+            line-height: 1.2;
         }
 
         .top-bar {
@@ -77,6 +79,7 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            height: 34px;
             min-height: 34px;
             border: 1px solid rgba(255, 255, 255, 0.42);
             border-radius: 999px;
@@ -88,6 +91,7 @@
             line-height: 1;
             text-decoration: none;
             box-sizing: border-box;
+            white-space: nowrap;
         }
 
         .top-bar button:hover,
@@ -113,6 +117,10 @@
             font-weight: 800;
             line-height: 1;
             flex: 0 0 auto;
+        }
+
+        .help-link .help-label {
+            line-height: 1;
         }
 
         .title-block {
@@ -348,8 +356,8 @@
             border: 1px solid #cbd5e1;
             border-radius: 6px;
             background: white;
-            color: var(--accent);
-            font-size: 1.1rem;
+            color: #64748b;
+            font-size: 0.9rem;
             font-weight: bold;
             line-height: 1;
             z-index: 6;
@@ -363,18 +371,24 @@
             border-color: #94a3b8;
         }
 
+        .result-shell.editing .output-edit-toggle {
+            background: #e5e7eb;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
         .output-format-tab {
             position: absolute;
-            right: 46px;
+            right: 42px;
             bottom: 10px;
-            height: 32px;
+            height: 30px;
             display: none;
             align-items: center;
-            gap: 4px;
-            padding: 0 6px;
+            gap: 3px;
+            padding: 0 5px;
             border: 1px solid #cbd5e1;
             border-radius: 6px;
-            background: white;
+            background: #f1f5f9;
             box-shadow: 0 4px 12px rgba(24, 32, 42, 0.08);
             z-index: 5;
             box-sizing: border-box;
@@ -385,8 +399,8 @@
         }
 
         .output-format-tab button {
-            width: 24px;
-            height: 24px;
+            width: 22px;
+            height: 22px;
             min-width: unset;
             min-height: unset;
             padding: 0;
@@ -407,8 +421,8 @@
         }
 
         .output-format-tab button.active {
-            background: var(--accent-soft);
-            color: var(--accent);
+            background: #d1d5db;
+            color: #111827;
         }
 
         /* Modal Backdrop/Overlay */
@@ -638,12 +652,19 @@
             border-radius: 50%;
             width: 16px;
             height: 16px;
+            min-width: 16px;
+            max-width: 16px;
+            min-height: 0;
+            max-height: 16px;
+            flex: 0 0 16px;
             font-size: 10px;
+            line-height: 1;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             padding: 0;
+            box-sizing: border-box;
             z-index: 12;
         }
         .remove-screenshot-btn:hover {
@@ -1034,6 +1055,77 @@
 
             .brand-ribbon-inner {
                 padding: 10px 18px;
+                align-items: flex-start;
+                justify-content: flex-end;
+            }
+
+            .brand-name {
+                flex: 0 0 100%;
+                font-size: 1.28rem;
+            }
+
+            .top-bar {
+                width: 100%;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+
+            .top-bar button,
+            .top-bar .help-link {
+                height: 32px;
+                min-height: 32px;
+                padding: 6px 10px;
+                font-size: 0.86rem;
+            }
+
+            .button-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                gap: 8px 12px;
+                align-items: stretch;
+            }
+
+            .buttons-left,
+            .buttons-right {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-width: 0;
+            }
+
+            .button-row button {
+                width: 100%;
+                min-width: 0;
+                padding: 8px 8px;
+                font-size: 0.78rem;
+                line-height: 1.1;
+                white-space: nowrap;
+                letter-spacing: 0;
+            }
+
+            .form-actions {
+                gap: 10px;
+                align-items: center;
+            }
+
+            .screenshot-btn {
+                height: 38px;
+                padding: 0 14px;
+                min-width: max-content;
+                justify-content: center;
+            }
+
+            .screenshot-btn .plus-box {
+                display: none;
+            }
+
+            .screenshot-btn .btn-text {
+                width: auto;
+                padding: 0;
+                white-space: nowrap;
+                line-height: 1;
+                text-align: center;
+                text-align-last: center;
             }
 
             .grid {
@@ -1068,6 +1160,16 @@
             color: #f8fafc;
         }
 
+        body.dark-mode .top-bar .help-link {
+            background: #334155;
+            color: #f8fafc;
+            border-color: #475569;
+        }
+
+        body.dark-mode .top-bar .help-link:hover {
+            background: #475569;
+        }
+
         body.dark-mode .subtitle,
         body.dark-mode .usage-note,
         body.dark-mode .settings-row,
@@ -1091,7 +1193,7 @@
         body.dark-mode .output-edit-toggle {
             background: #1e293b;
             border-color: #475569;
-            color: #f8fafc;
+            color: #cbd5e1;
         }
 
         body.dark-mode .output-edit-toggle:hover {
@@ -1213,12 +1315,12 @@
         <div class="brand-ribbon-inner">
             <div id="brandName" class="brand-name">Ikteb Malti Tajjeb</div>
             <div class="top-bar">
-                <button id="darkModeToggle" class="secondary" type="button">Dark Mode</button>
-                <button id="langToggle" class="secondary" type="button">Swiċċja għall-Malti</button>
                 <a id="helpLink" class="help-link" href="mailto:cekkjaturmalti@gmail.com">
                     <span class="help-icon" aria-hidden="true">?</span>                    
                     <span class="help-label">Help</span>
                 </a>
+                <button id="darkModeToggle" class="secondary" type="button">Dark Mode</button>
+                <button id="langToggle" class="secondary" type="button">Swiċċja għall-Malti</button>
             </div>
         </div>
     </header>
@@ -1226,7 +1328,7 @@
         <div class="title-block">
             <div class="title-line">
                 <h1 id="mainTitle">Maltese Spell Checker</h1>
-                <p id="alphaNote" class="alpha-note">Alpha 1.0.0</p>
+                <p id="alphaNote" class="alpha-note">Beta 0.1.0</p>
             </div>
             <p id="mainSubtitle" class="subtitle"></p>
             <p id="usageNote" class="usage-note instruction-note">
@@ -1238,11 +1340,11 @@
             <div class="grid">
                 <div>
                     <label id="labelInput" for="textInput">Input text</label>
-                    <textarea id="textInput" placeholder="Paste Maltese here..."></textarea>
+                    <textarea id="textInput" spellcheck="false" placeholder="Paste Maltese here..."></textarea>
                 </div>
 
                 <div>
-                    <label id="labelResults" for="results">
+                    <label id="labelResults">
                         <span id="labelResultsText">Corrected text</span>
                         <span id="correctionTimer" class="correction-timer"></span>
                     </label>
@@ -1257,7 +1359,7 @@
                         <div id="resultEditor" class="result-editor hidden" contenteditable="true" role="textbox"
                             aria-multiline="true" aria-label="Edit corrected text"></div>
                         <button id="outputEditToggle" class="output-edit-toggle" type="button"
-                            aria-expanded="false" aria-controls="resultEditor">˂</button>
+                            aria-expanded="false" aria-controls="resultEditor">T</button>
                     </div>
                 </div>
             </div>
@@ -1290,7 +1392,7 @@
 
             <div id="status" class="status">Checking server...</div>
         <p id="Notice" class="usage-note">
-            Alpha 1.0.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of outputted corrected text as per expected standards. Since it is still in the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!
+            Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of outputted corrected text as per expected standards. Since it is still in the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!
         </p>
             
         </section>
@@ -1475,15 +1577,19 @@
             en: {
                 htmlLang: "en",
                 brandName: "Ikteb Malti Tajjeb",
-                helpLabel: "Send a message",
+                helpLabel: "Send a Message",
+                helpLabelMobile: "Message",
                 editOutputOpen: "Edit corrected text",
                 editOutputClose: "Close editor",
-                toggleBtn: '<img src="https://flagcdn.com/w20/mt.png" alt="MT" style="width:18px; margin-right:6px; vertical-align:-2px;"> Aqleb ghall-Malti',
+                toggleBtn: '<img src="https://flagcdn.com/w20/mt.png" alt="MT" style="width:18px; margin-right:6px; vertical-align:-2px;"> Aqleb għall-Malti',
+                toggleBtnMobile: '<img src="https://flagcdn.com/w20/mt.png" alt="MT" style="width:18px; margin-right:6px; vertical-align:-2px;"> Malti',
                 darkModeBtn: "🌙 Change to Dark Mode",
+                darkModeBtnMobile: "🌙 Dark Mode",
                 lightModeBtn: "☀️ Change to Light Mode",
+                lightModeBtnMobile: "☀️ Light Mode",
                 title: "Maltese Spell Checker",
-                alphaNote: "Alpha 1.0.0",
-                Notice: "Alpha 1.0.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!",
+                alphaNote: "Beta 0.1.0",
+                Notice: "Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com or pressing the Send a Message button. Thank you for helping in improving Maltese digital tools!",
                 subtitle: "",
                 usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
                 sourcesNote: "Sources and References:\nVerbs: verb.mt\nOther: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -1492,7 +1598,9 @@
                 checkBtn: "Check spelling",
                 copyBtn: "Copy result",
                 showSuggestionsOn: "Don't show suggestions",
+                showSuggestionsOnMobile: "Suggestions On",
                 showSuggestionsOff: "Show suggestions",
+                showSuggestionsOffMobile: "Suggestions Off",
                 alwaysShowCrucial: "Always show crucial suggestions",
                 allowEnglishSuggestions: "Allow English suggestions",
                 showStatusMessages: "Show status messages",
@@ -1536,6 +1644,7 @@
                 emailCancelBtn: "Cancel",
                 emailSendBtn: "Send",
                 emailScreenshotBtn: "Take a screenshot<br>of the page",
+                emailScreenshotBtnMobile: "Take screenshot",
                 emailStatusSending: "Sending...",
                 emailStatusSent: "Email sent successfully!"
             },
@@ -1543,15 +1652,19 @@
             mt: {
                 htmlLang: "mt",
                 brandName: "Ikteb Malti Tajjeb",
-                helpLabel: "Ibgħat messaġġ",
+                helpLabel: "Ibgħat Messaġġ",
+                helpLabelMobile: "Messaġġ",
                 editOutputOpen: "Editja t-test ikkoreġut",
                 editOutputClose: "Agħlaq l-editur",
                 toggleBtn: '<img src="https://flagcdn.com/w20/gb.png" alt="GB" style="width:18px; margin-right:6px; vertical-align: 0px;"> Switch to English',
+                toggleBtnMobile: '<img src="https://flagcdn.com/w20/gb.png" alt="GB" style="width:18px; margin-right:6px; vertical-align: 0px;"> English',
                 darkModeBtn: "🌙 Aqleb għall-Mudlam",
+                darkModeBtnMobile: "🌙 Mudlam",
                 lightModeBtn: "☀️ Aqleb għall-Mudwal",
+                lightModeBtnMobile: "☀️ Dawl",
                 title: "Ċekkjatur tal-Malti",
-                alphaNote: "Alfa 1.0.0",
-                Notice: "Avviż dwar Alfa 1.0.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
+                alphaNote: "Beta 0.1.0",
+                Notice: "Avviż dwar Beta 0.1.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com jew billi tagħfas il-buttuna Ibgħat Messaġġ. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
                 subtitle: "",
                 usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
                 sourcesNote: "Sorsi u Referenzi:\nVerbi: verb.mt\nKliem Ieħor: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -1604,6 +1717,7 @@
                 emailCancelBtn: "Lura",
                 emailSendBtn: "Ibgħat",
                 emailScreenshotBtn: "Ħu skritratt<br>tal-paġna",
+                emailScreenshotBtnMobile: "Ħu skritratt",
                 emailStatusSending: "Qed jintbagħat...",
                 emailStatusSent: "L-email intbagħtet b'suċċess!"
             }
@@ -1616,6 +1730,7 @@
         let allowEnglishSuggestions = localStorage.getItem("allowEnglishSuggestions") !== "false";
         let latestTokens = [];
         let latestCorrectedText = "";
+        let latestCorrectedHtml = "";
         let outputEditing = false;
         let outputEditorDirty = false;
         let pastizziMode = false;
@@ -1673,6 +1788,45 @@
             elements.sourcesNote.classList.toggle("hidden", !SHOW_SOURCES_NOTE);
         }
 
+        function isMobileLayout() {
+            return window.matchMedia("(max-width: 800px)").matches;
+        }
+
+        function responsiveLabel(key) {
+            const labels = translations[currentLang];
+            const mobileKey = `${key}Mobile`;
+            return isMobileLayout() && labels[mobileKey] ? labels[mobileKey] : labels[key];
+        }
+
+        function topBarLabel(key) {
+            return responsiveLabel(key);
+        }
+
+        function updateTopBarLabels() {
+            const isDark = document.body.classList.contains("dark-mode");
+            elements.langToggle.innerHTML = topBarLabel("toggleBtn");
+            elements.helpLink.innerHTML = `<span class="help-icon" aria-hidden="true">?</span><span class="help-label">${topBarLabel("helpLabel")}</span>`;
+            elements.darkModeToggle.textContent = isDark
+                ? topBarLabel("lightModeBtn")
+                : topBarLabel("darkModeBtn");
+        }
+
+        function updateActionButtonLabels() {
+            elements.checkButton.textContent = t("checkBtn");
+            elements.copyButton.textContent = t("copyBtn");
+            elements.clearButton.textContent = t("clearBtn");
+            updateShowSuggestionsButton();
+        }
+
+        function updateResponsiveLabels() {
+            updateTopBarLabels();
+            updateActionButtonLabels();
+            const screenshotLabel = document.querySelector("#takeScreenshot .btn-text");
+            if (screenshotLabel) {
+                screenshotLabel.innerHTML = responsiveLabel("emailScreenshotBtn");
+            }
+        }
+
         function setOutputLoading(loading) {
             if (loading) {
                 setOutputEditing(false, { preserveText: true });
@@ -1688,6 +1842,7 @@
 
             if (!enabled && outputEditing && !preserveText) {
                 latestCorrectedText = elements.resultEditor.innerText;
+                latestCorrectedHtml = elements.resultEditor.innerHTML;
                 if (outputEditorDirty) {
                     latestTokens = [];
                 }
@@ -1704,14 +1859,25 @@
             const title = outputEditing ? labels.editOutputClose : labels.editOutputOpen;
             elements.outputEditToggle.title = title;
             elements.outputEditToggle.setAttribute("aria-label", title);
-            elements.outputEditToggle.textContent = outputEditing ? "˃" : "˄";
+            elements.outputEditToggle.textContent = "T";
 
             if (outputEditing) {
                 outputEditorDirty = false;
-                elements.resultEditor.innerText = latestCorrectedText;
-                requestAnimationFrame(() => elements.resultEditor.focus());
+                if (latestCorrectedHtml) {
+                    elements.resultEditor.innerHTML = latestCorrectedHtml;
+                } else {
+                    elements.resultEditor.innerText = latestCorrectedText;
+                }
+                requestAnimationFrame(() => {
+                    elements.resultEditor.focus();
+                    updateOutputFormatButtonStates();
+                });
                 return;
             }
+
+            elements.formatBold.classList.remove("active");
+            elements.formatItalic.classList.remove("active");
+            elements.formatUnderline.classList.remove("active");
 
             if (!preserveText) {
                 renderCorrectedText(latestTokens, latestCorrectedText);
@@ -1730,8 +1896,6 @@
             document.documentElement.lang = labels.htmlLang;
 
             elements.brandName.textContent = labels.brandName;
-            elements.langToggle.innerHTML = labels.toggleBtn;
-            elements.helpLink.innerHTML = `<span class="help-icon" aria-hidden="true">?</span><span class="help-label">${labels.helpLabel}</span>`;
             elements.outputEditToggle.title = outputEditing ? labels.editOutputClose : labels.editOutputOpen;
             elements.outputEditToggle.setAttribute("aria-label", elements.outputEditToggle.title);
             elements.mainTitle.textContent = labels.title;
@@ -1750,18 +1914,12 @@
             elements.labelEditDistance3.textContent = labels.editDistance3;
             elements.labelEditDistance4.textContent = labels.editDistance4;
 
-            elements.checkButton.textContent = labels.checkBtn;
-            elements.copyButton.textContent = labels.copyBtn;
-            elements.clearButton.textContent = labels.clearBtn;
             elements.labelAlwaysShowCrucial.textContent = labels.alwaysShowCrucial;
             elements.labelAllowEnglishSuggestions.textContent = labels.allowEnglishSuggestions;
             elements.suggestButton.textContent = labels.suggestBtn;
             elements.debugButton.textContent = labels.debugBtn;
 
-            const isDark = document.body.classList.contains("dark-mode");
-            elements.darkModeToggle.textContent = isDark ? labels.lightModeBtn : labels.darkModeBtn;
-
-            updateShowSuggestionsButton();
+            updateResponsiveLabels();
             updateDevPanelVisibility();
             updateOptionalNotesVisibility();
             if (devToy) {
@@ -1783,7 +1941,6 @@
             document.getElementById("emailBody").placeholder = labels.emailBodyPlaceholder;
             document.getElementById("cancelEmail").textContent = labels.emailCancelBtn;
             document.getElementById("sendEmail").textContent = labels.emailSendBtn;
-            document.querySelector("#takeScreenshot .btn-text").innerHTML = labels.emailScreenshotBtn;
 
             if (
                 elements.debugOutput.textContent === translations.en.debugDefault ||
@@ -2107,7 +2264,11 @@
             elements.results.innerHTML = "";
 
             if (!tokens || tokens.length === 0) {
-                elements.results.textContent = fallbackText;
+                if (latestCorrectedHtml) {
+                    elements.results.innerHTML = latestCorrectedHtml;
+                } else {
+                    elements.results.textContent = fallbackText;
+                }
                 return;
             }
 
@@ -2332,6 +2493,17 @@
                     }
                 }
             });
+
+            const renderedText = elements.results.textContent || "";
+            if (
+                fallbackText
+                && fallbackText.startsWith(renderedText)
+                && fallbackText.length > renderedText.length
+            ) {
+                elements.results.appendChild(
+                    document.createTextNode(fallbackText.slice(renderedText.length))
+                );
+            }
         }
 
         document.addEventListener("click", () => {
@@ -2339,9 +2511,12 @@
         });
 
         function updateShowSuggestionsButton() {
-            elements.showSuggestionsButton.textContent = showSuggestions
-                ? t("showSuggestionsOn")
-                : t("showSuggestionsOff");
+            const key = showSuggestions ? "showSuggestionsOn" : "showSuggestionsOff";
+            if (currentLang === "en" && isMobileLayout()) {
+                elements.showSuggestionsButton.textContent = t(`${key}Mobile`);
+                return;
+            }
+            elements.showSuggestionsButton.textContent = t(key);
         }
 
         function updateModeButtons() {
@@ -2531,6 +2706,7 @@
             }
 
             latestCorrectedText = rebuildCorrectedTextFromTokens(latestTokens);
+            latestCorrectedHtml = "";
 
             renderCorrectedText(latestTokens, latestCorrectedText);
         }
@@ -2555,6 +2731,7 @@
 
                 latestTokens = data.tokens || [];
                 latestCorrectedText = data.corrected_text || "";
+                latestCorrectedHtml = "";
 
                 renderCorrectedText(latestTokens, latestCorrectedText);
                 setCorrectionTimer(performance.now() - timerStartedAt);
@@ -2609,6 +2786,7 @@
         async function copyResult() {
             if (outputEditing) {
                 latestCorrectedText = elements.resultEditor.innerText;
+                latestCorrectedHtml = elements.resultEditor.innerHTML;
             }
             if (!latestCorrectedText) {
                 return;
@@ -2627,10 +2805,11 @@
             elements.textInput.value = "";
             elements.results.classList.remove("loading");
             elements.results.innerHTML = "";
-            elements.resultEditor.innerText = "";
+            elements.resultEditor.innerHTML = "";
             elements.outputFormatTab.classList.add("hidden");
             latestTokens = [];
             latestCorrectedText = "";
+            latestCorrectedHtml = "";
             outputEditorDirty = false;
             elements.wordInput.value = "";
             elements.debugOutput.textContent = t("debugDefault");
@@ -2648,10 +2827,10 @@
             document.body.classList.toggle("dark-mode");
             const isDark = document.body.classList.contains("dark-mode");
             localStorage.setItem("darkMode", isDark ? "1" : "0");
-
-            const labels = translations[currentLang];
-            elements.darkModeToggle.textContent = isDark ? labels.lightModeBtn : labels.darkModeBtn;
+            updateResponsiveLabels();
         });
+
+        window.addEventListener("resize", updateResponsiveLabels);
 
         elements.showSuggestionsButton.addEventListener("click", () => {
             showSuggestions = !showSuggestions;
@@ -2679,10 +2858,46 @@
             setOutputEditing(!outputEditing);
         });
 
+        const allowedFormatInputTypes = new Set([
+            "formatBold",
+            "formatItalic",
+            "formatUnderline",
+        ]);
+
+        function isReadOnlyEditorShortcut(event) {
+            if (!(event.ctrlKey || event.metaKey)) {
+                return false;
+            }
+            return ["a", "b", "c", "i", "u"].includes(event.key.toLowerCase());
+        }
+
+        elements.resultEditor.addEventListener("beforeinput", (event) => {
+            if (!allowedFormatInputTypes.has(event.inputType)) {
+                event.preventDefault();
+            }
+        });
+
+        elements.resultEditor.addEventListener("keydown", (event) => {
+            if (isReadOnlyEditorShortcut(event)) {
+                return;
+            }
+            if (
+                event.key.length === 1
+                || ["Backspace", "Delete", "Enter"].includes(event.key)
+            ) {
+                event.preventDefault();
+            }
+        });
+
+        elements.resultEditor.addEventListener("paste", (event) => event.preventDefault());
+        elements.resultEditor.addEventListener("drop", (event) => event.preventDefault());
+        elements.resultEditor.addEventListener("cut", (event) => event.preventDefault());
+
         elements.resultEditor.addEventListener("input", () => {
             outputEditorDirty = true;
             latestTokens = [];
             latestCorrectedText = elements.resultEditor.innerText;
+            latestCorrectedHtml = elements.resultEditor.innerHTML;
         });
 
         function applyOutputFormatting(command) {
@@ -2695,7 +2910,18 @@
             outputEditorDirty = true;
             latestTokens = [];
             latestCorrectedText = elements.resultEditor.innerText;
+            latestCorrectedHtml = elements.resultEditor.innerHTML;
+            updateOutputFormatButtonStates();
             elements.resultEditor.focus();
+        }
+
+        function updateOutputFormatButtonStates() {
+            if (!outputEditing) {
+                return;
+            }
+            elements.formatBold.classList.toggle("active", document.queryCommandState("bold"));
+            elements.formatItalic.classList.toggle("active", document.queryCommandState("italic"));
+            elements.formatUnderline.classList.toggle("active", document.queryCommandState("underline"));
         }
 
         elements.formatBold.addEventListener("click", () => applyOutputFormatting("bold"));
@@ -2704,7 +2930,12 @@
 
         elements.resultEditor.addEventListener("keyup", () => {
             latestCorrectedText = elements.resultEditor.innerText;
+            latestCorrectedHtml = elements.resultEditor.innerHTML;
+            updateOutputFormatButtonStates();
         });
+
+        elements.resultEditor.addEventListener("mouseup", updateOutputFormatButtonStates);
+        elements.resultEditor.addEventListener("focus", updateOutputFormatButtonStates);
 
         // =========================================================================
         // DEVELOPER NOTES: HELP MODAL & SCREENSHOT FUNCTIONAL LOGIC
@@ -2849,7 +3080,7 @@
                 attachedScreenshot = null;
                 screenshotPreview.classList.add("hidden");
             }
-            document.getElementById("emailTo").value = "123@gmail.com";
+            document.getElementById("emailTo").value = "cekkjaturmalti@gmail.com";
 
             emailModal.classList.add("active");
             emailModal.classList.remove("hidden");
@@ -2980,6 +3211,7 @@
 
         if (localStorage.getItem("darkMode") === "1" || (!localStorage.getItem("darkMode") && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
             document.body.classList.add("dark-mode");
+            updateResponsiveLabels();
         }
         checkHealth();
     </script>
