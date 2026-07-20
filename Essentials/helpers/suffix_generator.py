@@ -45,7 +45,7 @@ class MalteseSuffixGenerator:
                 reverse=True,
             )
         )
-        self._cache_limit = 8192
+        self._cache_limit = 2048
         self.generated_lhom_forms: dict[str, str] = {}
         self.generated_suffix_forms: dict[str, list[GeneratedSuffixCandidate]] = {}
 
@@ -89,7 +89,7 @@ class MalteseSuffixGenerator:
             return False
         return bool(self.parse_possible_suffixes(normalized))
 
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=2048)
     def exact_suffix_matches(self, word: str) -> list[GeneratedSuffixCandidate]:
         normalized = self._normalize(word)
         if not normalized:
@@ -143,7 +143,7 @@ class MalteseSuffixGenerator:
         stem = self._normalize(typed_stem)
         return list(self._inverse_base_guesses_cached(stem))
 
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=2048)
     def _inverse_base_guesses_cached(self, stem: str) -> tuple[str, ...]:
         guesses: list[str] = []
         self._add_unique_word(guesses, stem)
@@ -352,7 +352,7 @@ class MalteseSuffixGenerator:
     def _score_candidate(self, typo: str, candidate: str, stage: str):
         return self._score_candidate_cached(typo, candidate, stage)
 
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=4096)
     def _score_candidate_cached(self, typo: str, candidate: str, stage: str):
         return self.spellchecker._candidate_score(typo, candidate, stage)
 

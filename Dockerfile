@@ -19,4 +19,4 @@ COPY . .
 EXPOSE 8080
 
 # Run the app using Gunicorn bound to the dynamic port
-CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 8 --timeout 0 app:app
+CMD exec gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads ${GUNICORN_THREADS:-1} --timeout 0 app:app
