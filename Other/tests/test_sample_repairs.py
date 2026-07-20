@@ -46,7 +46,7 @@ for typo, expected in CASES.items():
     assert_first_suggestion(typo, expected)
 
 assert_correct("tajtu", "tajtu")
-assert spellchecker.meaning_for("tajtu") == "to give"
+assert spellchecker.meaning_for("tajtu") == "you all gave"
 
 
 mandix_suggestions = spellchecker.suggest("mandix", limit=8, edit_distance_tolerance=1)

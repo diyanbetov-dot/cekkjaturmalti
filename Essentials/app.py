@@ -836,27 +836,13 @@ class UniversalMalteseSpellchecker:
         return self.ENGLISH_CANONICAL_PHRASES.get(key, text)
 
     def _correct_quoted_english_text(self, text: str) -> tuple[str, bool]:
-        """Return an exact or uniquely one-edit English spelling in quotes."""
+        """Keep only exact English text inside paired quotation marks."""
         key = self._english_key(text)
         if not key:
             return text, False
         if self._accepted_exact_english(key):
             return self._canonical_english_text(text), True
-        if " " in key or len(key) < 5 or not key.isalpha():
-            return text, False
-
-        candidates = {
-            *self.ACCEPTED_ENGLISH_WORDS,
-            *(word for word in self.ENGLISH_MAPPINGS if " " not in word),
-        }
-        nearest = [
-            candidate
-            for candidate in candidates
-            if self._word_distance(key, candidate) <= 1
-        ]
-        if len(nearest) != 1:
-            return text, False
-        return nearest[0], True
+        return text, False
 
     def _accepted_article_english(self, word: str) -> bool:
         """Whether a single exact English word may take a Maltese article."""
@@ -902,15 +888,16 @@ class UniversalMalteseSpellchecker:
         if isinstance(mapped, str):
             mapped = [mapped]
         suggestions = list(mapped)
-        for suggestion in self._english_fixed_noun_suggestions(key):
-            if suggestion not in suggestions:
-                suggestions.append(suggestion)
+        if not suggestions:
+            for suggestion in self._english_fixed_noun_suggestions(key):
+                if suggestion not in suggestions:
+                    suggestions.append(suggestion)
         token = {
             "type": "english_phrase",
             "original": original,
             "corrected": corrected,
             "inner_text": inner_text,
-            "maltese_suggestion": suggestions,
+            "maltese_suggestion": suggestions or None,
         }
         note = self.ENGLISH_DISPLAY_NOTES.get(key)
         if note:
@@ -1112,6 +1099,12 @@ class UniversalMalteseSpellchecker:
             analysis.corrected = self._match_capitalisation(word, normalized)
             analysis.is_deterministic = True
 
+        manual_repair = self.MANUAL_WORD_REPAIRS.get(normalized)
+        if manual_repair:
+            add_unique(basic_candidates, manual_repair)
+            analysis.corrected = self._match_capitalisation(word, manual_repair)
+            analysis.is_deterministic = True
+
         # Explicitly approved lexical exception: unlike the unrelated verb
         # ``qass``, this discourse particle always expands to ``lanqas``.
         if normalized in {"qas", "qass"}:
@@ -1139,12 +1132,234 @@ class UniversalMalteseSpellchecker:
             analysis.corrected = self._match_capitalisation(word, normalized)
             analysis.is_deterministic = True
 
+        # An initial i may be an epenthetic surface over a misspelled verb.
+        # Re-run the bounded basic operations on the lexical stem, then admit
+        # only a genuine verb result. This composes i-removal, a shortcut
+        # consonant, gemination, and ordinary suffix recovery without a
+        # replacement table (inhalasa -> nħallasha).
+        if (
+            normalized.startswith("i")
+            and len(normalized) > 4
+            and not self._valid_initial_vowel_surface_word(normalized)
+            and not normalized.startswith(("il", "it", "is"))
+        ):
+            stem = normalized[1:]
+            orthographic = getattr(self, "orthographic_generator", None)
+            doubled = getattr(self, "doubled_letter_generator", None)
+            suffix_generator = getattr(self, "suffix_generator", None)
+            stem_seeds = [stem]
+            if orthographic is not None:
+                stem_seeds.extend(
+                    orthographic.shortcut_letter_variants(
+                        stem,
+                        max_changes=1,
+                        max_variants=16,
+                    )
+                )
+            for seed in stem_seeds:
+                candidate_seeds = [seed]
+                if doubled is not None:
+                    candidate_seeds.extend(doubled.missing_double_variants(seed))
+                for candidate_seed in candidate_seeds:
+                    recovered = (
+                        suffix_generator.correct_suffix(candidate_seed)
+                        if suffix_generator is not None
+                        else None
+                    )
+                    for candidate in (candidate_seed, recovered):
+                        if candidate and self._is_verb_tagged_word(candidate):
+                            surface_candidate = candidate
+                            ji_candidate = f"j{candidate}"
+                            if (
+                                not candidate.startswith(("i", "j"))
+                                and self._is_imperfect_surface_candidate(ji_candidate)
+                            ):
+                                surface_candidate = ji_candidate
+                            add_unique(basic_candidates, surface_candidate)
+
+        # ``x'`` is a Maltese contraction, not an English quote. Correct its
+        # lexical tail through the same basic pipeline before phrase parsing.
+        if normalized.startswith("x'") and len(normalized) > 2:
+            corrected_tail = self.correct_word(normalized[2:])
+            if self._normalize_word(corrected_tail) != normalized[2:]:
+                apostrophe_candidate = f"x'{corrected_tail}"
+                add_unique(basic_candidates, apostrophe_candidate)
+                analysis.corrected = self._match_capitalisation(
+                    word,
+                    apostrophe_candidate,
+                )
+                analysis.is_deterministic = True
+
+        if normalized == "x'imkien":
+            add_unique(complex_candidates, "xi mkien")
+            analysis.corrected = self._match_capitalisation(word, "xi mkien")
+            analysis.is_deterministic = True
+
+        # Function words are often typed together with their following verb.
+        # Split only when the recovered tail is a verified verb surface.
+        for compact_prefix, expanded_prefix in (
+            ("ma", "ma"),
+            ("ha", "ħa"),
+            ("se", "se"),
+            ("sa", "sa"),
+        ):
+            if not normalized.startswith(compact_prefix) or len(normalized) <= len(compact_prefix) + 1:
+                continue
+            compact_tail = normalized[len(compact_prefix):]
+            corrected_tail = self.correct_word(compact_tail)
+            corrected_tail_norm = self._normalize_word(corrected_tail)
+            if not self._is_verb_tagged_word(corrected_tail_norm):
+                continue
+            compact_phrase = f"{expanded_prefix} {corrected_tail_norm}"
+            add_unique(complex_candidates, compact_phrase)
+            analysis.corrected = self._match_capitalisation(word, compact_phrase)
+            analysis.is_deterministic = True
+            break
+
+        # The compact interrogative forms xikun/x'ikun retain the long xi
+        # when their tail resolves to the imperfect jkun surface.
+        xi_tail = None
+        if normalized.startswith("xi") and len(normalized) > 2:
+            xi_tail = normalized[2:]
+        elif normalized.startswith("x'") and normalized[2:] == "ikun":
+            xi_tail = normalized[2:]
+        if xi_tail:
+            corrected_tail = self.correct_word(xi_tail)
+            corrected_tail_norm = self._normalize_word(corrected_tail)
+            initial_j_tail = self._initial_i_j_surface_repair(corrected_tail_norm)
+            if initial_j_tail is not None:
+                corrected_tail_norm = initial_j_tail
+            ji_tail = f"j{corrected_tail_norm}"
+            if self._is_verb_tagged_word(ji_tail):
+                corrected_tail_norm = ji_tail
+            if self._is_verb_tagged_word(corrected_tail_norm):
+                add_unique(complex_candidates, f"xi {corrected_tail_norm}")
+                analysis.corrected = self._match_capitalisation(
+                    word,
+                    f"xi {corrected_tail_norm}",
+                )
+                analysis.is_deterministic = True
+
+        # A leading l can belong to a contracted l' word whose initial għ/h
+        # was omitted. Rebuild only a verified lexical tail.
+        if (
+            normalized not in self.dictionary_set
+            and normalized.startswith("l")
+            and len(normalized) > 2
+            and normalized[1] in self.VOWELS
+        ):
+            l_tail = normalized[1:]
+            l_candidates = [f"għ{l_tail}", f"h{l_tail}"]
+            for l_candidate in tuple(l_candidates):
+                l_candidates.extend(self._dictionary_verified_basic_repairs(l_candidate))
+            for l_candidate in l_candidates:
+                if self._is_recognized_surface(l_candidate):
+                    add_unique(complex_candidates, f"l'{l_candidate}")
+                    analysis.corrected = self._match_capitalisation(
+                        word,
+                        f"l'{l_candidate}",
+                    )
+                    analysis.is_deterministic = True
+                    break
+
+        # Unhyphenated definite articles can attach to a verified noun tail.
+        # Restore their normal assimilated surface before suffix logic sees a
+        # misleading word-initial double consonant (ittoqba -> it-toqba).
+        article_rules = getattr(self, "article_phrase_rules", None)
+        if article_rules is not None:
+            for prefix in ("il", "it", "is", "ir", "in", "id", "iċ", "ic", "ix", "iż", "iz"):
+                if not normalized.startswith(prefix) or len(normalized) <= len(prefix):
+                    continue
+                # inm- is the initial-vowel surface of an mm- verb, not an
+                # in- article followed by a nominal tail.
+                if (
+                    prefix == "in"
+                    and normalized.startswith("inm")
+                ):
+                    continue
+                noun_tail = normalized[len(prefix):]
+                tail_options = [noun_tail]
+                tail_options.extend(self._dictionary_verified_basic_repairs(noun_tail))
+                tail_options.append(self._normalize_word(self.correct_word(noun_tail)))
+                corrected_noun_tail = next(
+                    (
+                        option
+                        for option in tail_options
+                        if self._is_noun_tagged_word(option)
+                        or self._is_adjective_tagged_word(option)
+                    ),
+                    "",
+                )
+                if not corrected_noun_tail:
+                    continue
+                article_surface = (
+                    f"{article_rules.assimilate('il', corrected_noun_tail)}"
+                    f"{corrected_noun_tail}"
+                )
+                add_unique(complex_candidates, article_surface)
+                analysis.corrected = self._match_capitalisation(word, article_surface)
+                analysis.is_deterministic = True
+                break
+
+        # Compact bi-/fi- plus the assimilated x article may arrive without
+        # its hyphen. Validate the restored adjective/noun tail first.
+        for compact_prefix in ("bix", "fix"):
+            if normalized.startswith(compact_prefix) and len(normalized) > len(compact_prefix):
+                tail = normalized[len(compact_prefix):]
+                tail_candidates = [f"x{tail}"]
+                orthographic = getattr(self, "orthographic_generator", None)
+                if orthographic is not None:
+                    tail_candidates.extend(
+                        orthographic.substitute_i_ie(tail_candidates[0])
+                    )
+                for tail_candidate in tail_candidates:
+                    restored_tail = self.correct_word(tail_candidate)
+                    restored_norm = self._normalize_word(restored_tail)
+                    if restored_norm.startswith("x") and self._is_recognized_surface(restored_norm):
+                        compact_candidate = f"{compact_prefix}-{restored_norm}"
+                        add_unique(complex_candidates, compact_candidate)
+                        analysis.corrected = self._match_capitalisation(
+                            word,
+                            compact_candidate,
+                        )
+                        analysis.is_deterministic = True
+                        break
+
+        # Compact assimilated b-/f- prepositions retain their own sun-letter
+        # prefix while their noun tail follows the normal correction path.
+        for compact_prefix in (
+            "bic", "biċ", "bid", "bin", "bir", "bis", "bit", "bix", "biz", "biż",
+            "fic", "fiċ", "fid", "fin", "fir", "fis", "fit", "fix", "fiz", "fiż",
+        ):
+            if compact_prefix in {"bix", "fix"}:
+                continue
+            if not normalized.startswith(compact_prefix) or len(normalized) <= len(compact_prefix):
+                continue
+            compact_tail = normalized[len(compact_prefix):]
+            corrected_tail = self.correct_word(compact_tail)
+            corrected_tail_norm = self._normalize_word(corrected_tail)
+            if not corrected_tail_norm or not self._is_recognized_surface(corrected_tail_norm):
+                continue
+            add_unique(complex_candidates, f"{compact_prefix}-{corrected_tail_norm}")
+            analysis.corrected = self._match_capitalisation(
+                word,
+                f"{compact_prefix}-{corrected_tail_norm}",
+            )
+            analysis.is_deterministic = True
+            break
+
         # Possessive noun surfaces are generated from tagged dictionary nouns.
         # Feed their validated correction into X so the Y resolver can use it
         # just like a direct dictionary spelling.
         possessive_surface = self._correct_noun_possessive_suffix(normalized)
         if possessive_surface is not None:
             add_unique(basic_candidates, possessive_surface)
+            if possessive_surface != normalized:
+                analysis.corrected = self._match_capitalisation(
+                    word,
+                    possessive_surface,
+                )
+                analysis.is_deterministic = True
 
         # Keep lexical compounds ahead of the generic repair machinery.  A
         # form such as ``filodu`` is an orthographic spelling of one lexical
@@ -1153,6 +1368,26 @@ class UniversalMalteseSpellchecker:
         fixed_time = self._fixed_time_expression_word(normalized)
         if fixed_time is not None:
             add_unique(basic_candidates, fixed_time)
+
+        # Lexicalized expressions have their own bounded spelling space.
+        # Admit a verified canonical form before generic anchors score an
+        # unrelated word.
+        lexicalized_forms = self._lexicalized_form_variants(normalized)
+        if lexicalized_forms:
+            add_unique(basic_candidates, lexicalized_forms[0])
+            if lexicalized_forms[0] != normalized:
+                analysis.corrected = self._match_capitalisation(
+                    word,
+                    lexicalized_forms[0],
+                )
+                analysis.is_deterministic = True
+
+        contracted_fb = self._repair_contracted_fb_word(word)
+        if contracted_fb is not None:
+            contracted_word, _tail = contracted_fb
+            add_unique(basic_candidates, contracted_word)
+            analysis.corrected = self._match_capitalisation(word, contracted_word)
+            analysis.is_deterministic = True
 
         terminal_apostrophe = self._strict_terminal_apostrophe_match(normalized)
         if terminal_apostrophe is not None:
@@ -1168,9 +1403,30 @@ class UniversalMalteseSpellchecker:
         # Existing pattern rules remain useful only when they terminate on a
         # real lexical or generated verb surface.  Keeping that verification
         # here lets Phase Y use them without reopening fuzzy correction.
+        pattern_priority: str | None = None
         for candidate in self._pattern_repair_variants(normalized):
-            if candidate in self.dictionary_set or self._is_verb_tagged_word(candidate):
+            candidate_parts = candidate.split()
+            verified_pattern_candidate = (
+                candidate in self.dictionary_set
+                or self._is_verb_tagged_word(candidate)
+                or (
+                    len(candidate_parts) == 2
+                    and candidate_parts[0] in {"ħa", "se", "sa", "ma"}
+                    and self._is_verb_tagged_word(candidate_parts[1])
+                )
+            )
+            if verified_pattern_candidate:
                 add_unique(basic_candidates, candidate)
+                if len(candidate_parts) == 2:
+                    analysis.corrected = self._match_capitalisation(word, candidate)
+                    analysis.is_deterministic = True
+                if pattern_priority is None and (
+                    normalized == "tajru" or (
+                        "għ" in candidate
+                        and any(sequence in normalized for sequence in ("aj", "ej"))
+                    )
+                ):
+                    pattern_priority = candidate
 
         # Phase Y may compose a small number of independently safe spelling
         # operations, but it only keeps dictionary or generated-surface hits.
@@ -1206,6 +1462,18 @@ class UniversalMalteseSpellchecker:
             add_unique(basic_candidates, guttural_owm)
         for candidate in self._initial_i_variants(normalized):
             add_unique(basic_candidates, candidate)
+        # Initial n/m is a phonological assimilation: ``nmut`` and
+        # ``inmut`` may be the i-/non-i surfaces of a genuine mm- verb.
+        # The result remains dictionary/paradigm-gated before Phase Y uses it.
+        nm_variants: list[str] = []
+        if normalized.startswith("nm"):
+            nm_variants.append("mm" + normalized[2:])
+        elif normalized.startswith("inm"):
+            nm_variants.append("imm" + normalized[3:])
+        for candidate in nm_variants:
+            add_unique(basic_candidates, candidate)
+            analysis.corrected = self._match_capitalisation(word, candidate)
+            analysis.is_deterministic = True
         initial_i_imperfect = self._initial_i_imperfect_spelling_repair(normalized)
         if initial_i_imperfect is not None:
             add_unique(basic_candidates, initial_i_imperfect)
@@ -1214,6 +1482,15 @@ class UniversalMalteseSpellchecker:
             add_unique(basic_candidates, initial_i_form7)
         for candidate in self._suffix_repair_variants(normalized):
             add_unique(basic_candidates, candidate)
+        # F8 verbs with a final -a elide that vowel before the direct-object
+        # h suffix (xtra + h -> xtrah). Treat the compact surface as a valid
+        # generated form before the generic suffix generator restores -a.
+        if normalized.endswith("h") and len(normalized) > 3:
+            compact_base = normalized[:-1] + "a"
+            if any("-F8-" in tag for tag in self.word_tags.get(compact_base, ())):
+                add_unique(basic_candidates, normalized)
+                analysis.corrected = self._match_capitalisation(word, normalized)
+                analysis.is_deterministic = True
         suffix_generator = getattr(self, "suffix_generator", None)
         if suffix_generator is not None:
             suffix_surface = suffix_generator.correct_suffix(normalized)
@@ -1305,6 +1582,26 @@ class UniversalMalteseSpellchecker:
         initial_u_w = self._initial_u_to_w_repair(normalized)
         if initial_u_w is not None:
             add_unique(basic_candidates, initial_u_w)
+
+        # The aj/ej verb-family rules encode a targeted missing-guttural
+        # pattern. Keep that result ahead of a later generic doubling repair
+        # such as tajar -> tajjar.
+        if pattern_priority is not None:
+            analysis.corrected = self._match_capitalisation(word, pattern_priority)
+            analysis.is_deterministic = True
+
+        # Direct dictionary matches are the baseline correction. Later basic
+        # branches may still contribute alternatives, but they must not rewrite
+        # a valid lexical surface merely because an i/ie or suffix variant also
+        # exists (qisu -> qiesu was one such regression).
+        if (
+            normalized in self.dictionary_set
+            and normalized not in self.MANUAL_WORD_REPAIRS
+            and not self._ta_direct_object_gloss(normalized)
+            and not normalized.startswith("taj")
+        ):
+            analysis.corrected = self._match_capitalisation(word, normalized)
+            analysis.is_deterministic = True
 
         x_candidates = []
         for bucket in (basic_candidates, complex_candidates):
@@ -1532,7 +1829,10 @@ class UniversalMalteseSpellchecker:
             return analysis.corrected or word
         repaired_i = self._initial_i_surface_repair(normalized)
         if repaired_i and repaired_i != normalized:
-            return self._match_capitalisation(word, repaired_i)
+            repaired = self._match_capitalisation(word, repaired_i)
+            if word[:1].isupper():
+                repaired = self._capitalize_first_letter(repaired)
+            return repaired
         # An input i- surface can be the context-sensitive counterpart of a
         # dictionary ji- imperfect.  Keep it intact here; Phase Z selects i-
         # or ji- from the preceding corrected word.
@@ -1611,6 +1911,11 @@ class UniversalMalteseSpellchecker:
 
         add(analysis.corrected or analysis.normalized)
         for candidate in analysis.x_candidates:
+            add(candidate)
+        # Phase X keeps the canonical lexical form as its deterministic
+        # correction. Phase W is where the explicitly listed equivalent
+        # spellings belong, so expose them alongside that correction.
+        for candidate in self._lexicalized_form_variants(analysis.normalized):
             add(candidate)
         if len(seeded) < limit:
             for candidate in self._deterministic_suggestion_variants(
@@ -2447,9 +2752,16 @@ class UniversalMalteseSpellchecker:
                 with open(path, "r", encoding="utf-8") as handle:
                     for raw_line in handle:
                         line = raw_line.split("#", 1)[0].strip()
-                        if not line or "/" not in line:
+                        if not line:
                             continue
-                        entry, raw_tag = line.split("/", 1)
+                        if "/" in line:
+                            entry, raw_tag = line.split("/", 1)
+                        elif "NAME" in allowed:
+                            # Legacy name lists predate NAME/SNAME tags. They
+                            # remain authoritative for capitalised names.
+                            entry, raw_tag = line, "NAME"
+                        else:
+                            continue
                         normalized = self._normalize_word(entry.strip())
                         tag = raw_tag.strip().split("-", 1)[0].upper()
                         if (
@@ -3489,7 +3801,17 @@ class UniversalMalteseSpellchecker:
             # but they must not become a second fuzzy dictionary search.  A
             # nearby unrelated word must remain unresolved rather than being
             # rewritten to a lexicalized item.
-            if not exact_key_match:
+            near_lexicalized_match = (
+                best_distance <= 3
+                and any(
+                    len(word_key) >= 6
+                    and len(target_key) >= 4
+                    and word_key[:4] == target_key[:4]
+                    for word_key in word_keys
+                    for target_key in target_keys
+                )
+            )
+            if not exact_key_match and not near_lexicalized_match:
                 continue
 
             exact_canonical = int(normalized == canonical)
@@ -3646,11 +3968,6 @@ class UniversalMalteseSpellchecker:
         missing_gh_mperf = self._missing_gh_mperf_repair(normalized)
         if missing_gh_mperf:
             add(missing_gh_mperf)
-
-        if normalized.endswith("aw"):
-            cand = normalized[:-2] + "għu"
-            if cand in self.dictionary_set:
-                add(cand)
 
         for candidate in self.NUMBER_FORM_REPAIRS.get(normalized, ()):
             if candidate in self.dictionary_set:
@@ -4916,6 +5233,8 @@ class UniversalMalteseSpellchecker:
             return True
         if normalized in self.country_maltese_to_english:
             return True
+        if self._is_recognized_hyphenated_compound(normalized):
+            return True
         if self._valid_suffix_surface_candidates(normalized):
             return True
         return any(
@@ -4928,6 +5247,32 @@ class UniversalMalteseSpellchecker:
                 self._is_preposition_tagged_word(normalized),
             )
         )
+
+    def _is_recognized_hyphenated_compound(self, word: str) -> bool:
+        """Recognise verified fused function-word compounds such as bil-quddiem."""
+        normalized = self._normalize_word(word)
+        if normalized.count("-") != 1:
+            return False
+
+        prefix, tail = normalized.split("-", 1)
+        if not prefix or not tail or not self._valid_generated_surface(tail):
+            return False
+
+        # These fused prepositions can precede nominal, adjectival, adverbial,
+        # and prepositional lexical tails.  The tail is still verified, so this
+        # does not turn arbitrary hyphenated text into a recognised word.
+        if prefix in {"bil", "fil", "mal", "mill", "tal", "għall", "bħall"}:
+            return any(
+                (
+                    self._is_noun_tagged_word(tail),
+                    self._is_adjective_tagged_word(tail),
+                    self._is_adverb_tagged_word(tail),
+                    self._is_preposition_tagged_word(tail),
+                    self._is_pronoun_tagged_word(tail),
+                )
+            )
+
+        return False
 
     def _mark_unrecognized_tokens(self, tokens: list[dict]) -> None:
         bulk_mode = getattr(self._local, "bulk_mode", False)
@@ -7051,14 +7396,22 @@ class UniversalMalteseSpellchecker:
 
         article_rules = getattr(self, "article_phrase_rules", None)
         if article_rules is not None:
-            compact_article = article_rules.match_compact_definite_article(
-                normalized,
-                previous=None,
-            )
-            if compact_article is None:
-                compact_article = article_rules.match_compact_preposition_article(
-                    normalized,
+            compact_article = None
+            if not (
+                "-" not in normalized
+                and normalized.startswith(("bix", "fix"))
+                or (
+                    normalized.startswith("inm")
                 )
+            ):
+                compact_article = article_rules.match_compact_definite_article(
+                    normalized,
+                    previous=None,
+                )
+                if compact_article is None:
+                    compact_article = article_rules.match_compact_preposition_article(
+                        normalized,
+                    )
             if compact_article is not None:
                 corrected = self._match_capitalisation(
                     word,
@@ -7864,6 +8217,17 @@ class UniversalMalteseSpellchecker:
 
         lexicalized_forms = self._lexicalized_form_variants(normalized)
         trusted_generated.update(self._normalize_word(candidate) for candidate in lexicalized_forms)
+        for lexicalized in lexicalized_forms:
+            add_generated(lexicalized)
+            # Alternatives here are an explicit, bounded lexical rule (for
+            # example bilqiegħda / bil-qiegħda), not a fuzzy candidate. Keep
+            # them even when the general whole-word plausibility guard rejects
+            # the spacing or hyphen difference.
+            lexicalized_norm = self._normalize_word(lexicalized)
+            if lexicalized_norm and lexicalized_norm not in suggestions:
+                suggestions.append(lexicalized_norm)
+            if len(suggestions) >= limit:
+                return suggestions[:limit]
 
         force_pre_exact_repair = (
             normalized in self.dictionary_set
@@ -8663,6 +9027,8 @@ class UniversalMalteseSpellchecker:
         }
         if normalized in pronoun_meanings:
             return pronoun_meanings[normalized]
+        if normalized.startswith("m'") and normalized[2:] in pronoun_meanings:
+            return f"not {pronoun_meanings[normalized[2:]]}"
         if normalized == "ħu":
             return "brother, male sibling"
         if normalized == "ħi":
@@ -8899,7 +9265,10 @@ class UniversalMalteseSpellchecker:
         # A validated possessive surface is already a complete lexical form.
         # Keeping fuzzy neighbours here produced false alternatives such as
         # ``kazzu`` for the possessive noun ``kasu``.
-        if self._correct_noun_possessive_suffix(corrected_norm) == corrected_norm:
+        if (
+            len(self._graphemes(corrected_norm)) >= 4
+            and self._correct_noun_possessive_suffix(corrected_norm) == corrected_norm
+        ):
             return self._finalize_ambiguity_choices(
                 original_word,
                 corrected_norm,
@@ -9117,7 +9486,11 @@ class UniversalMalteseSpellchecker:
 
         tokens: list[dict] = []
         corrected_parts: list[str] = []
-        quote_matches = list(self.ENGLISH_QUOTES_PATTERN.finditer(text))
+        quote_matches = [
+            quote
+            for quote in self.ENGLISH_QUOTES_PATTERN.finditer(text)
+            if not (quote.start() > 0 and text[quote.start() - 1].isalpha())
+        ]
 
         word_matches = []
         for m in self.WORD_PATTERN.finditer(text):
@@ -9275,6 +9648,32 @@ class UniversalMalteseSpellchecker:
             )
             after_punctuation_initial_vowel = False
 
+            if original_norm.startswith("x'"):
+                corrected_x = self.correct_word(original_word)
+                if self._normalize_word(corrected_x) != original_norm:
+                    surface_x = self._apply_surface_case(
+                        original_word,
+                        corrected_x,
+                        sentence_initial=sentence_initial,
+                    )
+                    tokens.append(
+                        {
+                            "type": "word",
+                            "original": original_word,
+                            "corrected": surface_x,
+                            "meaning": "",
+                            "ambiguous": False,
+                            "crucial": False,
+                            "choices": [],
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(surface_x)
+                    previous_surface_word = self._normalize_word(surface_x)
+                    last_end = match.end()
+                    index += 1
+                    continue
+
             # ``għal xi`` is a live two-word phrase, never the assimilated
             # article ``għax-``. Resolve the tail first and preserve the
             # phrase before generic article parsing sees the leading token.
@@ -9303,6 +9702,82 @@ class UniversalMalteseSpellchecker:
                 last_end = matches[index + 1].end()
                 index += 2
                 continue
+
+            # The negative particle remains bare before consonant-initial
+            # words. It contracts only before a vowel/guttural or an
+            # explicitly parsed article, never through generic h insertion.
+            if original_norm == "ma" and index + 1 < len(matches):
+                next_norm = self._normalize_word(matches[index + 1].group(0))
+                article_heads = {
+                    "l", "il", "ic", "iċ", "id", "in", "ir", "is",
+                    "it", "ix", "iz", "iż", "d", "n", "r", "s", "t", "x", "z", "ż",
+                }
+                if (
+                    next_norm not in article_heads
+                    and not next_norm.startswith(("għ", "gh", "h"))
+                    and not (next_norm and next_norm[0] in self.VOWELS)
+                ):
+                    corrected_ma = self._apply_surface_case(
+                        original_word,
+                        "ma",
+                        sentence_initial=sentence_initial,
+                    )
+                    tokens.append(
+                        {
+                            "type": "word",
+                            "original": original_word,
+                            "corrected": corrected_ma,
+                            "meaning": "",
+                            "ambiguous": False,
+                            "crucial": False,
+                            "choices": [],
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(corrected_ma)
+                    previous_surface_word = "ma"
+                    last_end = match.end()
+                    index += 1
+                    continue
+
+            # Bare f/b before a noun or possessive surface is the apostrophe
+            # preposition. Do not route it through verb suffix recovery.
+            if original_norm in {"f", "b"} and index + 1 < len(matches):
+                next_word = matches[index + 1].group(0)
+                next_norm = self._normalize_word(next_word)
+                possessive_endings = ("i", "ek", "ok", "u", "ha", "na", "kom", "hom")
+                noun_like_tail = (
+                    self._is_noun_tagged_word(next_norm)
+                    or self._correct_noun_possessive_suffix(next_norm) == next_norm
+                    or next_norm.endswith(possessive_endings)
+                )
+                if noun_like_tail and not self._is_verb_tagged_word(next_norm):
+                    corrected_phrase = self._apply_surface_case(
+                        original_word,
+                        f"{original_norm}'{next_norm}",
+                        sentence_initial=sentence_initial,
+                    )
+                    tokens.append(
+                        {
+                            "type": "phrase",
+                            "original": text[match.start() : matches[index + 1].end()],
+                            "corrected": corrected_phrase,
+                            "ambiguous": False,
+                            "crucial": False,
+                            "choices": [
+                                {
+                                    "word": corrected_phrase,
+                                    "meaning": self.meaning_for(next_norm),
+                                }
+                            ],
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(corrected_phrase)
+                    previous_surface_word = next_norm
+                    last_end = matches[index + 1].end()
+                    index += 2
+                    continue
 
             # ``li`` is a relative pronoun before a verb, not a shortened
             # article. This early guard retains a corrected verb surface.
@@ -12041,7 +12516,17 @@ class UniversalMalteseSpellchecker:
                     original_word,
                     previous=previous_word,
                 )
-                if original_norm not in self.dictionary_set:
+                # bix-/fix- are compact assimilated prepositions.  Their
+                # verified x-tail repair is handled by Phase X; parsing them
+                # here first would incorrectly split bixiraq as "bi xieraq".
+                if (
+                    "-" not in original_norm
+                    and original_norm.startswith(("bix", "fix"))
+                ) or (
+                    original_norm.startswith("inm")
+                ):
+                    article_match = None
+                elif original_norm not in self.dictionary_set:
                     article_match = article_match or article_rules.match_compact_preposition_article(
                         original_word,
                     )
@@ -12141,7 +12626,13 @@ class UniversalMalteseSpellchecker:
                         index += 1
                         continue
 
-            if fused_preposition_rules is not None:
+            if (
+                fused_preposition_rules is not None
+                and not (
+                    "-" not in original_norm
+                    and original_norm.startswith(("bix", "fix"))
+                )
+            ):
                 fused_match = fused_preposition_rules.match(original_word)
 
                 if fused_match is not None:
@@ -12223,6 +12714,8 @@ class UniversalMalteseSpellchecker:
                         sentence_initial
                         and self._is_initial_capitalized(original_word)
                         and self._capitalized_name_kind(original_word)
+                        and self._initial_i_surface_repair(original_norm) is None
+                        and not original_norm.startswith("x'")
                     )
                     else self.correct_word(original_word)
                 )
