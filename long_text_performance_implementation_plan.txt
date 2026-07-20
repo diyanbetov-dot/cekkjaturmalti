@@ -1,150 +1,406 @@
-Implementation Plan: Long-Text Spellchecker Performance
+# Long-Text Spellchecker Performance Plan
 
-Goal
+## Goal
 
-Reduce long-text requests from the current 50-65 second range to a bounded
+Reduce long-text requests from the observed 50-65 second range to a bounded
 few-second response without weakening deterministic Maltese corrections,
-grammar rules, crucial suggestions, or displayed meanings.
+grammar rules, crucial suggestions, displayed meanings, capitalization,
+punctuation, or red unresolved-word behaviour.
 
-Current Code Structure and Main Cost Centres
+This plan treats correctness as the contract. Performance changes must make the
+same linguistic work cheaper and more bounded, not silently lower quality.
 
-- correct_text_rich in Essentials/app.py already resets request-local token
-  and suggestion caches, enables bulk mode, tokenises text, applies phrases,
-  and builds rich frontend tokens.
-- correct_word runs the X/Y/Z correction pipeline for each word.
-- suggest runs the W-stage alternative/suggestion work.
-- _get_candidates_cached still has a length-based fallback that iterates the
-  dictionary when anchor candidates are scarce.
-- Long texts can repeatedly trigger candidate generation, suffix analysis,
-  phrase logic, and suggestion work for words which do not need a visible
-  alternative.
+## 1. Stabilize Correctness First
 
-Phase 1: Establish a Performance and Quality Baseline
+Fix all remaining phrase-boundary and related correctness regressions, then run
+the full existing test suite.
 
-1. Add structured timing/counter instrumentation for each request:
-   - word count and unique normalized token count;
-   - correct_word, suggest, phrase-rule, suffix, and meaning timings;
-   - anchor candidate counts and dictionary-fallback counts;
-   - cache hit/miss counts.
-2. Add the supplied long supermarket/toilet text as a performance fixture.
-3. Preserve existing short-word, paragraph, grammar, suggestion, and UI
-   regression tests as quality snapshots.
-4. Record corrected text, suggestions, crucial flags, meanings, and
-   unrecognized flags for each snapshot before optimisation.
+Review and approve the corrected outputs before freezing them. Do not preserve
+known incorrect behaviour merely because it existed before optimization.
 
-Solves:
-- Identifies the actual bottleneck rather than guessing.
-- Prevents performance work from silently reducing linguistic quality.
+Freeze the approved outputs into rich-token regression snapshots covering:
 
-Phase 2: Make Deterministic Work Cheap
+- corrected text;
+- token boundaries;
+- choices and suggestions;
+- meanings;
+- crucial flags;
+- grammar findings and safe rewrites;
+- unrecognized state;
+- capitalization and punctuation;
+- phrase and article behaviour.
 
-1. Reuse request-local TokenAnalysis for every repeated normalized token.
-2. Reuse context-independent suffix and candidate analysis within a request.
-3. Do not call suggest merely because correct_word changed a word.
-4. Generate alternatives only where multiple verified corrections exist.
-5. Reuse phrase/article results instead of repeating correction for words
-   already analysed in the same request.
+Treat this approved snapshot suite as the linguistic quality contract throughout
+optimization. Any intentional output change must be documented and approved
+rather than silently updating the snapshot.
 
-Solves:
-- Repeated words such as il, ghax, trolley, partner, and common articles no
-  longer pay for the full analysis repeatedly.
-- Maintains the existing X/Y/Z correction behaviour.
-- Avoids unnecessary W-stage work while keeping true ambiguity visible.
+## 2. Profile the Real Bottleneck
 
-Phase 3: Bound and Accelerate Fuzzy Candidate Search
+Extend the existing `RequestProfiler`; do not create a separate profiling
+system.
 
-1. Add RapidFuzz as the native accelerated distance/ranking backend.
-2. Keep current Maltese anchor buckets, special-character restrictions,
-   consonant rules, and suffix verification as the source of truth.
-3. Replace only slow Python Damerau-Levenshtein comparison/ranking paths.
-4. Use strict score cutoffs and hard candidate limits.
-5. Stop candidate search as soon as a verified close correction wins.
-6. Keep W-stage fuzzy output as suggestions only; never allow it to silently
-   replace a word with a distant candidate.
+For each request, measure:
 
-Solves:
-- Unknown/noisy tokens no longer trigger broad slow scans.
-- Retains existing linguistic safeguards and correction quality.
-- Makes candidate ranking fast without relying on a generic English checker.
+- total request duration;
+- total and unique normalized token counts;
+- repeated-token cache hits and misses;
+- time spent in `correct_word`;
+- time spent in `suggest`;
+- dictionary entries inspected;
+- anchor entries inspected;
+- candidate counts;
+- candidates scored;
+- distance calls;
+- suffix work;
+- phrase work;
+- X-, Y-, Z-, and W-stage calls;
+- grammar analysis and rewrite passes;
+- meaning lookups;
+- rich-token construction time;
+- the five slowest unique tokens, including their slowest stages.
 
-Phase 4: Remove Full-Dictionary Fallback Scans
+Count entries inspected separately from candidates returned. Returning only 32
+candidates does not prove that only 32 dictionary entries were examined.
 
-1. Build immutable startup indexes for:
-   - consonant anchors;
-   - word length plus initial letter;
-   - special-character-normalized forms;
-   - paradigm/verb root groups where useful.
-2. Replace the loop across self.dictionary in _get_candidates_cached with
-   bounded lookup in the relevant prebuilt bucket.
-3. Optionally evaluate marisa-trie for the immutable exact dictionary and
-   prefix lookups, primarily to lower memory use.
-4. Keep the ordinary Python set/dict indexes if benchmarks show they are
-   faster for the frequent exact lookup path.
+Repair any recoverable CP1252/UTF-8 mojibake in supplied benchmark text with
+`Other/tools/repair_mojibake.py`, verify the Maltese letters, then save the
+fixture as UTF-8.
 
-Solves:
-- Removes the main worst-case path for one unfamiliar word.
-- Reduces Cloud Run memory pressure without sacrificing dictionary coverage.
+Add the exact long paragraph that currently takes approximately 50-65 seconds
+as a benchmark fixture.
 
-Phase 5: Give Long Text Its Own Safe Execution Policy
+Benchmark it through:
 
-1. Define a clear long-text threshold based on word count, not characters.
-2. For long text, retain every X/Y/Z deterministic correction path.
-3. Run W only for:
-   - unrecognized words;
-   - crucial ambiguities;
-   - tokens with two or more verified close alternatives.
-4. Generate meanings only for alternatives that will actually be displayed.
-5. Put a small budget on expensive work per unique unresolved token.
-6. When the budget is exhausted, leave a genuinely unresolved word red rather
-   than attempting a distant or low-quality correction.
+1. the internal correction function;
+2. the local Flask endpoint;
+3. the deployed Cloud Run candidate revision.
 
-Solves:
-- Long posts retain spelling and grammar correction quality.
-- Low-value popovers no longer consume most of the request time.
-- Prevents one bad token from causing a gateway timeout.
+Keep Netlify or other external routing latency separate from
+correction-processing time.
 
-Phase 6: Optional Fixed-Rule Accelerator
+Perform one warm-up run followed by at least five measured local runs. Record
+best, median, mean, and worst durations before making performance changes.
 
-1. Evaluate pyahocorasick for large exact sets of manual spellings,
-   contractions, lexicalized expressions, and fixed multiword phrases.
-2. Build and serialise the automaton at startup.
-3. Use it only for deterministic exact-rule detection before ordinary word
-   analysis.
-4. Do not use it to replace morphology, suffix generation, or grammar rules.
+## 3. Remove Unbounded Retrieval
 
-Solves:
-- Finds many known fixed patterns in a single pass.
-- Keeps manual/lexical rules fast as their data files grow.
+Replace the request-time fallback iteration over `self.dictionary` with
+immutable startup-built indexes based on:
 
-Phase 7: Sentence Parallelism Only After Bounding Per-Token Work
+- Maltese grapheme length;
+- initial grapheme;
+- compatible special-character-normalized form;
+- optionally the first two graphemes where useful.
 
-1. Split text at existing sentence boundaries.
-2. Preserve boundary-sensitive context, capitalization, and punctuation.
-3. Process only independent sentence chunks with a small bounded executor.
-4. Merge tokens and corrected text in original order.
-5. Benchmark one worker, two workers, and the Cloud Run CPU allocation before
-   enabling it by default.
+Retrieve only plausible bounded buckets, normally covering the input grapheme
+length and neighbouring lengths permitted by the existing correction rules.
 
-Solves:
-- Improves throughput on multi-core Cloud Run instances.
-- Avoids memory multiplication and CPU contention from unbounded workers.
+Replace broad `anchor_map` traversal with:
 
-Verification Criteria
+- directly generated one-edit anchors;
+- bounded anchor buckets based on grapheme length and compatible initial
+  structure;
+- existing Maltese linguistic restrictions.
 
-1. All correction/grammar/suggestion regression snapshots retain their output.
-2. The supplied long text completes locally and on Cloud Run within the chosen
-   gateway limit.
-3. No request performs a whole-dictionary scan for each unrecognized token.
-4. The service remains below its deployment memory limit.
-5. The frontend still displays crucial suggestions and red unrecognized words
-   correctly.
+Enforce hard limits for:
 
-Recommended Implementation Order
+- buckets inspected;
+- dictionary entries inspected;
+- anchors inspected;
+- raw candidates collected;
+- candidates scored.
 
-1. Phase 1: profiling and baseline.
-2. Phase 2: cache and suggestion gating.
-3. Phase 4: bounded candidate indexes.
-4. Phase 3: RapidFuzz integration and comparison benchmarks.
-5. Phase 5: long-text policy.
-6. Phase 6: optional Aho-Corasick optimisation.
-7. Phase 7: optional sentence-level parallelism.
+Add test assertions proving that no ordinary or long-text request scans the
+complete dictionary or complete anchor map.
+
+## 4. Consolidate Existing X/Y/Z/W Analysis
+
+Keep one immutable, context-independent lexical `TokenAnalysis` per normalized
+token per request.
+
+Normalize cache keys consistently for:
+
+- case;
+- Unicode form;
+- apostrophe variants;
+- Maltese special characters;
+- other existing equivalent input forms.
+
+Reuse:
+
+- exact dictionary lookup;
+- candidate retrieval;
+- candidate distance results;
+- suffix analysis;
+- morphology;
+- verified lexical corrections.
+
+Keep the following outside the normalized lexical cache:
+
+- original capitalization;
+- sentence-initial status;
+- punctuation;
+- token position;
+- neighbouring-token context;
+- phrase logic;
+- articles and prepositions;
+- `i-`/`u-` contextual state;
+- grammar context;
+- final surface formatting.
+
+Reuse phrase results when a phrase rule has already consumed or resolved
+tokens. Do not send consumed tokens through the complete independent correction
+pipeline again unless a later stage genuinely requires it.
+
+Avoid unnecessary deep copies where cached analysis is immutable.
+
+## 5. Gate Expensive Suggestions and Meanings
+
+Keep deterministic X/Y/Z correction behaviour unchanged.
+
+Run the W stage only when at least one of these applies:
+
+- the word remains unresolved;
+- a crucial ambiguity applies;
+- an explicit suggestion override exists;
+- two or more verified close candidates exist;
+- a known ambiguity rule requires visible alternatives.
+
+Do not run W merely because the automatic correction differs from the original
+token.
+
+W-stage fuzzy results must remain suggestions only and must never silently
+replace a word with a distant or weakly supported candidate.
+
+Compute meanings only after the final visible choice list has been selected.
+
+Bound:
+
+- candidates scored;
+- choices displayed;
+- meaning lookups.
+
+Preserve every known crucial alternative and its displayed meaning.
+
+## 6. Consolidate Grammar Work
+
+Ensure the full grammar analysis normally runs once per corrected request.
+
+Reuse the resulting findings for:
+
+- safe rewrite selection;
+- token metadata;
+- frontend grammar information;
+- diagnostics.
+
+Do not analyse the complete unchanged text repeatedly inside separate grammar
+methods.
+
+When post-rewrite validation is necessary, revalidate only:
+
+- affected sentences;
+- affected token ranges;
+- affected rule families.
+
+Profile full grammar passes separately from limited post-rewrite validation.
+
+Add an assertion or profiler warning when an ordinary request unexpectedly
+performs multiple full-text grammar analyses.
+
+## 7. Integrate RapidFuzz Carefully
+
+Add RapidFuzz behind a feature flag only after candidate retrieval has been
+bounded.
+
+If comparison confirms that the current custom distance function implements
+Optimal String Alignment, use RapidFuzz `OSA.distance`, not a different generic
+Damerau-Levenshtein implementation.
+
+Pass the existing Maltese grapheme sequence rather than raw characters so units
+such as `għ` retain their present treatment.
+
+Compare the old and new implementations across all snapshots for:
+
+- distance values;
+- score cutoffs;
+- transpositions;
+- apostrophes;
+- Maltese special characters;
+- candidate ordering;
+- chosen corrections;
+- displayed alternatives.
+
+Use RapidFuzz only to calculate or rank distances within a small verified
+candidate pool.
+
+Apply strict score cutoffs and hard candidate limits.
+
+Retain the existing implementation behind the feature flag until output and
+ranking equivalence have been demonstrated.
+
+## 8. Strengthen the Existing Long-Text Mode
+
+Extend the current bulk mode rather than creating a separate spellchecker.
+
+Long-text processing must preserve:
+
+- exact recognition;
+- manual deterministic corrections;
+- all X/Y/Z corrections;
+- phrase rules;
+- suffix and morphology rules;
+- grammar rules and safe rewrites;
+- crucial choices;
+- meanings for displayed choices;
+- red unresolved words.
+
+Add deterministic operation budgets per unique unresolved token, such as:
+
+- maximum dictionary entries inspected;
+- maximum anchor entries inspected;
+- maximum candidate buckets;
+- maximum candidates scored;
+- maximum distance calls.
+
+Prefer operation-count budgets over wall-clock cutoffs because they are
+deterministic and testable.
+
+When the budget is exhausted, leave the token unresolved and red rather than
+selecting a weak correction.
+
+One pathological token must not cause the rest of the paragraph to approach the
+gateway timeout.
+
+## 9. Evaluate Optional Packages Only After Measurement
+
+Evaluate these only when profiling after the main changes still demonstrates a
+need.
+
+### `marisa-trie`
+
+Benchmark it for immutable prefix indexes and memory reduction.
+
+Retain Python sets and dictionaries for hot exact membership paths when they
+remain faster.
+
+### `pyahocorasick`
+
+Use it only for large fixed collections of:
+
+- exact replacements;
+- lexicalized forms;
+- contractions;
+- fixed multiword patterns.
+
+Do not use it to replace morphology, suffix generation, contextual grammar, or
+fuzzy correction.
+
+### Sentence Parallelism
+
+Consider it only after the single-request path has bounded per-token work and
+the deployed Cloud Run instance has useful multi-core CPU capacity.
+
+Verify:
+
+- phrase-boundary correctness;
+- sentence-boundary context;
+- deterministic output ordering;
+- cache safety;
+- memory use;
+- actual speed improvement.
+
+Do not assume Python threads will accelerate Python-heavy processing.
+
+## 10. Deployment Verification
+
+Use a candidate deployment path for Cloud Run performance verification:
+
+1. Commit the candidate implementation locally.
+2. Push it to a temporary candidate branch, for example
+   `codex/long-text-performance`.
+3. Build and deploy a Cloud Run candidate revision from that exact commit or
+   image.
+4. Route either no production traffic or a tiny controlled percentage to the
+   candidate revision.
+5. Benchmark the candidate revision directly.
+6. Promote the exact verified commit to `main` only after the local and Cloud
+   Run results are accepted.
+
+This avoids the impossible requirement of benchmarking a deployed `main` build
+before pushing the changes that Cloud Run needs in order to deploy them.
+
+Benchmark warm and cold Cloud Run requests:
+
+- one request at a time;
+- several concurrent requests;
+- ordinary short input;
+- the real long fixture;
+- an adversarial unresolved-token fixture.
+
+Verify:
+
+- the actual Docker startup command;
+- whether `gunicorn.conf.py` is used;
+- worker count;
+- thread count;
+- Cloud Run CPU allocation;
+- memory allocation;
+- request concurrency;
+- timeout;
+- cold-start time;
+- warm processing time;
+- peak memory under concurrent long requests.
+
+Do not increase workers, threads, CPU, memory, or timeout as a substitute for
+removing unbounded request-time work.
+
+Confirm that the long fixture remains safely below the gateway timeout and that
+concurrent requests do not produce unstable memory use.
+
+## 11. Finish and Report
+
+Run every correction, grammar, frontend-token, and performance regression test.
+
+Report:
+
+- baseline and final timings;
+- best, median, mean, and worst durations;
+- internal function time;
+- local endpoint time;
+- deployed Cloud Run candidate-revision time;
+- dictionary entries inspected before and after;
+- anchor entries inspected before and after;
+- candidate and distance-call counts;
+- W-stage calls before and after;
+- grammar passes before and after;
+- cache hits and misses;
+- peak memory;
+- the slowest remaining tokens and stages;
+- all output changes;
+- remaining performance limitations.
+
+Commit and push to `main` only after:
+
+- the complete regression suite passes;
+- snapshot differences are reviewed;
+- the local benchmark is recorded;
+- the Cloud Run candidate revision benchmark is recorded;
+- no full dictionary or anchor-map scan occurs.
+
+## Definition of Done
+
+The work is complete when:
+
+- the approved correctness snapshots pass;
+- the real long paragraph is reduced from the observed 50-65 second range to
+  the best safely achievable few-second range;
+- deterministic corrections and grammar behaviour are preserved;
+- crucial alternatives and their visible meanings remain available;
+- genuinely unresolved words remain red;
+- repeated normalized tokens reuse lexical analysis;
+- no request scans the complete dictionary;
+- no request scans the complete anchor map;
+- expensive W-stage work runs only when visible alternatives are needed;
+- grammar analysis is not unnecessarily repeated;
+- one pathological token cannot cause the entire request to time out;
+- Cloud Run memory remains stable under concurrent testing;
+- local and deployed results are documented.

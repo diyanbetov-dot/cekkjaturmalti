@@ -111,6 +111,7 @@ class MalteseVerbFormIndex:
         self.by_short_tag: dict[str, list[VerbFormRecord]] = defaultdict(list)
         self.by_anchor: dict[str, list[VerbFormRecord]] = defaultdict(list)
         self.by_anchor_length: dict[int, list[str]] = defaultdict(list)
+        self.by_anchor_bucket: dict[tuple[str, int], list[str]] = defaultdict(list)
 
         self.load()
 
@@ -261,6 +262,7 @@ class MalteseVerbFormIndex:
         self.by_short_tag.clear()
         self.by_anchor.clear()
         self.by_anchor_length.clear()
+        self.by_anchor_bucket.clear()
 
         for verbs_file in self.verbs_files:
             if not verbs_file.exists():
@@ -345,6 +347,8 @@ class MalteseVerbFormIndex:
         anchor = self.consonant_anchor(record.word)
         if anchor not in self.by_anchor:
             self.by_anchor_length[len(anchor)].append(anchor)
+            if anchor:
+                self.by_anchor_bucket[(anchor[0], len(anchor))].append(anchor)
         self.by_anchor[anchor].append(record)
 
     def iter_records(self):
@@ -436,9 +440,19 @@ class MalteseVerbFormIndex:
         candidate_anchors: list[str] = []
         for length in range(len(anchor) - max_distance, len(anchor) + max_distance + 1):
             if length >= 0:
-                candidate_anchors.extend(self.by_anchor_length.get(length, []))
+                if anchor[:1]:
+                    candidate_anchors.extend(
+                        self.by_anchor_bucket.get((anchor[0], length), [])
+                    )
+                else:
+                    candidate_anchors.extend(self.by_anchor_length.get(length, []))
 
+        inspected = 0
+        inspection_limit = max(160, max_records * 4)
         for known_anchor in candidate_anchors:
+            inspected += 1
+            if inspected > inspection_limit:
+                break
             records = self.by_anchor[known_anchor]
             if max_distance == 1:
                 s1, s2 = anchor, known_anchor

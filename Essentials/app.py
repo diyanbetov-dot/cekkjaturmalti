@@ -352,6 +352,7 @@ class UniversalMalteseSpellchecker:
         "preżentuzi": "preżentużi",
         "presentużi": "preżentużi",
         "prezentużi": "preżentużi",
+        "ala": "għala",
         "anna": "għandna",
         "alla": "għala",
         "ghanna": "għandna",
@@ -627,6 +628,7 @@ class UniversalMalteseSpellchecker:
         "m’hawx": "m'hawnx",
         "m’hawnx": "m'hawnx",
         "m'hawnx": "m'hawnx",
+        "ala": "għala",
         "hadd": "ħadd",
         "alla": "għala",
         "principju": "prinċipju",
@@ -725,12 +727,15 @@ class UniversalMalteseSpellchecker:
 
         # consonant anchor -> surface forms
         self.anchor_map: dict[str, list[str]] = defaultdict(list)
+        self.anchor_buckets: dict[tuple[str, int], list[str]] = defaultdict(list)
         self.anchor_letters: tuple[str, ...] = ()
 
         # Cached metadata
         self.word_lengths: dict[str, int] = {}
         self.word_vowel_counts: dict[str, int] = {}
         self.word_anchors: dict[str, str] = {}
+        self.word_candidate_buckets: dict[tuple[str, int], list[str]] = defaultdict(list)
+        self.word_normalized_buckets: dict[tuple[str, int], list[str]] = defaultdict(list)
         self._missing_h_verb_repairs: dict[str, str] | None = None
 
         raw_entries: list[tuple[str, str | None]] = []
@@ -1107,6 +1112,14 @@ class UniversalMalteseSpellchecker:
             analysis.corrected = self._match_capitalisation(word, manual_repair)
             analysis.is_deterministic = True
 
+        if normalized.startswith("l'") and len(normalized) > 2:
+            tail = normalized[2:]
+            if tail and tail[0] in self.VOWELS and self._is_probable_noun(tail):
+                article_surface = "l-" + tail
+                add_unique(basic_candidates, article_surface)
+                analysis.corrected = self._match_capitalisation(word, article_surface)
+                analysis.is_deterministic = True
+
         # Explicitly approved lexical exception: unlike the unrelated verb
         # ``qass``, this discourse particle always expands to ``lanqas``.
         if normalized in {"qas", "qass"}:
@@ -1435,8 +1448,36 @@ class UniversalMalteseSpellchecker:
         # This is intentionally not a replacement table: it applies the same
         # bounded operations to every unrecognised word.
         if fixed_time is None and self._has_basic_repair_cue(normalized):
-            for candidate in self._dictionary_verified_basic_repairs(normalized):
+            verified_basic_repairs = self._dictionary_verified_basic_repairs(normalized)
+            for candidate in verified_basic_repairs:
                 add_unique(basic_candidates, candidate)
+            if verified_basic_repairs:
+                current_norm = self._normalize_word(analysis.corrected)
+                first_repair = self._normalize_word(verified_basic_repairs[0])
+                current_possessive_base = (
+                    self._noun_possessive_base_for_surface(current_norm)
+                    if current_norm
+                    else None
+                )
+                current_is_possessive = bool(
+                    current_possessive_base
+                    and len(self._letter_tokens(current_possessive_base)) >= 2
+                )
+                if (
+                    not current_norm
+                    or (
+                        not current_is_possessive
+                        and (
+                            current_norm not in self.dictionary_set
+                            or first_repair in self.dictionary_set
+                        )
+                    )
+                ):
+                    analysis.corrected = self._match_capitalisation(
+                        word,
+                        verified_basic_repairs[0],
+                    )
+                    analysis.is_deterministic = True
 
         # A missing għ can be the only error in a short verb form (alaqt ->
         # għalaqt), so do this small exact lookup even when the generic cue
@@ -1862,7 +1903,8 @@ class UniversalMalteseSpellchecker:
         valid_basic_candidates = []
         for candidate in analysis.basic_candidates:
             if candidate == normalized:
-                if self._correct_noun_possessive_suffix(normalized) == normalized:
+                possessive_base = self._noun_possessive_base_for_surface(normalized)
+                if possessive_base and len(self._letter_tokens(possessive_base)) >= 2:
                     return self._match_capitalisation(word, candidate)
                 continue
             if (
@@ -2237,10 +2279,33 @@ class UniversalMalteseSpellchecker:
             self.word_lengths[word] = len(tokens)
             self.word_vowel_counts[word] = sum(1 for t in tokens if t in self.VOWELS)
             self.word_anchors[word] = self._extract_consonant_anchor_from_tokens(tokens)
+            initial = tokens[0] if tokens else ""
+            if initial:
+                self.word_candidate_buckets[(initial, len(tokens))].append(word)
+            normalized_key = "".join(
+                (
+                    "h" if token == "ħ" else
+                    "z" if token == "ż" else
+                    "g" if token == "ġ" else
+                    "c" if token == "ċ" else
+                    "gh" if token == "ʕ" else
+                    token
+                )
+                for token in tokens
+            )
+            normalized_tokens = self._letter_tokens_raw(normalized_key)
+            normalized_initial = normalized_tokens[0] if normalized_tokens else initial
+            if normalized_initial:
+                self.word_normalized_buckets[
+                    (normalized_initial, len(normalized_tokens) or len(tokens))
+                ].append(word)
 
     def _build_anchor_index(self) -> None:
         for word in self.dictionary:
-            self.anchor_map[self.word_anchors[word]].append(word)
+            anchor = self.word_anchors[word]
+            self.anchor_map[anchor].append(word)
+            if anchor:
+                self.anchor_buckets[(anchor[0], len(anchor))].append(anchor)
         self.anchor_letters = tuple(
             sorted({char for anchor in self.anchor_map for char in anchor})
         )
@@ -2282,9 +2347,14 @@ class UniversalMalteseSpellchecker:
         verb_index = getattr(suffix_generator, "verb_index", None)
         if verb_index is not None and verb_index.word_records(normalized):
             return True
+        if (
+            suffix_generator is None
+            or not hasattr(suffix_generator, "might_have_suffix")
+            or not suffix_generator.might_have_suffix(normalized)
+        ):
+            return False
         return bool(
-            suffix_generator is not None
-            and suffix_generator.exact_suffix_matches(normalized)
+            suffix_generator.exact_suffix_matches(normalized)
         )
 
     def _is_adjective_tagged_word(self, word: str) -> bool:
@@ -4272,6 +4342,9 @@ class UniversalMalteseSpellchecker:
     ) -> list[str]:
         candidates: list[str] = []
         letters = self.anchor_letters
+        profiler = current_profiler()
+        anchors_inspected = 0
+        anchor_inspection_limit = 256
 
         for anchor in anchors:
             if max_anchor_distance == 1:
@@ -4283,18 +4356,40 @@ class UniversalMalteseSpellchecker:
                 edits = set([anchor] + deletes + transposes + replaces + inserts)
                 
                 for edit in edits:
+                    anchors_inspected += 1
+                    if anchors_inspected > anchor_inspection_limit:
+                        break
                     if edit in self.anchor_map:
                         candidates.extend(self.anchor_map[edit])
             else:
-                for known_anchor, words in self.anchor_map.items():
+                bucket_keys = [
+                    (anchor[:1], length)
+                    for length in range(
+                        max(0, len(anchor) - max_anchor_distance),
+                        len(anchor) + max_anchor_distance + 1,
+                    )
+                ]
+                known_anchors: list[str] = []
+                for key in bucket_keys:
+                    known_anchors.extend(self.anchor_buckets.get(key, []))
+                for known_anchor in self._deduplicate(known_anchors):
+                    anchors_inspected += 1
+                    if anchors_inspected > anchor_inspection_limit:
+                        break
                     if abs(len(known_anchor) - len(anchor)) > max_anchor_distance:
                         continue
                     dist = self._damerau_levenshtein_distance(
                         tuple(anchor), tuple(known_anchor)
                     )
                     if dist <= max_anchor_distance:
-                        candidates.extend(words)
-                        break
+                        candidates.extend(self.anchor_map.get(known_anchor, []))
+                if anchors_inspected > anchor_inspection_limit:
+                    break
+
+        if profiler is not None:
+            profiler.increment("anchor_entries_inspected", anchors_inspected)
+            if anchors_inspected >= anchor_inspection_limit:
+                profiler.increment("anchor_inspection_budget_exhausted")
 
         return candidates
 
@@ -4328,20 +4423,41 @@ class UniversalMalteseSpellchecker:
         # 4. Length fallback, kept narrow and capped hard to avoid
         # whole-dictionary scans dominating one bad guess.
         if len(candidates) < 8:
-            word_len = len(self._letter_tokens(normalized))
+            word_tokens = self._letter_tokens(normalized)
+            word_len = len(word_tokens)
             # Use gap of 1 (not max_distance) to stay tight.
             max_length_gap = 1
-            initial = normalized[:1]
+            initial = word_tokens[0] if word_tokens else ""
             fallback_limit = 32
+            inspection_limit = 256
+            profiler = current_profiler()
+            inspected = 0
+            bucket_candidates: list[str] = []
+            for length in range(
+                max(0, word_len - max_length_gap),
+                word_len + max_length_gap + 1,
+            ):
+                if initial:
+                    bucket_candidates.extend(
+                        self.word_candidate_buckets.get((initial, length), [])
+                    )
+                    bucket_candidates.extend(
+                        self.word_normalized_buckets.get((initial, length), [])
+                    )
 
-            for candidate in self.dictionary:
+            for candidate in self._deduplicate(bucket_candidates):
+                inspected += 1
+                if inspected > inspection_limit:
+                    break
                 if len(candidates) >= fallback_limit:
                     break
                 if abs(self.word_lengths[candidate] - word_len) > max_length_gap:
                     continue
-                if initial and candidate[:1] != initial:
-                    continue
                 add(candidate)
+            if profiler is not None:
+                profiler.increment("dictionary_entries_inspected", inspected)
+                if inspected >= inspection_limit:
+                    profiler.increment("dictionary_inspection_budget_exhausted")
 
         return tuple(candidates)
 
@@ -5018,10 +5134,10 @@ class UniversalMalteseSpellchecker:
     def _match_capitalisation(self, original: str, corrected: str) -> str:
         if original.isupper():
             return corrected.upper()
-        # A title-cased input is not proof of a proper name.  Names and places
-        # are protected by their tagged paths before correction; retaining
-        # title case here made ordinary mid-sentence corrections such as
-        # ``Ha`` remain incorrectly capitalised.
+        if original[:1].isupper():
+            return self._capitalize_first_letter(corrected)
+        # Direct word correction preserves title case. Rich-text correction can
+        # still lower ordinary mid-sentence words after context is known.
         return corrected
 
     def _capitalize_first_letter(self, word: str) -> str:
