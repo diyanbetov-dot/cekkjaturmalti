@@ -1,28 +1,29 @@
 [
   {
     "id": "memory_phrase",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "il-bajja għalqet għax sabu",
+      "corrected_text": "Il-bajja għalqet għax sabu.",
       "original_text": "l bajja alqet ax sabu",
       "tokens": [
         {
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "the bay",
-              "word": "il-bajja"
+              "meaning": "the bay, bight",
+              "word": "Il-bajja"
             },
             {
-              "meaning": "to a bay",
+              "meaning": "to a bay, bight",
               "word": "'l bajja"
             },
             {
-              "meaning": "to the bay",
+              "meaning": "to the bay, bight",
               "word": "'l-bajja"
             }
           ],
-          "corrected": "il-bajja",
+          "corrected": "Il-bajja",
           "crucial": true,
           "original": "l bajja",
           "type": "phrase"
@@ -35,9 +36,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "għalqet",
+          "meaning": "she closed or shuted down or expired (of time)",
           "name_like": false,
           "original": "alqet",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -47,9 +50,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "għax",
+          "meaning": "because",
           "name_like": false,
           "original": "ax",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -59,41 +64,41 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "sabu",
+          "meaning": "they found or discovered or realised",
           "name_like": false,
           "original": "sabu",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "required_phrase",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "agħlqu l-bajja għax sabu shark",
+      "corrected_text": "Agħlqu l-bajja għax sabu shark.",
       "original_text": "alqu l bajja ax sabu 'shark'",
       "tokens": [
         {
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "F1",
-              "word": "agħlqu"
+              "meaning": "you all, close or shut down or expire (of time) (command)",
+              "word": "Agħlqu"
             },
             {
-              "meaning": "F1",
-              "word": "għalqu"
-            },
-            {
-              "meaning": "they closed or shuted down or expired (of time) him",
-              "word": "għalquh"
+              "meaning": "they closed or shuted down or expired (of time)",
+              "word": "Għalqu"
             }
           ],
-          "corrected": "agħlqu",
+          "corrected": "Agħlqu",
+          "meaning": "you all, close or shut down or expire (of time) (command)",
           "name_like": false,
           "original": "alqu",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -103,15 +108,15 @@
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "the bay",
+              "meaning": "the bay, bight",
               "word": "l-bajja"
             },
             {
-              "meaning": "to a bay",
+              "meaning": "to a bay, bight",
               "word": "'l bajja"
             },
             {
-              "meaning": "to the bay",
+              "meaning": "to the bay, bight",
               "word": "'l-bajja"
             }
           ],
@@ -128,9 +133,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "għax",
+          "meaning": "because",
           "name_like": false,
           "original": "ax",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -143,7 +150,8 @@
           "crucial": false,
           "name_like": false,
           "original": "sabu",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -159,134 +167,138 @@
           "type": "english_phrase"
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "alqet",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "għalqet",
+      "corrected_text": "Għalqet.",
       "original_text": "alqet",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "għalqet",
+          "corrected": "Għalqet",
+          "meaning": "she closed or shuted down or expired (of time)",
           "name_like": false,
           "original": "alqet",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "alqu",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "agħlqu",
+      "corrected_text": "Agħlqu.",
       "original_text": "alqu",
       "tokens": [
         {
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "F1",
-              "word": "agħlqu"
+              "meaning": "you all, close or shut down or expire (of time) (command)",
+              "word": "Agħlqu"
             },
             {
-              "meaning": "F1",
-              "word": "għalqu"
-            },
-            {
-              "meaning": "they closed or shuted down or expired (of time) him",
-              "word": "għalquh"
+              "meaning": "they closed or shuted down or expired (of time)",
+              "word": "Għalqu"
             }
           ],
-          "corrected": "agħlqu",
+          "corrected": "Agħlqu",
+          "meaning": "you all, close or shut down or expire (of time) (command)",
           "name_like": false,
           "original": "alqu",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "ax",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "għax",
+      "corrected_text": "Għax.",
       "original_text": "ax",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "għax",
+          "corrected": "Għax",
+          "meaning": "because",
           "name_like": false,
           "original": "ax",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "l_bajja",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "il-bajja",
+      "corrected_text": "Il-bajja.",
       "original_text": "l bajja",
       "tokens": [
         {
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "the bay",
-              "word": "il-bajja"
+              "meaning": "the bay, bight",
+              "word": "Il-bajja"
             },
             {
-              "meaning": "to a bay",
+              "meaning": "to a bay, bight",
               "word": "'l bajja"
             },
             {
-              "meaning": "to the bay",
+              "meaning": "to the bay, bight",
               "word": "'l-bajja"
             }
           ],
-          "corrected": "il-bajja",
+          "corrected": "Il-bajja",
           "crucial": true,
           "original": "l bajja",
           "type": "phrase"
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "ghamililkom",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "g?mielilkom",
+      "corrected_text": "G?Mielilkom.",
       "original_text": "g?amililkom",
       "tokens": [
         {
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "letter",
-              "word": "g"
+              "meaning": "letter g",
+              "word": "G"
             },
             {
-              "meaning": "letter",
-              "word": "ġ"
+              "meaning": "letter ġ",
+              "word": "Ġ"
             }
           ],
-          "corrected": "g",
+          "corrected": "G",
+          "meaning": "letter g",
           "name_like": false,
           "original": "g",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": "?",
@@ -295,29 +307,33 @@
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "mielilkom",
+          "corrected": "Mielilkom",
+          "meaning": "he inclined your (plural)",
           "name_like": false,
           "original": "amililkom",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "introducieni",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "introdu?għgħieni",
+      "corrected_text": "Introdu?Ieni.",
       "original_text": "introdu?ieni",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "introdu",
+          "corrected": "Introdu",
+          "meaning": "",
           "name_like": false,
           "original": "introdu",
-          "type": "word"
+          "type": "word",
+          "unrecognized": true
         },
         {
           "text": "?",
@@ -326,29 +342,33 @@
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "għgħieni",
+          "corrected": "Ieni",
+          "meaning": "",
           "name_like": false,
           "original": "ieni",
-          "type": "word"
+          "type": "word",
+          "unrecognized": true
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "ibghatu",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "għib?agħtu",
+      "corrected_text": "Għib?Agħtu.",
       "original_text": "ibg?atu",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "għib",
+          "corrected": "Għib",
+          "meaning": "you, vanish (command)",
           "name_like": false,
           "original": "ibg",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": "?",
@@ -358,69 +378,71 @@
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "F1",
-              "word": "agħtu"
+              "meaning": "you all, give (command)",
+              "word": "Agħtu"
             },
             {
-              "meaning": "F1",
-              "word": "għatu"
-            },
-            {
-              "meaning": "F1 / F2",
-              "word": "għattu"
+              "meaning": "you all, refresh (when consuming food) or nourish (of food) (command) / they refreshed (when consuming food) or nourished (of food)",
+              "word": "Għatu"
             }
           ],
-          "corrected": "agħtu",
+          "corrected": "Agħtu",
+          "meaning": "you all, give (command)",
           "name_like": false,
           "original": "atu",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "amel",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "agħmel",
+      "corrected_text": "Agħmel.",
       "original_text": "amel",
       "tokens": [
         {
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "F1",
-              "word": "agħmel"
+              "meaning": "you, do or make (command)",
+              "word": "Agħmel"
             },
             {
-              "meaning": "F1",
-              "word": "għamel"
+              "meaning": "he did or made",
+              "word": "Għamel"
             }
           ],
-          "corrected": "agħmel",
+          "corrected": "Agħmel",
+          "meaning": "you, do or make (command)",
           "name_like": false,
           "original": "amel",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "correct_maltese",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "Jien inha?serb li dan huwa tajjeb.",
+      "corrected_text": "Jien nhar?Serb li dan huwa tajjeb.",
       "original_text": "Jien na?seb li dan huwa tajjeb.",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
           "corrected": "Jien",
-          "name_like": true,
+          "meaning": "I",
+          "name_like": false,
           "original": "Jien",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -429,10 +451,12 @@
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "inha",
+          "corrected": "nhar",
+          "meaning": "daytime",
           "name_like": false,
           "original": "na",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": "?",
@@ -441,10 +465,12 @@
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "serb",
+          "corrected": "Serb",
+          "meaning": "someone from Serbia",
           "name_like": false,
           "original": "seb",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -454,30 +480,25 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "li",
+          "meaning": "that, which",
           "name_like": false,
           "original": "li",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
           "type": "text"
         },
         {
-          "ambiguous": true,
-          "choices": [
-            {
-              "meaning": "this",
-              "word": "dan"
-            },
-            {
-              "meaning": "F1",
-              "word": "dann"
-            }
-          ],
+          "ambiguous": false,
+          "choices": [],
           "corrected": "dan",
+          "meaning": "this",
           "name_like": false,
           "original": "dan",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -487,9 +508,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "huwa",
+          "meaning": "he",
           "name_like": false,
           "original": "huwa",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -499,41 +522,45 @@
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "good / well",
+              "meaning": "good, right, correct / well",
               "word": "tajjeb"
             },
             {
-              "meaning": "F2 / F5",
+              "meaning": "you, be ridiculed or be overcast (command) / he was ridiculed or was overcast / you show contempt or show lack of respect / she shows contempt or shows lack of respect",
               "word": "tgħajjeb"
             }
           ],
           "corrected": "tajjeb",
+          "meaning": "good, right, correct / well",
           "name_like": false,
           "original": "tajjeb",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": ".",
           "type": "text"
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "semitic_verbs",
+    "status_code": 200,
     "json": {
-      "changed": false,
-      "corrected_text": "jikteb kitbu nikteb",
+      "changed": true,
+      "corrected_text": "Jikteb kitbu nikteb.",
       "original_text": "jikteb kitbu nikteb",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "jikteb",
+          "corrected": "Jikteb",
+          "meaning": "he writes or registers",
           "name_like": false,
           "original": "jikteb",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -543,9 +570,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "kitbu",
+          "meaning": "they wrote or registered",
           "name_like": false,
           "original": "kitbu",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -555,28 +584,32 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "nikteb",
+          "meaning": "I write or register",
           "name_like": false,
           "original": "nikteb",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "nonsemitic_verbs",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "pparkjajtu nipparkja pparkjaw",
+      "corrected_text": "Ipparkjajt nipparkja pparkjaw.",
       "original_text": "ipparkjajt nipparkja pparkjaw",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "pparkjajtu",
+          "corrected": "Ipparkjajt",
+          "meaning": "",
           "name_like": false,
           "original": "ipparkjajt",
-          "type": "word"
+          "type": "word",
+          "unrecognized": true
         },
         {
           "text": " ",
@@ -586,9 +619,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "nipparkja",
+          "meaning": "I park",
           "name_like": false,
           "original": "nipparkja",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -598,37 +633,41 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "pparkjaw",
+          "meaning": "they parked / you all, park (command)",
           "name_like": false,
           "original": "pparkjaw",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "suffixed_verbs",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "g?għamlilhom bgħal?tilakom rajtha",
+      "corrected_text": "G?Għamlilhom bgħal?Tilakom rajtha.",
       "original_text": "g?amlilhom bag?tilkom rajtha",
       "tokens": [
         {
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "letter",
-              "word": "g"
+              "meaning": "letter g",
+              "word": "G"
             },
             {
-              "meaning": "letter",
-              "word": "ġ"
+              "meaning": "letter ġ",
+              "word": "Ġ"
             }
           ],
-          "corrected": "g",
+          "corrected": "G",
+          "meaning": "letter g",
           "name_like": false,
           "original": "g",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": "?",
@@ -639,17 +678,19 @@
           "choices": [
             {
               "meaning": "he did or made their",
-              "word": "għamlilhom"
+              "word": "Għamlilhom"
             },
             {
               "meaning": "you, do or make their (command)",
-              "word": "agħmlilhom"
+              "word": "Agħmlilhom"
             }
           ],
-          "corrected": "għamlilhom",
+          "corrected": "Għamlilhom",
+          "meaning": "he did or made their",
           "name_like": false,
           "original": "amlilhom",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -659,9 +700,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "bgħal",
+          "meaning": "mules or bastards",
           "name_like": false,
           "original": "bag",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": "?",
@@ -670,10 +713,12 @@
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "tilakom",
+          "corrected": "Tilakom",
+          "meaning": "he varnished (of crockery) you all",
           "name_like": false,
           "original": "tilkom",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -683,41 +728,32 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "rajtha",
+          "meaning": "I saw or understood her / you saw or understood her",
           "name_like": false,
           "original": "rajtha",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "possessive_nouns",
+    "status_code": 200,
     "json": {
-      "changed": false,
-      "corrected_text": "dari ktiebek ommhom",
+      "changed": true,
+      "corrected_text": "Dari ktiebek ommhom.",
       "original_text": "dari ktiebek ommhom",
       "tokens": [
         {
-          "ambiguous": true,
-          "choices": [
-            {
-              "meaning": "house",
-              "word": "dari"
-            },
-            {
-              "meaning": "tender",
-              "word": "tari"
-            },
-            {
-              "meaning": "F1",
-              "word": "ddari"
-            }
-          ],
-          "corrected": "dari",
+          "ambiguous": false,
+          "choices": [],
+          "corrected": "Dari",
+          "meaning": "house or room / he resided / he turned or went round or roamed",
           "name_like": false,
           "original": "dari",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -727,9 +763,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "ktiebek",
+          "meaning": "book",
           "name_like": false,
           "original": "ktiebek",
-          "type": "word"
+          "type": "word",
+          "unrecognized": true
         },
         {
           "text": " ",
@@ -739,28 +777,32 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "ommhom",
+          "meaning": "mother",
           "name_like": false,
           "original": "ommhom",
-          "type": "word"
+          "type": "word",
+          "unrecognized": true
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "missing_gh",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "għaliex għandi x'agħar",
+      "corrected_text": "Għaliex għandi x'agħar.",
       "original_text": "ghaliex ghandi xaghar",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "għaliex",
+          "corrected": "Għaliex",
+          "meaning": "he didn't boil or get into trouble",
           "name_like": false,
           "original": "ghaliex",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -770,9 +812,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "għandi",
+          "meaning": "at, to (have)",
           "name_like": false,
           "original": "ghandi",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -789,35 +833,38 @@
           "corrected": "x'agħar",
           "crucial": false,
           "original": "xaghar",
-          "type": "word"
+          "type": "word",
+          "unrecognized": true
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "extra_gh",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "għamel għatba",
+      "corrected_text": "Għamel għatba.",
       "original_text": "ghamel ghatba",
       "tokens": [
         {
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "F1",
-              "word": "għamel"
+              "meaning": "he did or made",
+              "word": "Għamel"
             },
             {
-              "meaning": "F1",
-              "word": "agħmel"
+              "meaning": "you, do or make (command)",
+              "word": "Agħmel"
             }
           ],
-          "corrected": "għamel",
+          "corrected": "Għamel",
+          "meaning": "he did or made",
           "name_like": false,
           "original": "ghamel",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -827,28 +874,32 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "għatba",
+          "meaning": "doorstep, threshold",
           "name_like": false,
           "original": "ghatba",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "missing_h",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "naħseb taħdimx aħjar",
+      "corrected_text": "Naħseb taħdimx aħjar.",
       "original_text": "nahseb tahdimx ahjar",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "naħseb",
+          "corrected": "Naħseb",
+          "meaning": "I think or consider or presuppose",
           "name_like": false,
           "original": "nahseb",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -858,9 +909,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "taħdimx",
+          "meaning": "she doesn't work or solve / you, don't work or solve (command) / you don't work or solve",
           "name_like": false,
           "original": "tahdimx",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -870,59 +923,56 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "aħjar",
+          "meaning": "better",
           "name_like": false,
           "original": "ahjar",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "doubled_consonants",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "atteġġjament isir",
+      "corrected_text": "Atteġġjament isir.",
       "original_text": "attegjament isir",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "atteġġjament",
+          "corrected": "Atteġġjament",
+          "meaning": "attitude",
           "name_like": false,
           "original": "attegjament",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
           "type": "text"
         },
         {
-          "ambiguous": true,
-          "choices": [
-            {
-              "meaning": "F1",
-              "word": "isir"
-            },
-            {
-              "meaning": "F1",
-              "word": "issir"
-            }
-          ],
+          "ambiguous": false,
+          "choices": [],
           "corrected": "isir",
+          "meaning": "",
           "name_like": false,
           "original": "isir",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "articles",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "fil-bajja l-iskola għall-omm",
+      "corrected_text": "fil-bajja l-iskola għall-omm.",
       "original_text": "fil bajja l iskola ghall omm",
       "tokens": [
         {
@@ -965,23 +1015,34 @@
           "type": "phrase"
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "fused_prepositions",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "għalih minnha biha",
+      "corrected_text": "Għalih minnha biha.",
       "original_text": "ghalih minnha biha",
       "tokens": [
         {
-          "ambiguous": false,
-          "choices": [],
-          "corrected": "għalih",
+          "ambiguous": true,
+          "choices": [
+            {
+              "meaning": "to, for him",
+              "word": "Għalih"
+            },
+            {
+              "meaning": "you, boil or get into trouble him (command)",
+              "word": "Agħlih"
+            }
+          ],
+          "corrected": "Għalih",
+          "meaning": "to, for him",
           "name_like": false,
           "original": "ghalih",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -991,9 +1052,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "minnha",
+          "meaning": "from her",
           "name_like": false,
           "original": "minnha",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1003,28 +1066,31 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "biha",
+          "meaning": "with her / with",
           "name_like": false,
           "original": "biha",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "punctuation_caps_quotes",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "Għamm qalet, good morning, u marret il-Belt.",
+      "corrected_text": "Amy qalet, good morning, u marret il-Belt.",
       "original_text": "Amy qalet, 'good morning', u marret il-Belt.",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "Għamm",
+          "corrected": "Amy",
           "name_like": true,
           "original": "Amy",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1037,7 +1103,8 @@
           "crucial": false,
           "name_like": false,
           "original": "qalet",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": ", ",
@@ -1058,9 +1125,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "u",
+          "meaning": "and",
           "name_like": false,
           "original": "u",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1070,9 +1139,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "marret",
+          "meaning": "she went or left or went bad (of food) / she made bitter",
           "name_like": false,
           "original": "marret",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1082,7 +1153,7 @@
           "ambiguous": false,
           "choices": [
             {
-              "meaning": "the city",
+              "meaning": "the city, town",
               "word": "il-belt"
             }
           ],
@@ -1096,84 +1167,74 @@
           "type": "text"
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "ambiguous",
+    "status_code": 200,
     "json": {
-      "changed": false,
-      "corrected_text": "qed isir dan",
+      "changed": true,
+      "corrected_text": "Qed isir dan.",
       "original_text": "qed isir dan",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "qed",
+          "corrected": "Qed",
+          "meaning": "is",
           "name_like": false,
           "original": "qed",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
           "type": "text"
         },
         {
-          "ambiguous": true,
-          "choices": [
-            {
-              "meaning": "F1",
-              "word": "isir"
-            },
-            {
-              "meaning": "F1",
-              "word": "issir"
-            }
-          ],
+          "ambiguous": false,
+          "choices": [],
           "corrected": "isir",
+          "meaning": "",
           "name_like": false,
           "original": "isir",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
           "type": "text"
         },
         {
-          "ambiguous": true,
-          "choices": [
-            {
-              "meaning": "this",
-              "word": "dan"
-            },
-            {
-              "meaning": "F1",
-              "word": "dann"
-            }
-          ],
+          "ambiguous": false,
+          "choices": [],
           "corrected": "dan",
+          "meaning": "this",
           "name_like": false,
           "original": "dan",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "repeated_words",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "laħam laħam laħam għaliex għaliex",
+      "corrected_text": "Laħam laħam laħam għaliex għaliex.",
       "original_text": "laham laham laham ghaliex ghaliex",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "laħam",
+          "corrected": "Laħam",
+          "meaning": "meat, flesh or thickness",
           "name_like": false,
           "original": "laham",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1183,9 +1244,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "laħam",
+          "meaning": "meat, flesh or thickness",
           "name_like": false,
           "original": "laham",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1195,9 +1258,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "laħam",
+          "meaning": "meat, flesh or thickness",
           "name_like": false,
           "original": "laham",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1207,9 +1272,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "għaliex",
+          "meaning": "he didn't boil or get into trouble",
           "name_like": false,
           "original": "ghaliex",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1219,28 +1286,32 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "għaliex",
+          "meaning": "he didn't boil or get into trouble",
           "name_like": false,
           "original": "ghaliex",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "context_dependent",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "minn Malta u l-bajja",
+      "corrected_text": "Minn Malta u l-bajja.",
       "original_text": "minn Malta u l bajja",
       "tokens": [
         {
           "ambiguous": false,
           "choices": [],
-          "corrected": "minn",
+          "corrected": "Minn",
+          "meaning": "from",
           "name_like": false,
           "original": "minn",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1250,9 +1321,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "Malta",
+          "meaning": "Malta",
           "name_like": true,
           "original": "Malta",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1262,9 +1335,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "u",
+          "meaning": "and",
           "name_like": false,
           "original": "u",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1274,15 +1349,15 @@
           "ambiguous": true,
           "choices": [
             {
-              "meaning": "the bay",
+              "meaning": "the bay, bight",
               "word": "l-bajja"
             },
             {
-              "meaning": "to a bay",
+              "meaning": "to a bay, bight",
               "word": "'l bajja"
             },
             {
-              "meaning": "to the bay",
+              "meaning": "to the bay, bight",
               "word": "'l-bajja"
             }
           ],
@@ -1292,23 +1367,22 @@
           "type": "phrase"
         }
       ]
-    },
-    "status_code": 200
+    }
   },
   {
     "id": "social_paragraph",
+    "status_code": 200,
     "json": {
       "changed": true,
-      "corrected_text": "Fgħal ta' Amy m'iniex anzi, bħal ħafna minnkom nixtieq li Luke jirbaħ għax żagħżugħa kellha atteġġjament.",
+      "corrected_text": "Fan ta' Amy m'iniex anzi, bħal ħafna minnkom nixtieq li Luke jirbaħ għax żagħżugħa kellha atteġġjament.",
       "original_text": "Fan ta' Amy minix anzi, bhal hafna minnkom nixtieq li Luke jirbah ghax zghazugha kellha attegjament.",
       "tokens": [
         {
-          "ambiguous": false,
-          "choices": [],
-          "corrected": "Fgħal",
-          "name_like": true,
+          "corrected": "Fan",
+          "inner_text": "Fan",
+          "maltese_suggestion": null,
           "original": "Fan",
-          "type": "word"
+          "type": "english_phrase"
         },
         {
           "text": " ",
@@ -1318,9 +1392,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "ta'",
+          "meaning": "of, 's / of",
           "name_like": false,
           "original": "ta'",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1332,7 +1408,8 @@
           "corrected": "Amy",
           "name_like": true,
           "original": "Amy",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1342,9 +1419,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "m'iniex",
+          "meaning": "PRON",
           "name_like": false,
           "original": "minix",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1354,9 +1433,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "anzi",
+          "meaning": "on the contrary, at least",
           "name_like": false,
           "original": "anzi",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": ", ",
@@ -1366,9 +1447,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "bħal",
+          "meaning": "like, as",
           "name_like": false,
           "original": "bhal",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1378,9 +1461,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "ħafna",
+          "meaning": "much; many / very",
           "name_like": false,
           "original": "hafna",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1390,9 +1475,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "minnkom",
+          "meaning": "from you",
           "name_like": false,
           "original": "minnkom",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1402,9 +1489,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "nixtieq",
+          "meaning": "I wish or desire",
           "name_like": false,
           "original": "nixtieq",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1414,9 +1503,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "li",
+          "meaning": "that, which",
           "name_like": false,
           "original": "li",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1428,7 +1519,8 @@
           "corrected": "Luke",
           "name_like": true,
           "original": "Luke",
-          "type": "word"
+          "type": "word",
+          "unrecognized": true
         },
         {
           "text": " ",
@@ -1438,9 +1530,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "jirbaħ",
+          "meaning": "he wins or overcomes",
           "name_like": false,
           "original": "jirbah",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1450,9 +1544,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "għax",
+          "meaning": "because",
           "name_like": false,
           "original": "ghax",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1462,9 +1558,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "żagħżugħa",
+          "meaning": "young",
           "name_like": false,
           "original": "zghazugha",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1474,9 +1572,11 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "kellha",
+          "meaning": "to have had",
           "name_like": false,
           "original": "kellha",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": " ",
@@ -1486,16 +1586,17 @@
           "ambiguous": false,
           "choices": [],
           "corrected": "atteġġjament",
+          "meaning": "attitude",
           "name_like": false,
           "original": "attegjament",
-          "type": "word"
+          "type": "word",
+          "unrecognized": false
         },
         {
           "text": ".",
           "type": "text"
         }
       ]
-    },
-    "status_code": 200
+    }
   }
 ]

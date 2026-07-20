@@ -163,6 +163,8 @@ class MalteseSuffixGenerator:
             self._add_unique_word(guesses, self._from_graphemes(g[:-2] + ["a"]))
             if len(g) >= 3:
                 self._add_unique_word(guesses, self._from_graphemes(g[:-3] + ["e", g[-3], "a"]))
+        if g and g[-1] == "a":
+            self._add_unique_word(guesses, stem + "'")
         if stem.endswith("għ"):
             self._add_unique_word(guesses, stem[:-2] + "'")
         if stem.endswith("għa"):
@@ -191,6 +193,29 @@ class MalteseSuffixGenerator:
 
     def _parse_specific_guesses(self, parsed: ParsedSuffix) -> list[str]:
         guesses = self._inverse_base_guesses(parsed.typed_stem)
+
+        # DO suffixes contract a base "ie" to "i".  Undo that contraction
+        # while finding the dictionary base, but keep it strictly bounded to
+        # real verb entries so this cannot become a general vowel insertion.
+        if parsed.spec.kind in {"DO", "DO_IDO"}:
+            for guess in tuple(guesses):
+                graphemes = self._graphemes(guess)
+                for index, grapheme in enumerate(graphemes[:-1]):
+                    next_grapheme = graphemes[index + 1]
+                    if (
+                        grapheme != "i"
+                        or not next_grapheme.isalpha()
+                        or next_grapheme in self.spellchecker.VOWELS
+                    ):
+                        continue
+                    expanded = self._from_graphemes(
+                        graphemes[: index + 1]
+                        + ["e"]
+                        + graphemes[index + 1 :]
+                    )
+                    if self.verb_index.word_records(expanded):
+                        self._add_unique_word(guesses, expanded)
+
         typed_stem_tokens = self.spellchecker._letter_tokens(parsed.typed_stem)
         typed_stem_starts_cc = (
             len(typed_stem_tokens) >= 2
@@ -426,6 +451,13 @@ class MalteseSuffixGenerator:
             penalty -= 0.16
             if parsed.typed_stem.endswith("i") or parsed.typed_ending.startswith("il"):
                 penalty -= 0.08
+        if (
+            parsed.spec.kind == "IDO"
+            and candidate.rule_id == "DEFAULT_ADD"
+            and candidate.base.endswith("'")
+            and candidate.suffix_display.startswith("-l")
+        ):
+            penalty += 0.10
         if parsed.spec.label == "DO_3SM" and candidate.rule_id.endswith("DROP_V"):
             penalty += 0.18
         if parsed.spec.label.startswith("COMBINED_3P_") and candidate.rule_id == "DEFAULT_ADD":

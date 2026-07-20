@@ -35,6 +35,34 @@ class MalteseOrthographicGenerator:
         "g": "ġ",
     }
 
+    VOWELS = set("aeiouàèìòù")
+
+    def _is_sz_environment(self, graphemes: list[str] | tuple[str, ...], index: int) -> bool:
+        """
+        Check if s/z/ż at index satisfies the phonetic environment:
+        1. Intervocalic: VsV, VżV, VzV
+        2. Before n: sn, żn, zn
+        3. Before m: sm, żm, zm
+        """
+        char = graphemes[index]
+        if char not in {"s", "z", "ż"}:
+            return False
+
+        n = len(graphemes)
+        # Condition 1: Intervocalic VsV / VżV / VzV
+        if index > 0 and index < n - 1:
+            if graphemes[index - 1] in self.VOWELS and graphemes[index + 1] in self.VOWELS:
+                return True
+
+        # Condition 2: sn / żn / zn
+        if index < n - 1 and graphemes[index + 1] == "n":
+            return True
+
+        # Condition 3: sm / żm / zm
+        if index < n - 1 and graphemes[index + 1] == "m":
+            return True
+
+        return False
 
     def shortcut_letter_variants(
         self,
@@ -46,64 +74,56 @@ class MalteseOrthographicGenerator:
         Generate possible Maltese forms made by replacing ordinary keyboard
         letters with their Maltese counterparts.
 
-        Examples:
-            hazin  -> ħazin, hażin, ħażin
-            cempel -> ċempel
-            gdid   -> ġdid
-
-        Literal 'gh' sequences are skipped because they are handled separately
-        by the existing gh -> għ correction.
+        Also supports s <-> ż <-> z in specific phonetic environments (VsV, sn, sm).
         """
         normalized = self._normalize(word)
-        graphemes = self._graphemes(normalized)
+        graphemes = list(self._graphemes(normalized))
 
-        shortcut_positions: list[int] = []
+        # Identify positions and possible replacements
+        changeable_positions: list[tuple[int, list[str]]] = []
         gh_positions: set[int] = set()
 
         # Do not interfere with the existing gh -> għ correction.
         for index in range(len(graphemes) - 1):
-            if (
-                graphemes[index] == "g"
-                and graphemes[index + 1] == "h"
-            ):
+            if graphemes[index] == "g" and graphemes[index + 1] == "h":
                 gh_positions.add(index)
                 gh_positions.add(index + 1)
 
         for index, letter in enumerate(graphemes):
-            if (
-                letter in self.SHORTCUT_TO_MALTESE
-                and index not in gh_positions
-            ):
-                shortcut_positions.append(index)
+            if index in gh_positions:
+                continue
+
+            if letter in self.SHORTCUT_TO_MALTESE:
+                changeable_positions.append((index, [self.SHORTCUT_TO_MALTESE[letter]]))
+            elif letter in {"s", "z", "ż"} and self._is_sz_environment(graphemes, index):
+                replacements = [r for r in ["ż", "z", "s"] if r != letter]
+                changeable_positions.append((index, replacements))
 
         variants: list[str] = []
 
-        maximum = min(
-            max_changes,
-            len(shortcut_positions),
-        )
-
-        # Generate forms with one change first, then two, then three.
-        # This naturally ranks the smallest correction first.
-        for number_of_changes in range(1, maximum + 1):
-            for chosen_positions in combinations(
-                shortcut_positions,
-                number_of_changes,
-            ):
+        # Generate single-position changes first, then combinations
+        for pos_idx, (position, replacements) in enumerate(changeable_positions):
+            for r in replacements:
                 changed = graphemes[:]
-
-                for position in chosen_positions:
-                    changed[position] = (
-                        self.SHORTCUT_TO_MALTESE[
-                            changed[position]
-                        ]
-                    )
-
+                changed[position] = r
                 candidate = self._from_graphemes(changed)
                 self._add_unique(variants, candidate)
-
                 if len(variants) >= max_variants:
                     return variants
+
+        # If max_changes > 1, generate combinations up to max_changes
+        if max_changes > 1 and len(changeable_positions) > 1:
+            for num_changes in range(2, min(max_changes, len(changeable_positions)) + 1):
+                for chosen_indices in combinations(range(len(changeable_positions)), num_changes):
+                    # For simplicity, pick the first replacement for each chosen position
+                    changed = graphemes[:]
+                    for c_idx in chosen_indices:
+                        pos, reps = changeable_positions[c_idx]
+                        changed[pos] = reps[0]
+                    candidate = self._from_graphemes(changed)
+                    self._add_unique(variants, candidate)
+                    if len(variants) >= max_variants:
+                        return variants
 
         return variants
 
@@ -220,7 +240,14 @@ class MalteseOrthographicGenerator:
             variants.append(candidate)
 
     def _is_dictionary_word(self, word: str) -> bool:
-        return self._normalize(word) in self.spellchecker.dictionary_set
+        norm = self._normalize(word)
+        if norm in self.spellchecker.dictionary_set:
+            return True
+        # Orthographic generation is used inside article parsing.  Calling the
+        # general recognised-surface predicate here can launch a costly
+        # near-anchor suffix search for every candidate tail.  Tags are loaded
+        # lexical evidence and keep this path deterministic.
+        return bool(self.spellchecker.word_tags.get(norm))
 
     # ------------------------------------------------------------------
     # Strict lookup variants
@@ -397,8 +424,10 @@ class MalteseOrthographicGenerator:
         """
         matches: list[str] = []
 
+        vowel_apostrophe = [word + "'"] if word and word[-1] in self.VOWELS else []
         for group in (
             self.strict_lookup_variants(word),
+            vowel_apostrophe,
             self.replace_g_with_ghajn(word),
             self.insert_token_next_to_vowels(word, "għ"),
             self.insert_h_after_gh_priority_variants(word),
@@ -502,7 +531,14 @@ class MalteseOrthographicGenerator:
             if i == 0 or g[i - 1] != token:
                 self._add_unique(variants, before)
 
-            if i + 1 >= len(g) or g[i + 1] != token:
+            is_terminal_guttural_insertion = (
+                i + 1 >= len(g)
+                and token in {"h", "\u0127", "g\u0127"}
+            )
+            if (
+                not is_terminal_guttural_insertion
+                and (i + 1 >= len(g) or g[i + 1] != token)
+            ):
                 self._add_unique(variants, after)
 
         return variants

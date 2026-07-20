@@ -67,7 +67,7 @@ assert_text("Diyan qal hekk.", "Diyan qal hekk.")
 assert_text("Basti gie tard.", "Basti ġie tard.")
 assert_text("Mort ma' Nicole.", "Mort ma' Nicole.")
 
-assert_text("'This is clearly English and should stay unchanged.'", "'This is clearly English and should stay unchanged.'")
+assert_text("'This is clearly English and should stay unchanged.'", "This is clearly English and should stay unchanged.")
 
 assert words_for("kif") == ["Kif", "Kief"]
 assert words_for("kief") == ["Kief", "Kif"]

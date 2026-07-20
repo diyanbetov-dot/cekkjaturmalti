@@ -18,9 +18,7 @@ def canonicalize_meanings(value):
     if isinstance(value, list):
         return [canonicalize_meanings(item) for item in value]
     if isinstance(value, str) and " / " in value:
-        parts = value.split(" / ")
-        if all(part.startswith("F") and part[1:].isdigit() for part in parts):
-            return " / ".join(sorted(parts))
+        return " / ".join(sorted(value.split(" / ")))
     return value
 
 

@@ -36,6 +36,15 @@ assert corrected_text("ħamest bozoz") == "Ħamest bozza."
 assert corrected_text("għoxrin bozoz") == "Għoxrin bozza."
 assert corrected_text("ħames tfal") == "Ħamest itfal."
 assert corrected_text("il ħames bozoz") == "Il-ħames bozoz."
+assert corrected_text("hamsa baqra") == "Ħames baqriet."
+assert corrected_text("hamsa baqar") == "Ħames baqriet."
+assert corrected_text("hamsa baqriet") == "Ħames baqriet."
+assert corrected_text("ħdax baqra") == "Ħdax-il baqra."
+assert corrected_text("ħdax il-baqra") == "Ħdax-il baqra."
+assert corrected_text("ħdax baqar") == "Ħdax-il baqra."
+assert corrected_text("għoxrin baqar") == "Għoxrin baqra."
+assert corrected_text("wieħed u għoxrin baqra") == "Wieħed u għoxrin baqra."
+assert corrected_text("il-wieħed u għoxrin baqra") == "Il-wieħed u għoxrin baqra."
 
 ambiguous_token = phrase_token("il-ħames bozoz")
 assert ambiguous_token["corrected"] == "Il-ħames bozoz"
@@ -51,5 +60,9 @@ assert [choice["word"] for choice in singular_ambiguous["choices"]] == [
     "Il-ħames bozza",
     "Il-ħames bozoz",
 ]
+
+ordinal_token = phrase_token("il hames baqra")
+assert ordinal_token["corrected"] == "Il-ħames baqra"
+assert any(choice["meaning"] == "the fifth cow" for choice in ordinal_token["choices"])
 
 print("number+noun agreement regression checks passed")

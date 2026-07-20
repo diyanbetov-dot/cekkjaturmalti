@@ -1244,7 +1244,7 @@ class MalteseSuffixRules:
         spec: SuffixSpec,
     ) -> list[GeneratedSuffixCandidate]:
         if (
-            spec.kind == "DO"
+            spec.kind in {"DO", "DO_IDO"}
             and self.verb_index.is_blocked_for_direct_object(record)
         ):
             return []
@@ -1254,6 +1254,10 @@ class MalteseSuffixRules:
         root_class = self.verb_index.root_class(record)
 
         for stem, rule_id, description in self.stems_for_spec(record, spec):
+            # Direct-object suffixes move stress to the suffixal syllable, so
+            # an "ie" stem surface contracts before plain and combined DO.
+            if spec.kind in {"DO", "DO_IDO"}:
+                stem = stem.replace("ie", "i")
             for suffix in self.surface_suffixes_for_record(record, spec):
                 surface = self.normalize(stem + suffix)
 
