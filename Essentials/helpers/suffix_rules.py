@@ -698,6 +698,13 @@ class MalteseSuffixRules:
 
         return None
 
+    def final_a_to_ie_do(self, word: str) -> str | None:
+        """
+        Final-weak perfects can keep an -ie- surface before direct objects:
+        halla -> hallie-k, nesa -> nesie-k.
+        """
+        return self.final_a_to_ie(word)
+
     def imp_final_a_to_i_variants(self, word: str) -> list[str]:
         """
         insa -> insi
@@ -1005,6 +1012,13 @@ class MalteseSuffixRules:
                     "FINAL_WEAK_VCA_TO_CIE",
                     "final weak VCa -> Cie",
                 )
+                if spec.kind in {"DO", "DO_IDO"} and record.is_perf:
+                    self.add_unique(
+                        stems,
+                        self.final_a_to_ie_do(base),
+                        "FINAL_WEAK_A_TO_IE_DO",
+                        "final weak perfect -a -> -ie before direct object suffix",
+                    )
 
         # ieCeC pattern such as stieden/bierek.
         self.add_unique(
@@ -1256,7 +1270,14 @@ class MalteseSuffixRules:
         for stem, rule_id, description in self.stems_for_spec(record, spec):
             # Direct-object suffixes move stress to the suffixal syllable, so
             # an "ie" stem surface contracts before plain and combined DO.
-            if spec.kind in {"DO", "DO_IDO"}:
+            preserve_final_weak_ie = (
+                spec.kind in {"DO", "DO_IDO"}
+                and record.is_perf
+                and record.person == "3SM"
+                and self.verb_index.is_final_weak(record)
+                and (rule_id == "FINAL_WEAK_A_TO_IE_DO" or stem.endswith("ie"))
+            )
+            if spec.kind in {"DO", "DO_IDO"} and not preserve_final_weak_ie:
                 stem = stem.replace("ie", "i")
             for suffix in self.surface_suffixes_for_record(record, spec):
                 surface = self.normalize(stem + suffix)
