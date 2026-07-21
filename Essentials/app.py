@@ -727,15 +727,12 @@ class UniversalMalteseSpellchecker:
 
         # consonant anchor -> surface forms
         self.anchor_map: dict[str, list[str]] = defaultdict(list)
-        self.anchor_buckets: dict[tuple[str, int], list[str]] = defaultdict(list)
         self.anchor_letters: tuple[str, ...] = ()
 
         # Cached metadata
         self.word_lengths: dict[str, int] = {}
         self.word_vowel_counts: dict[str, int] = {}
         self.word_anchors: dict[str, str] = {}
-        self.word_candidate_buckets: dict[tuple[str, int], list[str]] = defaultdict(list)
-        self.word_normalized_buckets: dict[tuple[str, int], list[str]] = defaultdict(list)
         self._missing_h_verb_repairs: dict[str, str] | None = None
 
         raw_entries: list[tuple[str, str | None]] = []
@@ -791,6 +788,7 @@ class UniversalMalteseSpellchecker:
         self._load_places_dictionary(PLACES_DIC)
         self._build_word_metadata()
         self._build_anchor_index()
+        self.word_anchors.clear()
 
         print(
             f"Loaded {len(self.dictionary)} dictionary words, "
@@ -816,7 +814,7 @@ class UniversalMalteseSpellchecker:
         return self._normalize_word_cached(str(word))
 
     @staticmethod
-    @lru_cache(maxsize=16384)
+    @lru_cache(maxsize=8192)
     def _normalize_word_cached(word: str) -> str:
         return (
             unicodedata.normalize("NFC", str(word).strip().lower())
@@ -952,7 +950,7 @@ class UniversalMalteseSpellchecker:
         return list(self._graphemes_cached(self._normalize_word(word)))
 
     @staticmethod
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=4096)
     def _graphemes_cached(word: str) -> tuple[str, ...]:
         out: list[str] = []
         i = 0
@@ -968,7 +966,7 @@ class UniversalMalteseSpellchecker:
     def _from_graphemes(self, graphemes: Iterable[str]) -> str:
         return "".join(graphemes)
 
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=4096)
     def _letter_tokens_raw(self, word: str) -> tuple[str, ...]:
         """
         Splits a Maltese word into logical spelling tokens.
@@ -2279,33 +2277,11 @@ class UniversalMalteseSpellchecker:
             self.word_lengths[word] = len(tokens)
             self.word_vowel_counts[word] = sum(1 for t in tokens if t in self.VOWELS)
             self.word_anchors[word] = self._extract_consonant_anchor_from_tokens(tokens)
-            initial = tokens[0] if tokens else ""
-            if initial:
-                self.word_candidate_buckets[(initial, len(tokens))].append(word)
-            normalized_key = "".join(
-                (
-                    "h" if token == "ħ" else
-                    "z" if token == "ż" else
-                    "g" if token == "ġ" else
-                    "c" if token == "ċ" else
-                    "gh" if token == "ʕ" else
-                    token
-                )
-                for token in tokens
-            )
-            normalized_tokens = self._letter_tokens_raw(normalized_key)
-            normalized_initial = normalized_tokens[0] if normalized_tokens else initial
-            if normalized_initial:
-                self.word_normalized_buckets[
-                    (normalized_initial, len(normalized_tokens) or len(tokens))
-                ].append(word)
 
     def _build_anchor_index(self) -> None:
         for word in self.dictionary:
             anchor = self.word_anchors[word]
             self.anchor_map[anchor].append(word)
-            if anchor:
-                self.anchor_buckets[(anchor[0], len(anchor))].append(anchor)
         self.anchor_letters = tuple(
             sorted({char for anchor in self.anchor_map for char in anchor})
         )
@@ -3454,7 +3430,7 @@ class UniversalMalteseSpellchecker:
                 collapsed.append(token)
         return "".join(collapsed)
 
-    @lru_cache(maxsize=16384)
+    @lru_cache(maxsize=8192)
     def _extract_consonant_anchor(self, word: str) -> str:
         normalized = self._normalize_word(word)
         if normalized in self.word_anchors:
@@ -3463,13 +3439,13 @@ class UniversalMalteseSpellchecker:
             self._letter_tokens_raw(normalized)
         )
 
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=4096)
     def _vowel_slots(self, word: str) -> list[tuple[int, str]]:
         normalized = self._normalize_word(word)
         tokens = self._letter_tokens_raw(normalized)
         return [(i, t) for i, t in enumerate(tokens) if t in self.VOWELS]
 
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=4096)
     def _count_vowels(self, word: str) -> int:
         normalized = self._normalize_word(word)
         if normalized in self.word_vowel_counts:
@@ -3483,7 +3459,7 @@ class UniversalMalteseSpellchecker:
     # Distance/scoring
     # ------------------------------------------------------------------
 
-    @lru_cache(maxsize=32768)
+    @lru_cache(maxsize=8192)
     def _damerau_levenshtein_distance(self, a: tuple[str, ...], b: tuple[str, ...]) -> int:
         """Optimal-string-alignment Damerau-Levenshtein distance."""
         n, m = len(a), len(b)
@@ -3511,7 +3487,7 @@ class UniversalMalteseSpellchecker:
 
         return dp[n][m]
 
-    @lru_cache(maxsize=16384)
+    @lru_cache(maxsize=8192)
     def _word_distance(self, word1: str, word2: str) -> int:
         profiler = current_profiler()
         if profiler is not None:
@@ -4362,29 +4338,8 @@ class UniversalMalteseSpellchecker:
                     if edit in self.anchor_map:
                         candidates.extend(self.anchor_map[edit])
             else:
-                bucket_keys = [
-                    (anchor[:1], length)
-                    for length in range(
-                        max(0, len(anchor) - max_anchor_distance),
-                        len(anchor) + max_anchor_distance + 1,
-                    )
-                ]
-                known_anchors: list[str] = []
-                for key in bucket_keys:
-                    known_anchors.extend(self.anchor_buckets.get(key, []))
-                for known_anchor in self._deduplicate(known_anchors):
-                    anchors_inspected += 1
-                    if anchors_inspected > anchor_inspection_limit:
-                        break
-                    if abs(len(known_anchor) - len(anchor)) > max_anchor_distance:
-                        continue
-                    dist = self._damerau_levenshtein_distance(
-                        tuple(anchor), tuple(known_anchor)
-                    )
-                    if dist <= max_anchor_distance:
-                        candidates.extend(self.anchor_map.get(known_anchor, []))
-                if anchors_inspected > anchor_inspection_limit:
-                    break
+                if profiler is not None:
+                    profiler.increment("anchor_broad_lookup_skipped")
 
         if profiler is not None:
             profiler.increment("anchor_entries_inspected", anchors_inspected)
@@ -4393,7 +4348,7 @@ class UniversalMalteseSpellchecker:
 
         return candidates
 
-    @lru_cache(maxsize=4096)
+    @lru_cache(maxsize=2048)
     def _get_candidates_cached(self, normalized: str) -> tuple[str, ...]:
         anchors = self._lookup_anchors(normalized)
         candidates: list[str] = []
@@ -4419,45 +4374,6 @@ class UniversalMalteseSpellchecker:
         # 3. Near-anchor candidates for consonant mistakes.
         if len(candidates) < 8:
             extend(self._near_anchor_candidates(anchors, max_anchor_distance=1))
-
-        # 4. Length fallback, kept narrow and capped hard to avoid
-        # whole-dictionary scans dominating one bad guess.
-        if len(candidates) < 8:
-            word_tokens = self._letter_tokens(normalized)
-            word_len = len(word_tokens)
-            # Use gap of 1 (not max_distance) to stay tight.
-            max_length_gap = 1
-            initial = word_tokens[0] if word_tokens else ""
-            fallback_limit = 32
-            inspection_limit = 256
-            profiler = current_profiler()
-            inspected = 0
-            bucket_candidates: list[str] = []
-            for length in range(
-                max(0, word_len - max_length_gap),
-                word_len + max_length_gap + 1,
-            ):
-                if initial:
-                    bucket_candidates.extend(
-                        self.word_candidate_buckets.get((initial, length), [])
-                    )
-                    bucket_candidates.extend(
-                        self.word_normalized_buckets.get((initial, length), [])
-                    )
-
-            for candidate in self._deduplicate(bucket_candidates):
-                inspected += 1
-                if inspected > inspection_limit:
-                    break
-                if len(candidates) >= fallback_limit:
-                    break
-                if abs(self.word_lengths[candidate] - word_len) > max_length_gap:
-                    continue
-                add(candidate)
-            if profiler is not None:
-                profiler.increment("dictionary_entries_inspected", inspected)
-                if inspected >= inspection_limit:
-                    profiler.increment("dictionary_inspection_budget_exhausted")
 
         return tuple(candidates)
 
@@ -9131,7 +9047,7 @@ class UniversalMalteseSpellchecker:
             return text
         return self.correct_text_rich(text)["corrected_text"]
 
-    @lru_cache(maxsize=8192)
+    @lru_cache(maxsize=2048)
     def meaning_for(self, word: str) -> str:
         if getattr(self._local, "suppress_meanings", False):
             return ""
