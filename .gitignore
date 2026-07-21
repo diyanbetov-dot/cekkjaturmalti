@@ -20,6 +20,7 @@ __pycache__/
 # Logs and local runtime state
 *.log
 *.pid
+spellcheck_usage_log.txt
 
 # Local editor/system noise
 .DS_Store

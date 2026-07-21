@@ -356,6 +356,16 @@ class MalteseSuffixGenerator:
     def _score_candidate_cached(self, typo: str, candidate: str, stage: str):
         return self.spellchecker._candidate_score(typo, candidate, stage)
 
+    def _suggestion_adds_untyped_final_h(self, candidate: GeneratedSuffixCandidate, parsed: ParsedSuffix) -> bool:
+        """Avoid suggestions like gie-k -> ġieħ-ek when the typed stem has no h/ħ evidence."""
+        typed = self._normalize(parsed.typed_stem)
+        base = self._normalize(candidate.base)
+        if not base.endswith("ħ"):
+            return False
+        if typed.endswith(("h", "ħ")) or typed.endswith("gh") or typed.endswith("għ"):
+            return False
+        return base[:-1] == typed or base[:-1] in self.spellchecker._strict_lookup_variants(typed)
+
     def _direct_guess_rank(self, candidate: GeneratedSuffixCandidate, parsed: ParsedSuffix) -> int | None:
         for index, guess in enumerate(self._parse_specific_guesses(parsed)):
             if candidate.base == guess:
@@ -395,7 +405,31 @@ class MalteseSuffixGenerator:
             penalty += 0.18
         if direct_rank is not None:
             penalty -= 0.18
+            if candidate.base == parsed.typed_stem:
+                penalty -= 0.32
             penalty += direct_rank * 0.003
+        if (
+            parsed.typed_stem
+            and candidate.base != parsed.typed_stem
+            and self.spellchecker._word_distance(parsed.typed_stem, candidate.base) <= 2
+            and any(
+                a == b
+                for a, b in zip(
+                    self.spellchecker._graphemes(candidate.base),
+                    self.spellchecker._graphemes(candidate.base)[1:],
+                )
+                if a not in self.spellchecker.VOWELS
+            )
+            and not any(
+                a == b
+                for a, b in zip(
+                    self.spellchecker._graphemes(parsed.typed_stem),
+                    self.spellchecker._graphemes(parsed.typed_stem)[1:],
+                )
+                if a not in self.spellchecker.VOWELS
+            )
+        ):
+            penalty += 0.18
         if (
             parsed.typed_stem
             and parsed.typed_stem[0] in self.spellchecker.VOWELS
@@ -621,6 +655,8 @@ class MalteseSuffixGenerator:
 
         for row, candidate, parsed, _penalty in rows:
             if row.score > score_limit or row.edit_distance > max_distance + 3:
+                continue
+            if self._suggestion_adds_untyped_final_h(candidate, parsed):
                 continue
 
             if parsed.spec.kind == "DO_IDO" or row.edit_distance <= max_distance + 1:
