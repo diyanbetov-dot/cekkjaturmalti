@@ -109,6 +109,16 @@ corpus_scorer = MalteseCorpusScorer(
 )
 spellchecker.corpus_scorer = corpus_scorer
 
+if getattr(corpus_scorer, "status", ""):
+    logger = __import__("logging").getLogger(__name__)
+    logger.info(
+        "CORPUS_SCORER_STATUS: %s | available=%s | reason=%s | expected_paths=%s",
+        corpus_scorer.status,
+        corpus_scorer.is_available(),
+        corpus_scorer.status_reason,
+        {name: str(path) for name, path in getattr(corpus_scorer, "expected_index_paths", {}).items()},
+    )
+
 
 doubled_letter_generator = MalteseDoubledLetterGenerator(spellchecker=spellchecker)
 spellchecker.doubled_letter_generator = doubled_letter_generator
