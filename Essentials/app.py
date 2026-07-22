@@ -82,6 +82,16 @@ from Essentials.helpers.composite_generator import MalteseCompositeGenerator
 composite_generator = MalteseCompositeGenerator(spellchecker=spellchecker)
 spellchecker.composite_generator = composite_generator
 
+# BERTu contextual re-ranker (experiment/bertu-reranker branch)
+# Lazy-loads on first use; falls back silently if unavailable.
+try:
+    from Essentials.helpers.bertu_reranker import BertuReranker
+    bertu_reranker = BertuReranker()
+    spellchecker.bertu_reranker = bertu_reranker
+except Exception:  # pragma: no cover
+    pass
+
+
 doubled_letter_generator = MalteseDoubledLetterGenerator(spellchecker=spellchecker)
 spellchecker.doubled_letter_generator = doubled_letter_generator
 
