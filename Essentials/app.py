@@ -78,6 +78,10 @@ apertium_analyzer = OptionalApertiumAnalyzer(
 orthographic_generator = MalteseOrthographicGenerator(spellchecker=spellchecker)
 spellchecker.orthographic_generator = orthographic_generator
 
+from Essentials.helpers.composite_generator import MalteseCompositeGenerator
+composite_generator = MalteseCompositeGenerator(spellchecker=spellchecker)
+spellchecker.composite_generator = composite_generator
+
 doubled_letter_generator = MalteseDoubledLetterGenerator(spellchecker=spellchecker)
 spellchecker.doubled_letter_generator = doubled_letter_generator
 

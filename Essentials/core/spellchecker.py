@@ -5168,13 +5168,12 @@ class UniversalMalteseSpellchecker:
             variants.append(normalized[:-2] + "ieh")
         if normalized.endswith("ih") and not normalized.endswith("ieh") and len(normalized) >= 3:
             variants.append(normalized[:-2] + "ieh")
+        if (normalized.endswith("inha") or normalized.endswith("inħa")) and len(normalized) >= 5:
+            variants.append(normalized[:-4] + "iena")
 
         valid: list[str] = []
         for candidate in variants:
-            # The restored surface itself can be valid even though its final
-            # accented counterpart is a different lexical word (ġieh vs
-            # ġieħ). Check it before lookup variants add that alternative.
-            if self._direct_object_h_base(candidate) is not None:
+            if candidate.endswith("iena") or self._direct_object_h_base(candidate) is not None:
                 valid.append(candidate)
             for lookup in self._strict_lookup_variants(candidate):
                 if (
@@ -5386,6 +5385,12 @@ class UniversalMalteseSpellchecker:
         # 3. Near-anchor candidates for consonant mistakes.
         if len(candidates) < 8:
             extend(self._near_anchor_candidates(anchors, max_anchor_distance=1))
+
+        # 4. Composite candidate generator pass for multi-error typos.
+        if len(candidates) < 8:
+            comp_gen = getattr(self, "composite_generator", None)
+            if comp_gen is not None:
+                extend(comp_gen.generate_candidates(normalized))
 
         return tuple(candidates)
 
@@ -6111,13 +6116,15 @@ class UniversalMalteseSpellchecker:
             return True
 
         # Missing vowel before object suffixes:
-        #   narhom -> narahom / narohom, jarha -> jaraha
-        if original_norm.endswith("hom"):
-            stem = original_norm[:-3]
-            if candidate_norm in {stem + "ahom", stem + "ohom"}:
+        #   narhom -> narahom / narohom, narom -> narahom, jarha -> jaraha
+        if original_norm.endswith("hom") or original_norm.endswith("om"):
+            ending_len = 3 if original_norm.endswith("hom") else 2
+            stem = original_norm[:-ending_len]
+            if candidate_norm in {stem + "ahom", stem + "ohom", stem + "hom"}:
                 return True
-        if original_norm.endswith("ha"):
-            stem = original_norm[:-2]
+        if original_norm.endswith("ha") or original_norm.endswith("ħa"):
+            ending_len = 2
+            stem = original_norm[:-ending_len]
             if candidate_norm == stem + "aha":
                 return True
 

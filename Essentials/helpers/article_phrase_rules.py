@@ -347,7 +347,7 @@ class MalteseArticlePhraseRules:
 
     def _is_article_target(self, word: str) -> bool:
         normalized = self.normalize(word)
-        if normalized in {"hawn", "hemm", "hinn"}:
+        if normalized in {"hawn", "hemm", "hinn", "i", "ek", "u", "ha", "na", "kom", "hom"}:
             return False
         if self.is_noun(word) or self.is_num(word):
             return True
@@ -487,10 +487,21 @@ class MalteseArticlePhraseRules:
         place_display = None
         if spellchecker is not None:
             place_display = spellchecker._exact_place_word(noun)
-            if place_display and self.is_noun(noun):
-                place_display = None
-            if place_display and prefix in {"ta", "ta'"}:
-                return f"ta' {place_display}"
+            if place_display:
+                if prefix in {"ta", "ta'"}:
+                    return f"ta' {place_display}"
+                if prefix in {"minn", "min", "mil", "mid", "mill"}:
+                    return f"minn {place_display}"
+                if prefix in {"għal", "ghal", "għall", "ghall"}:
+                    return f"għal {place_display}"
+                if prefix in {"bħal", "bhal", "bħall", "bhall"}:
+                    return f"bħal {place_display}"
+                if prefix in {"ma", "ma'", "mal"}:
+                    return f"ma' {place_display}"
+                if prefix in {"fi", "fil", "fl"}:
+                    return f"f'{place_display}" if self._starts_vowel_gh_or_h(noun) else f"fi {place_display}"
+                if prefix in {"bi", "bil", "bl"}:
+                    return f"b'{place_display}" if self._starts_vowel_gh_or_h(noun) else f"bi {place_display}"
 
         surface_noun = place_display or noun
 
