@@ -98,16 +98,16 @@ assert_word("kemmil", "kemm-il")
 assert_word("kemm-il", "kemm-il")
 assert spellchecker.correct_text_rich("kemm il darba", edit_distance_tolerance=1)[
     "corrected_text"
-] == "kemm-il darba"
+] == "kemm-il darba."
 assert spellchecker.correct_text_rich("kemm id-darba", edit_distance_tolerance=1)[
     "corrected_text"
-] == "kemm-il darba"
+] == "kemm-il darba."
 assert spellchecker.correct_text_rich("fil hanut", edit_distance_tolerance=1)[
     "corrected_text"
-] == "fil-ħanut"
+] == "Fil-ħanut."
 assert spellchecker.correct_text_rich("il hwejjeg", edit_distance_tolerance=1)[
     "corrected_text"
-] == "il-ħwejjeġ"
+] == "Il-ħwejjeġ."
 assert spellchecker.correct_text_rich(
     "it-tifla marret fil hanut biex tixtri il hwejjeg.",
     edit_distance_tolerance=1,

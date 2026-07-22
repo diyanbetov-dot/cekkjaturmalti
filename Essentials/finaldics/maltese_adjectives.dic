@@ -2454,6 +2454,9 @@ pubbliku/SINGADJM-public
 privat/SINGADJM-private
 privata/SINGADJF-private
 privati/PLUADJ-private
+personali/SINGADJM-personal
+personali/SINGADJF-personal
+personali/PLUADJ-personal
 pubbliċi/PLUADJ-public
 pulit/SINGADJM-clean, neat, tidy
 pulita/SINGADJF-clean, neat, tidy
@@ -3815,3 +3818,6 @@ deħlin/PLUADJ-coming in
 ħiereġ/SINGADJM-going out
 ħierġa/SINGADJF-going out
 ħerġin/PLUADJ-going out
+affidabbli/SINGADJM-reliable
+affidabbli/SINGADJF-reliable
+affidabbli/PLUADJ-reliable

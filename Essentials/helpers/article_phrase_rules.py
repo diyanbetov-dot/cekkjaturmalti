@@ -222,7 +222,7 @@ class MalteseArticlePhraseRules:
             return f"l-i{surface_noun}"
         typed = self.normalize(typed_article).rstrip("-")
         if typed == "l":
-            base_article = "l-" if self._starts_vowel_gh_or_h(noun) else "il-"
+            base_article = "l-"
         else:
             base_article = self.article_from_previous(previous)
         return f"{self.assimilate(base_article, noun)}{surface_noun}"
@@ -787,7 +787,9 @@ class MalteseArticlePhraseRules:
                             ),
                         )
 
-        if prefix in SUN_LETTERS:
+        if prefix in SUN_LETTERS and not (
+            prefix == "l" and self.is_adjective_like(corrected_noun)
+        ):
             return ArticlePhraseSuggestion(
                 0,
                 1,

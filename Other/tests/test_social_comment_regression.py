@@ -16,7 +16,7 @@ EXPECTED_FRAGMENTS = (
     "tgħid hi u taqbel magħha",
     "issabbat sieqha u tiġġakbina",
     "dil-aqwa",
-    "ġiet ma l-aħħar 3",
+    "Ġiet mal-aħħar 3",
     "Malta kollha",
     "nies mhux qed jaraw il-karattru tagħha",
     "jafu x'hemm hemm ġew",

@@ -27,7 +27,7 @@ Għandi mobile iphone 17 pro max u niżżilt update tal-beta 27.0 u għandi bżo
     ),
     (
         """Grazzi ghal owner tal blokk ta apartamenti li jikri 'air b n b' ahna r residenti rridu ta kuljum inhabtu wicna ma din il mandra fuq il bankini ghadni qed nistenna l pulizija ha jigu fuq il post triq il grigal marsaskala.""",
-        """Grazzi għall-owner tal-blokk t'appartamenti li jikri air b n b aħna r-residenti rridu ta' kuljum inħabbtu wiċċna ma din il-mandra fuq il-bankini għadni qed nistenna l-pulizija ħa jiġu fuq il-post triq il-grigal Marsaskala.""",
+        """Grazzi għall-owner tal-blokk t'appartamenti li jikri air b n b aħna r-residenti rridu ta' kuljum inħabbtu wiċċna ma' din il-mandra fuq il-bankini għadni qed nistenna l-pulizija ħa jiġu fuq il-post triq il-grigal Marsaskala.""",
     ),
     (
         """Ghar mill-fakulta tal-ligi m’hawx.
