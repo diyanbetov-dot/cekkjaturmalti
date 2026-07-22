@@ -48,7 +48,7 @@ def test_z_owned_phrases_win_before_generic_article_paths():
         "min hu": "Min hu.",
         "min kien min fejn": "Min kien min fejn.",
         "ma membru": "Ma' membru.",
-        "ma' membru": "ma' membru.",
+        "ma' membru": "Ma' membru.",
     }
 
     for original, expected in cases.items():
