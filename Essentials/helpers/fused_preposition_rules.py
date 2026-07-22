@@ -147,6 +147,7 @@ class MalteseFusedPrepositionRules:
             not normalized
             or len(normalized) < 3
             or normalized.startswith(("'", "għ"))
+            or "-" in normalized
         ):
             return None
 

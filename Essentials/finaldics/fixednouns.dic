@@ -1,4 +1,4 @@
-11432
+11445
 a/languages M to Z/SINGNOUN-letter a
 A/SINGNOUN-letter a
 abadissa/SINGNOUNF-abbess
@@ -186,6 +186,8 @@ ambaxxatriċi/PLUNOUN-ambassadresses
 ambaxxatriċi/SINGNOUNF-ambassadress
 ambaxxatur/SINGNOUNM-ambassador
 ambaxxaturi/PLUNOUN-ambassadors
+ambjent/SINGNOUNM-environment
+ambjenti/PLUNOUN-environments
 ambigwitajiet/PLUNOUN-ambiguities
 ambigwità/SINGNOUNF-ambiguity
 ambizzjoni/SINGNOUNF-ambition
@@ -1878,6 +1880,8 @@ dnubiet/PLUNOUN-sins or morals guilt
 dnubijiet/PLUNOUN-sins or morals guilt
 dokkeniet/PLUNOUN-stone benches
 dokkiena/SINGNOUNF-stone bench
+dokument/SINGNOUNM-document
+dokumenti/PLUNOUN-documents
 dolliegħ/SINGNOUN-watermelon; several watermelons
 domaskina/SINGNOUNF-damson
 dorbi/SINGNOUNM-lizard
@@ -4232,6 +4236,8 @@ konġunzjonijiet/PLUNOUN-conjunctions
 koordinazzjoni/SINGNOUNF-coordination
 kopertura/SINGNOUNF-covering or cover
 koperturi/PLUNOUN-coverings or covers
+kopja/SINGNOUNF-copy
+kopji/PLUNOUN-copies
 koppja/SINGNOUNF-couple
 koppji/PLUNOUN-couples
 Korejan/SINGNOUNM-Korean
@@ -5167,6 +5173,8 @@ melħ/SINGNOUNM-salt
 memoranda/PLUNOUN-memoranda
 memorandu/SINGNOUNM-memorandum
 memorandum/SINGNOUNM-memorandum
+membru/SINGNOUNM-member
+membri/PLUNOUN-members
 memorja/SINGNOUNF-memory
 memorjal/SINGNOUNM-memorial, memoir
 memorjali/PLUNOUN-memorials, memoir
@@ -5444,6 +5452,7 @@ mnugħa/SINGNOUNF-prohibition
 mnugħiet/PLUNOUN-prohibitions
 mnut/SINGNOUNM-small coins
 mod/SINGNOUNM-way, manner
+moda/SINGNOUNF-fashion
 modd/SINGNOUNM-a unit of dry volume, that is officially 10.27 imperial cubic feet. or a unit of surface area, that is officially 4.444 imperial acres.
 modi/PLUNOUN-ways, manner
 modifika/SINGNOUNF-modification
@@ -6241,6 +6250,8 @@ pizu/SINGNOUNM-bird
 pizza/SINGNOUNF-pizza
 piż/SINGNOUNM-weight or a weight
 piżijiet/PLUNOUN-weights or weights
+pilastru/SINGNOUNM-pillar
+pilastri/PLUNOUN-pillars
 pjan/SINGNOUNM-level ground or platform, storey
 pjaneta/SINGNOUNF-planet
 pjaneti/PLUNOUN-planets
@@ -7194,6 +7205,8 @@ riskji ta' kreditu/PLUNOUN-credits risk
 riskji/PLUNOUN-risks, hazard
 riskju ta' kreditu/SINGNOUNM-credit risk
 riskju/SINGNOUNM-risk, hazard
+riċerka/SINGNOUNF-research
+riċerki/PLUNOUN-researches
 risorsa/SINGNOUNF-resource
 risorsi/PLUNOUN-resources
 rispett/SINGNOUNM-respect
@@ -11487,3 +11500,9 @@ kuruturi/PLUNOUN-corridors
 kas/SINGNOUNM-attention
 paniku/SINGNOUNM-panic
 żibel/SINGNOUNM-rubbish, waste
+kilometru/SINGNOUNM-kilometre
+kilometri/PLUNOUN-kilometres
+sors/SINGNOUNM-source
+sorsi/PLUNOUN-sources
+naħa/SINGNOUNF-side, direction
+naħat/PLUNOUN-sides, directions

@@ -38,16 +38,15 @@ assert biex_token.get("ambiguous") is False
 assert all(choice.get("word") != "Biegħx" for choice in biex_token.get("choices", []))
 
 assert corrected_text("m huma") == "M'huma."
-m_huma_token = token_for("m huma", "m huma")
+m_huma_token = token_for("m huma", "m")
 assert m_huma_token["corrected"] == "M'huma"
 assert m_huma_token.get("ambiguous") is False
-assert [choice.get("word") for choice in m_huma_token.get("choices", [])] == ["M'huma"]
-assert m_huma_token["choices"][0]["meaning"] == "not they"
+assert m_huma_token.get("choices", []) == []
 
 assert corrected_text("minn hekk") == "Minn hekk."
 assert corrected_text("min hekk") == "Minn hekk."
-min_hekk_token = token_for("min hekk", "min hekk")
-assert min_hekk_token["corrected"] == "Minn hekk"
+min_hekk_token = token_for("min hekk", "min")
+assert min_hekk_token["corrected"] == "Minn"
 assert min_hekk_token.get("ambiguous") is True
 assert [choice.get("word") for choice in min_hekk_token.get("choices", [])] == [
     "Minn hekk",

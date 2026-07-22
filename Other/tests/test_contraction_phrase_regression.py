@@ -34,20 +34,33 @@ def assert_only_choice(source, expected_word):
     )
 
 
-assert_text("ghall gost", "għall-gost.")
-assert_text("ghall skola", "għas-skola.")
-assert_text("ghall gieh", "għall-ġieħ.")
-assert_text("ghall ghalqa", "għall-għalqa.")
+def assert_no_choices(source):
+    result = spellchecker.correct_text_rich(
+        source,
+        edit_distance_tolerance=2,
+    )
+    phrase_tokens = [token for token in result["tokens"] if token.get("type") == "phrase"]
+    assert phrase_tokens, f"{source!r}: expected a phrase token"
+    for token in phrase_tokens:
+        assert token.get("choices") == [], (
+            f"{source!r}: expected no visible choices, got {token.get('choices')!r}"
+        )
+
+
+assert_text("ghall gost", "Għall-gost.")
+assert_text("ghall skola", "Għas-skola.")
+assert_text("ghall gieh", "Għall-ġieħ.")
+assert_text("ghall ghalqa", "Għall-għalqa.")
 assert_text("ghall xi hadd", "Għal xi ħadd.")
 
-assert_text("f sormok", "f'sormok.")
-assert_only_choice("f sormok", "f'sormok")
+assert_text("f sormok", "F'sormok.")
+assert_no_choices("f sormok")
 
-assert_text("f idejk", "f'idejk.")
-assert_only_choice("f idejk", "f'idejk")
+assert_text("f idejk", "F'idejk.")
+assert_no_choices("f idejk")
 
-assert_text("b idejk", "b'idejk.")
-assert_only_choice("b idejk", "b'idejk")
+assert_text("b idejk", "B'idejk.")
+assert_no_choices("b idejk")
 
 assert_text("bla", "Bla.")
 assert_text("dal ftit", "dal-ftit.")

@@ -629,6 +629,21 @@ kikkjati/PASTPAR-3P-kicked
 klassifikat/PASTPAR-3SM-classified
 klassifikata/PASTPAR-3SF-classified
 klassifikati/PASTPAR-3P-classified
+ikklassifikat/PASTPAR-3SM-classified
+ikklassifikata/PASTPAR-3SF-classified
+ikklassifikati/PASTPAR-3P-classified
+impurtat/PASTPAR-3SM-imported
+impurtata/PASTPAR-3SF-imported
+impurtati/PASTPAR-3P-imported
+mibdul/PASTPAR-3SM-changed
+mibdula/PASTPAR-3SF-changed
+mibdulin/PASTPAR-3P-changed
+irranġat/PASTPAR-3SM-arranged, repaired
+irranġata/PASTPAR-3SF-arranged, repaired
+irranġati/PASTPAR-3P-arranged, repaired
+sprejjat/PASTPAR-3SM-sprayed
+sprejjata/PASTPAR-3SF-sprayed
+sprejjati/PASTPAR-3P-sprayed
 kmandat/PASTPAR-3SM-commanded, controled
 kmandata/PASTPAR-3SF-commanded, controled
 kmandati/PASTPAR-3P-commanded, controled
@@ -1277,3 +1292,9 @@ mġissmin/PASTPAR-3P-buff
 mdemma'/PASTPAR-3SM-bloodied
 mdemmgħa/PASTPAR-3SF-bloodied
 mdemmgħin/PASTPAR-3P-bloodied
+importat/PASTPAR-3SM-imported
+importata/PASTPAR-3SF-imported
+importati/PASTPAR-3P-imported
+involut/PASTPAR-3SM-involved
+involuta/PASTPAR-3SF-involved
+involuti/PASTPAR-3P-involved

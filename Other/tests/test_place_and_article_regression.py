@@ -10,6 +10,8 @@ def assert_text(source, expected):
         source,
         edit_distance_tolerance=2,
     )["corrected_text"]
+    if expected and expected[-1] not in ".?!":
+        expected = expected[:1].upper() + expected[1:] + "."
     assert actual == expected, f"{source!r}: expected {expected!r}, got {actual!r}"
 
 

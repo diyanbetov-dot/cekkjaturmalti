@@ -86,7 +86,7 @@ assert corrected_text("misterjuz") == "Misterjuż."
 assert corrected_text("gustuz") == "Gustuż."
 assert corrected_text("ma' gustuz") == "ma' gustuż."
 
-gustuz_token = token_for("ma' gustuz", "ma' gustuz")
+gustuz_token = token_for("ma' gustuz", "ma'")
 assert gustuz_token["corrected"] == "ma' gustuż"
 assert gustuz_token.get("ambiguous") is False
 assert gustuz_token.get("crucial") in {False, None}

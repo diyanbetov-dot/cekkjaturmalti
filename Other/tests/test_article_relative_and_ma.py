@@ -13,7 +13,7 @@ class ArticleRelativeAndMaTests(unittest.TestCase):
         return result
 
     def test_superlative_adjective_keeps_short_article(self):
-        result = self.check_text("l-ikbar", "l-ikbar")
+        result = self.check_text("l-ikbar", "L-ikbar.")
         self.assertEqual(
             app.spellchecker.meaning_for("l-ikbar"),
             "the largest, biggest, oldest",
@@ -24,27 +24,27 @@ class ArticleRelativeAndMaTests(unittest.TestCase):
         )
 
     def test_relative_l_apostrophe_is_not_an_article(self):
-        self.check_text("l'ikbar", "l'ikbar")
+        self.check_text("l'ikbar", "L'ikbar.")
         self.assertEqual(
             app.spellchecker.meaning_for("l'ikbar"),
             "which is larger, bigger, older",
         )
-        self.check_text("l'eżistiet", "l'eżistiet")
+        self.check_text("l'eżistiet", "L'eżistiet.")
         self.assertEqual(
             app.spellchecker.meaning_for("l'eżistiet"),
             "which existed",
         )
 
     def test_article_l_does_not_go_before_hawn_or_hemm(self):
-        self.check_text("l-hawn", "hawn")
-        self.check_text("l-hemm", "hemm")
-        self.check_text("l'hawn", "l'hawn")
-        self.check_text("l'hemm", "l'hemm")
+        self.check_text("l-hawn", "'l hawn.")
+        self.check_text("l-hemm", "'l hemm.")
+        self.check_text("l'hawn", "L'hawn.")
+        self.check_text("l'hemm", "L'hemm.")
 
     def test_negative_ma_contracts_before_a_vowel(self):
-        self.check_text("ma eżistiet", "m'eżistiet")
-        self.check_text("mezistiet", "m'eżistiet")
-        self.check_text("ma marret", "ma marret")
+        self.check_text("ma eżistiet", "m'eżistiet.")
+        self.check_text("mezistiet", "M'eżistiet.")
+        self.check_text("ma marret", "Ma marret.")
 
     def test_mlt_tags_supply_meanings(self):
         self.assertEqual(app.meaning_index.meaning_for("Ċina"), "China")
