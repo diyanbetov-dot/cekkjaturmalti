@@ -20,6 +20,7 @@ class CandidateEvidence:
     confidence: float = 0.0
     apertium_available: bool | None = None
     apertium_analyses: tuple[str, ...] = ()
+    corpus_score: float = 0.0
 
     def add_evidence(
         self,
@@ -39,6 +40,14 @@ class CandidateEvidence:
         else:
             weight = float(confidence)
         self.confidence = max(self.confidence, max(0.0, min(1.0, weight)))
+
+    def add_corpus_evidence(self, bonus: float, reason: str = "corpus frequency bonus") -> None:
+        if bonus > 0:
+            self.corpus_score = max(self.corpus_score, bonus)
+            self.sources.add("corpus")
+            self.reasons.add(reason)
+            # Add bonus to confidence without overriding exact dictionary / hard guards
+            self.confidence = min(1.0, round(self.confidence + bonus, 4))
 
 
 class CandidateEvidencePool:
@@ -102,6 +111,26 @@ class CandidateEvidencePool:
                     reason="morphologically recognized",
                 )
 
+    def annotate_corpus(
+        self,
+        scorer,
+        *,
+        prev_word: str | None = None,
+        next_word: str | None = None,
+        prev_prev_word: str | None = None,
+    ) -> None:
+        if scorer is None or not getattr(scorer, "is_available", lambda: False)():
+            return
+        for item in self._items.values():
+            bonus = scorer.score_candidate(
+                item.word,
+                prev_word=prev_word,
+                next_word=next_word,
+                prev_prev_word=prev_prev_word,
+            )
+            if bonus > 0:
+                item.add_corpus_evidence(bonus)
+
     def words(self) -> list[str]:
         return [item.word for item in self._items.values()]
 
@@ -121,6 +150,7 @@ class CandidateEvidencePool:
                     "types": sorted(item.candidate_types),
                     "reasons": sorted(item.reasons),
                     "confidence": round(item.confidence, 3),
+                    "corpus_score": round(item.corpus_score, 4),
                     "apertium_available": item.apertium_available,
                     "apertium_analyses": list(item.apertium_analyses[:4]),
                 }

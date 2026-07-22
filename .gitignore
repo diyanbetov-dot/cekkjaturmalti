@@ -29,3 +29,6 @@ Thumbs.db
 # Build / recovery leftovers
 *.tmp
 *.pyc
+
+# Local raw corpus cache
+.corpus_cache/
