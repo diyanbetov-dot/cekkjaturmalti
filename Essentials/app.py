@@ -1,4 +1,4 @@
-﻿import json
+import json
 import os
 import re
 import threading
@@ -11254,6 +11254,34 @@ class UniversalMalteseSpellchecker:
         if not text:
             return {"corrected_text": text, "tokens": []}
 
+        if len(text) > 4000 and "\n\n" in text:
+            paragraphs = text.split("\n\n")
+            chunks = []
+            curr = []
+            curr_len = 0
+            for p in paragraphs:
+                if curr_len + len(p) > 4000 and curr:
+                    chunks.append("\n\n".join(curr))
+                    curr = [p]
+                    curr_len = len(p)
+                else:
+                    curr.append(p)
+                    curr_len += len(p) + 2
+            if curr:
+                chunks.append("\n\n".join(curr))
+
+            if len(chunks) > 1:
+                all_corrected = []
+                all_tokens = []
+                for chunk in chunks:
+                    res = self.correct_text_rich(chunk, edit_distance_tolerance=edit_distance_tolerance)
+                    all_corrected.append(res["corrected_text"])
+                    all_tokens.extend(res.get("tokens", []))
+                return {
+                    "corrected_text": "\n\n".join(all_corrected),
+                    "tokens": all_tokens,
+                }
+
         text = repair_mojibake_text(text)
 
         self._reset_request_token_cache()
@@ -15186,8 +15214,9 @@ class UniversalMalteseSpellchecker:
                 and previous_surface_word
                 and (
                     previous_surface_word in self.place_word_set
-                    or previous_surface_word in self.protected_name_words
-                    or previous_surface_word in self.names_words
+                    or previous_surface_word in self._protected_name_set()
+                    or previous_surface_word in self._given_name_set()
+                    or previous_surface_word in self._surname_set()
                 )
             ):
                 corrected_word = self._apply_surface_case(
