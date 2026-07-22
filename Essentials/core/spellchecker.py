@@ -127,6 +127,29 @@ ENABLE_BULK_TOKEN_PREWARM = os.environ.get(
     "false",
 ).lower() in {"1", "true", "yes", "on"}
 
+ENABLE_CORPUS_SCORING = os.environ.get(
+    "SPELLCHECK_CORPUS_SCORING",
+    "false",
+).lower() in {"1", "true", "yes", "on"}
+CORPUS_SHADOW_MODE = os.environ.get(
+    "SPELLCHECK_CORPUS_SHADOW",
+    "false",
+).lower() in {"1", "true", "yes", "on"}
+CORPUS_UNIGRAM = os.environ.get(
+    "SPELLCHECK_CORPUS_UNIGRAM",
+    "true",
+).lower() in {"1", "true", "yes", "on"}
+CORPUS_BIGRAM = os.environ.get(
+    "SPELLCHECK_CORPUS_BIGRAM",
+    "true",
+).lower() in {"1", "true", "yes", "on"}
+CORPUS_TRIGRAM = os.environ.get(
+    "SPELLCHECK_CORPUS_TRIGRAM",
+    "false",
+).lower() in {"1", "true", "yes", "on"}
+CORPUS_MAX_SCORE = float(os.environ.get("SPELLCHECK_CORPUS_MAX_SCORE", "0.25"))
+CORPUS_BERTU_MAX = int(os.environ.get("SPELLCHECK_CORPUS_BERTU_MAX", "8"))
+
 DICTIONARY_FILES = sorted(
     path
     for path in FINAL_DICS_DIR.glob("*.dic")
@@ -5643,6 +5666,9 @@ class UniversalMalteseSpellchecker:
                         reason="generated suffix suggestion",
                     )
         pool.annotate_apertium(globals().get("apertium_analyzer"))
+        corpus_scorer = getattr(self, "corpus_scorer", globals().get("corpus_scorer"))
+        if corpus_scorer is not None:
+            pool.annotate_corpus(corpus_scorer)
         cache[cache_key] = pool
         if profiler:
             profiler.cache_misses["candidate_evidence_pool"] = (

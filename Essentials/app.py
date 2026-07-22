@@ -19,6 +19,13 @@ from Essentials.core.spellchecker import (
     ENABLE_SENTENCE_CONTEXT_ANALYZER,
     ENABLE_APERTIUM_ANALYZER,
     APERTIUM_TIMEOUT_SEC,
+    ENABLE_CORPUS_SCORING,
+    CORPUS_SHADOW_MODE,
+    CORPUS_UNIGRAM,
+    CORPUS_BIGRAM,
+    CORPUS_TRIGRAM,
+    CORPUS_MAX_SCORE,
+    CORPUS_BERTU_MAX,
     _append_usage_log,
     _trim_request_caches,
 )
@@ -27,6 +34,7 @@ from Essentials.grammar import MalteseGrammarRuleEngine
 from Essentials.helpers.apertium_analyzer import OptionalApertiumAnalyzer
 from Essentials.helpers.article_phrase_rules import MalteseArticlePhraseRules, WordToken
 from Essentials.helpers.context_analyzer import OptionalSentenceContextAnalyzer
+from Essentials.helpers.corpus_scorer import MalteseCorpusScorer
 from Essentials.helpers.doubled_letter_generator import MalteseDoubledLetterGenerator
 from Essentials.helpers.fused_preposition_rules import MalteseFusedPrepositionRules
 from Essentials.helpers.orthographic_generator import MalteseOrthographicGenerator
@@ -90,6 +98,16 @@ try:
     spellchecker.bertu_reranker = bertu_reranker
 except Exception:  # pragma: no cover
     pass
+
+corpus_scorer = MalteseCorpusScorer(
+    enabled=ENABLE_CORPUS_SCORING,
+    shadow_mode=CORPUS_SHADOW_MODE,
+    unigram_enabled=CORPUS_UNIGRAM,
+    bigram_enabled=CORPUS_BIGRAM,
+    trigram_enabled=CORPUS_TRIGRAM,
+    max_score_contribution=CORPUS_MAX_SCORE,
+)
+spellchecker.corpus_scorer = corpus_scorer
 
 
 doubled_letter_generator = MalteseDoubledLetterGenerator(spellchecker=spellchecker)
