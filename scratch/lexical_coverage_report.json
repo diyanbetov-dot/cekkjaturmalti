@@ -1,0 +1,33 @@
+{
+  "elapsed_sec": 2.204,
+  "total_tokens": 143,
+  "recognized_tokens": 136,
+  "coverage_pct": 95.1,
+  "unique_unrecognized_count": 6,
+  "top_unrecognized": [
+    {
+      "word": "ikklasifikata",
+      "frequency": 2
+    },
+    {
+      "word": "r li",
+      "frequency": 1
+    },
+    {
+      "word": "imsewwija",
+      "frequency": 1
+    },
+    {
+      "word": "il-biebien",
+      "frequency": 1
+    },
+    {
+      "word": "irrranġati",
+      "frequency": 1
+    },
+    {
+      "word": "isseqqu",
+      "frequency": 1
+    }
+  ]
+}

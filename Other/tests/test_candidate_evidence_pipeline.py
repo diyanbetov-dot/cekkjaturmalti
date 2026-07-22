@@ -91,7 +91,7 @@ def test_preposition_article_variants_are_generated_generally():
         "bhal- siehbi": "Bħas-sieħbi.",
         "bhall sihbi": "Bħal sieħbi.",
         "ghal l gid": "Għall-ġid.",
-        "ghadd dinja": "Għad-dinja.",
+        "ghadd dinja": "Għad-Dinja.",
         "mis s-supermarket": "Mis-supermarket.",
     }
 
