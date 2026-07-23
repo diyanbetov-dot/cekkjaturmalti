@@ -15532,19 +15532,32 @@ class UniversalMalteseSpellchecker:
 
 # -----------------------------------------------------------------------------
 
-def _trim_request_caches() -> None:
+def _trim_request_caches(spellchecker_instance) -> None:
     """
     Partially clear high-churn, per-request caches to keep memory bounded.
     Called after every check-text request. Only clears caches that fill up
     with user-input-derived keys (word pairs etc.), not dictionary-derived ones.
+    
+    Args:
+        spellchecker_instance: The UniversalMalteseSpellchecker instance to trim caches for.
     """
     import gc
-    spellchecker._word_distance.cache_clear()
-    spellchecker._damerau_levenshtein_distance.cache_clear()
-    spellchecker._extract_consonant_anchor.cache_clear()
-    spellchecker._vowel_slots.cache_clear()
-    spellchecker._count_vowels.cache_clear()
-    spellchecker._get_candidates_cached.cache_clear()
+    
+    # Safely clear caches; skip if methods don't have cache_clear (e.g., not decorated with @lru_cache).
+    cache_methods = [
+        '_word_distance',
+        '_damerau_levenshtein_distance',
+        '_extract_consonant_anchor',
+        '_vowel_slots',
+        '_count_vowels',
+        '_get_candidates_cached',
+    ]
+    
+    for method_name in cache_methods:
+        method = getattr(spellchecker_instance, method_name, None)
+        if method is not None and hasattr(method, 'cache_clear'):
+            method.cache_clear()
+    
     gc.collect()
 
 

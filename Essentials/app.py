@@ -320,7 +320,7 @@ def check_text():
         # We only trim caches whose entries are request-specific (word pairs, scores).
         # Dictionary-based caches (_normalize, _graphemes, tag lookups) are kept warm
         # because they store pre-computed facts about the dictionary words, not user text.
-        _trim_request_caches()
+        _trim_request_caches(spellchecker)
 
 
 @app.post("/suggest-word")
