@@ -1,0 +1,3880 @@
+{
+  "corrected_text": "Għeżież ħbieb,\n\nNaf li bħalma għaddejjin miż-żmien difficcli u iebes minħabba nuqqas ta' dawl għall-ħinijiet twal u eċċessivi. Sħana, twahhil, tidlik u hassazinijat. Naf wkoll li hawn ħafna minn qed ibaghti minħabba eta, dizabilta' jew kundizzjonijiet medici. U ta' dan jiddispjaċini ħafna, għaliex ħadd ma ħaqqu jgħaddi minn dan kollu!\n\nJgħin kulma nixtieq huwa ħaġa waħda biss: forsi nkun ftit biased wkoll iżda nħoss li għandi ngħidha. Jekk jghogbokom tihduwiex mal-ħaddiema tal-Enemalta jew il-customer care tagħhom. Naf u nifhem li mhux sitwazzjoni sabiħa u pjacevoli, iżda dawn m'għandhom l-ebda tort! Il-ħaddiema kollha hilom jaħdmu fix-xemx u s-sħana ġranet twal ħafna u bla waqfien. U għalhekk nixtieq li tippruvaw tifmu li huma m'għandhomx tort u qed jippruvaw bil-kapacita' kollha li għandhom jreġġgħu kollox lura ghan-normal. It-tort tuh lin-nies ta' fuq; dawk li jikkmandaw il-liġi!\n\nDawn il-ħaddiema li qed jaħdmu lejl u nhar biex ituna l-lura l-aktar ħaġa bażika li teżisti: il-kumdita', ma jaħtu xejn!\n\nMiniex nistenna li ma ċċemplux jew ma tistaqsux għax għandkom dritt- iżda li titfu ħtija fuq min mghandux huwa il-ġust u jweġġa' ħafna. Missieri flimkien mal-ħaddiema kollha tal-enemalta ħilhom ġranet u ijlieli sħaħ jaħdmu bla nifs u bilkemm jistrieħu jew narawhom. Ejjew ma nħallux is-sahna u r-rabja tal-mument tirkibna billi ngħajru jew imaqdaru lill-ħaddiema li jaħdmu mill-qalb f'dan it-temp kiefer!\n\nMinn hawn ngħid grazzi lill-ħaddiema kollha tal-enemalta u l-customer care li qed jagħmlu ħilithom kollha biex isolvu problema li m'għandhomx tort fiha!",
+  "tokens": [
+    {
+      "type": "word",
+      "original": "Gheziez",
+      "corrected": "Għeżież",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hbieb",
+      "corrected": "ħbieb",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ",\n\n",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Naf",
+      "corrected": "Naf",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "bhalissa",
+      "corrected": "bħalma",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ghaddejin",
+      "corrected": "għaddejjin",
+      "meaning": "",
+      "ambiguous": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "minn zmien",
+      "corrected": "miż-żmien",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "difficcli",
+      "corrected": "difficcli",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "iebes",
+      "corrected": "iebes",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "minhabba",
+      "corrected": "minħabba",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nuqqas",
+      "corrected": "nuqqas",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ta'",
+      "corrected": "ta'",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "dawl",
+      "corrected": "dawl",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "ghall hinijiet",
+      "corrected": "għall-ħinijiet",
+      "ambiguous": true,
+      "crucial": true,
+      "choices": [
+        {
+          "word": "għall-ħinijiet",
+          "meaning": "times"
+        },
+        {
+          "word": "għal ħinijiet",
+          "meaning": "times"
+        }
+      ],
+      "name_like": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "twal",
+      "corrected": "twal",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "eccessivi",
+      "corrected": "eċċessivi",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Shana",
+      "corrected": "Sħana",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "Sħana",
+          "meaning": ""
+        },
+        {
+          "word": "Sħanna",
+          "meaning": "we were warm or were angry"
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ", ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "twahhil",
+      "corrected": "twahhil",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": ", ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tidlik",
+      "corrected": "tidlik",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hassazinijat",
+      "corrected": "hassazinijat",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Naf",
+      "corrected": "Naf",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ukoll",
+      "corrected": "wkoll",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "wkoll",
+          "meaning": ""
+        },
+        {
+          "word": "ukoll",
+          "meaning": ""
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hawn",
+      "corrected": "hawn",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hafna",
+      "corrected": "ħafna",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "minn",
+      "corrected": "minn",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ibaghti",
+      "corrected": "ibaghti",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "minhabba",
+      "corrected": "minħabba",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "eta",
+      "corrected": "eta",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": ", ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "dizabilta'",
+      "corrected": "dizabilta'",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jew",
+      "corrected": "jew",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kundizzjonijiet",
+      "corrected": "kundizzjonijiet",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "medici",
+      "corrected": "medici",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "U",
+      "corrected": "U",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ta'",
+      "corrected": "ta'",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "dan",
+      "corrected": "dan",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jiddispjacini",
+      "corrected": "jiddispjaċini",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hafna",
+      "corrected": "ħafna",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ", ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ghaliex",
+      "corrected": "għaliex",
+      "meaning": "",
+      "ambiguous": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hadd",
+      "corrected": "ħadd",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "ma",
+      "corrected": "ma ħaqqu",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jghaddi",
+      "corrected": "jgħaddi",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "minn",
+      "corrected": "minn",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kollu",
+      "corrected": "kollu",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": "!\n\n",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Jin",
+      "corrected": "Jgħin",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "Jgħin",
+          "meaning": "he helps"
+        },
+        {
+          "word": "Jien",
+          "meaning": "I"
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kulma",
+      "corrected": "kulma",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nixtieq",
+      "corrected": "nixtieq",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "huwa",
+      "corrected": "huwa",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "haga",
+      "corrected": "ħaġa",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "wahda",
+      "corrected": "waħda",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "biss",
+      "corrected": "biss",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ": ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "forsi",
+      "corrected": "forsi",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nkun",
+      "corrected": "nkun",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ftit",
+      "corrected": "ftit",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "biased",
+      "corrected": "biased",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ukoll",
+      "corrected": "wkoll",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "wkoll",
+          "meaning": ""
+        },
+        {
+          "word": "ukoll",
+          "meaning": ""
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "izda",
+      "corrected": "iżda",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nhoss",
+      "corrected": "nħoss",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ghandi",
+      "corrected": "għandi",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nghidha",
+      "corrected": "ngħidha",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Jekk",
+      "corrected": "Jekk",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jghogbokom",
+      "corrected": "jghogbokom",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tihduwiex",
+      "corrected": "tihduwiex",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "mal-haddiema",
+      "corrected": "mal-ħaddiema",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tal-Enemalta",
+      "corrected": "tal-Enemalta",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jew",
+      "corrected": "jew",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "il-customer",
+      "corrected": "il-customer",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "care",
+      "corrected": "care",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "taghhom",
+      "corrected": "tagħhom",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Naf",
+      "corrected": "Naf",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nifhem",
+      "corrected": "nifhem",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "mhux",
+      "corrected": "mhux",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "sitwazzjoni",
+      "corrected": "sitwazzjoni",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "sabiha",
+      "corrected": "sabiħa",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "sabiħa",
+          "meaning": ""
+        },
+        {
+          "word": "sabiha",
+          "meaning": ""
+        },
+        {
+          "word": "sabha",
+          "meaning": "he found or discovered or realised her"
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "pjacevoli",
+      "corrected": "pjacevoli",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": ", ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "izda",
+      "corrected": "iżda",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "dawn",
+      "corrected": "dawn",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "mghandhom",
+      "corrected": "m'għandhom",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "l-ebda",
+      "corrected": "l-ebda",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tort",
+      "corrected": "tort",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": "! ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "Il-haddiema",
+      "corrected": "Il-ħaddiema",
+      "ambiguous": true,
+      "crucial": true,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kollha",
+      "corrected": "kollha",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hilom",
+      "corrected": "hilom",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jahdmu",
+      "corrected": "jaħdmu",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "fix-xemx",
+      "corrected": "fix-xemx",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "s-shana",
+      "corrected": "s-sħana",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "granet",
+      "corrected": "ġranet",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "twal",
+      "corrected": "twal",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hafna",
+      "corrected": "ħafna",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "bla",
+      "corrected": "bla",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "waqfien",
+      "corrected": "waqfien",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "U",
+      "corrected": "U",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ghalhekk",
+      "corrected": "għalhekk",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "għalhekk",
+          "meaning": ""
+        },
+        {
+          "word": "għalfejn",
+          "meaning": ""
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nixtieq",
+      "corrected": "nixtieq",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "li tipruvaw",
+      "corrected": "li tippruvaw",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tifmu",
+      "corrected": "tifmu",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "li huma",
+      "corrected": "li huma",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "mghandhomx",
+      "corrected": "m'għandhomx",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tort",
+      "corrected": "tort",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "qed",
+      "corrected": "qed",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jipruvaw",
+      "corrected": "jippruvaw",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "bil-kapacita'",
+      "corrected": "bil-kapacita'",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kollha",
+      "corrected": "kollha",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ghandhom",
+      "corrected": "għandhom",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jreggghu",
+      "corrected": "jreġġgħu",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kollox",
+      "corrected": "kollox",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "lura",
+      "corrected": "lura",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ghan-normal",
+      "corrected": "ghan-normal",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "It-tort",
+      "corrected": "It-tort",
+      "ambiguous": true,
+      "crucial": true,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tuh",
+      "corrected": "tuh",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "lin-nies",
+      "corrected": "lin-nies",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ta'",
+      "corrected": "ta'",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "fuq",
+      "corrected": "fuq",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": "; ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "dawk",
+      "corrected": "dawk",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "li jikkmandaw",
+      "corrected": "li jikkmandaw",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "il-ligi",
+      "corrected": "il-liġi",
+      "ambiguous": true,
+      "crucial": true,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": "!\n\n",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Dawn",
+      "corrected": "Dawn",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "il-haddiema",
+      "corrected": "il-ħaddiema",
+      "ambiguous": true,
+      "crucial": true,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "qed",
+      "corrected": "qed",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jahdmu",
+      "corrected": "jaħdmu",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "lejl",
+      "corrected": "lejl",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nhar",
+      "corrected": "nhar",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "bix",
+      "corrected": "biex",
+      "meaning": "",
+      "ambiguous": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ituna",
+      "corrected": "ituna",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "l-lura",
+      "corrected": "l-lura",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "l-aktar",
+      "corrected": "l-aktar",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "haga",
+      "corrected": "ħaġa",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "bazika",
+      "corrected": "bażika",
+      "meaning": "",
+      "ambiguous": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "li tezisti",
+      "corrected": "li teżisti",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false
+    },
+    {
+      "type": "text",
+      "text": ": ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "il-kumdita'",
+      "corrected": "il-kumdita'",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": ", ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ma",
+      "corrected": "ma",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jahtu",
+      "corrected": "jaħtu",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "xejn",
+      "corrected": "xejn",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": "!\n\n",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Miniex",
+      "corrected": "Miniex",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nistenna",
+      "corrected": "nistenna",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ma",
+      "corrected": "ma",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ccemplux",
+      "corrected": "ċċemplux",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "ċċemplux",
+          "meaning": "you all don't ring sb or phone sb / you all, don't ring sb or phone sb (command) / they were not heavily drunk"
+        },
+        {
+          "word": "ċemplux",
+          "meaning": "they didn't ring sb or phone sb"
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jew",
+      "corrected": "jew",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ma",
+      "corrected": "ma",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tistaqsux",
+      "corrected": "tistaqsux",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ghax",
+      "corrected": "għax",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ghandkom",
+      "corrected": "għandkom",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "dritt",
+      "corrected": "dritt",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": "- ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "izda",
+      "corrected": "iżda",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "li titfu",
+      "corrected": "li titfu",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "htija",
+      "corrected": "ħtija",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "fuq",
+      "corrected": "fuq",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "min",
+      "corrected": "min",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "huwa",
+      "corrected": "huwa",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ingust",
+      "corrected": "il-ġust",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jwegga'",
+      "corrected": "jweġġa'",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hafna",
+      "corrected": "ħafna",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Missieri",
+      "corrected": "Missieri",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "flimkien",
+      "corrected": "flimkien",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "mal-haddiema",
+      "corrected": "mal-ħaddiema",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kollha",
+      "corrected": "kollha",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tal-enemalta",
+      "corrected": "tal-enemalta",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hilhom",
+      "corrected": "ħilhom",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "granet",
+      "corrected": "ġranet",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ijlieli",
+      "corrected": "ijlieli",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "shah",
+      "corrected": "sħaħ",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "sħaħ",
+          "meaning": ""
+        },
+        {
+          "word": "shieh",
+          "meaning": "he was troubled or was distracted him"
+        },
+        {
+          "word": "sehah",
+          "meaning": "he was troubled or was distracted him"
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jahdmu",
+      "corrected": "jaħdmu",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "bla",
+      "corrected": "bla",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nifs",
+      "corrected": "nifs",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "bilkemm",
+      "corrected": "bilkemm",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jistriehu",
+      "corrected": "jistrieħu",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "jistrieħu",
+          "meaning": "they rest"
+        },
+        {
+          "word": "jistriħu",
+          "meaning": "he rests him"
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jew",
+      "corrected": "jew",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "narawhom",
+      "corrected": "narawhom",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": ". ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "Ejjew",
+      "corrected": "Ejjew",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "ma",
+      "corrected": "ma",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nhallux",
+      "corrected": "nħallux",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "is-sahna",
+      "corrected": "is-sahna",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "r-rabja",
+      "corrected": "r-rabja",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tal-mument",
+      "corrected": "tal-mument",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tirkibna",
+      "corrected": "tirkibna",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "billi",
+      "corrected": "billi",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nghajjru",
+      "corrected": "ngħajru",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "ngħajru",
+          "meaning": "we insult sb or are overcast (of weather)"
+        },
+        {
+          "word": "ngħajjru",
+          "meaning": "I insult sb or am overcast (of weather) him"
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jew",
+      "corrected": "jew",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "imqaddru",
+      "corrected": "imaqdaru",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "lil haddiema",
+      "corrected": "lill-ħaddiema",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "li jahdmu",
+      "corrected": "li jaħdmu",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "mill-qalb",
+      "corrected": "mill-qalb",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "f'dan",
+      "corrected": "f'dan",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "it-temp",
+      "corrected": "it-temp",
+      "ambiguous": true,
+      "crucial": true,
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kifer",
+      "corrected": "kiefer",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": "!\n\n",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "Min",
+      "corrected": "Minn",
+      "ambiguous": true,
+      "crucial": true,
+      "choices": [
+        {
+          "word": "Minn",
+          "meaning": ""
+        },
+        {
+          "word": "Min",
+          "meaning": ""
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "nghid",
+      "corrected": "ngħid",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "grazzi",
+      "corrected": "grazzi",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "phrase",
+      "original": "lil haddiema",
+      "corrected": "lill-ħaddiema",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kollha",
+      "corrected": "kollha",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tal-enemalta",
+      "corrected": "tal-enemalta",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "u",
+      "corrected": "u",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "l-customer",
+      "corrected": "l-customer",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "care",
+      "corrected": "care",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": true
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "qed",
+      "corrected": "qed",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "jaghmlu",
+      "corrected": "jagħmlu",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "hilithom",
+      "corrected": "ħilithom",
+      "meaning": "",
+      "ambiguous": true,
+      "crucial": false,
+      "choices": [
+        {
+          "word": "ħilithom",
+          "meaning": "she fancied or imagined them"
+        },
+        {
+          "word": "ħiliethom",
+          "meaning": ""
+        }
+      ],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "kollha",
+      "corrected": "kollha",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "bix",
+      "corrected": "biex",
+      "meaning": "",
+      "ambiguous": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "isolvu",
+      "corrected": "isolvu",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "problema",
+      "corrected": "problema",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "li",
+      "corrected": "li",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "mghandhomx",
+      "corrected": "m'għandhomx",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "unrecognized": false,
+      "meaning": ""
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "tort",
+      "corrected": "tort",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": " ",
+      "choices": [],
+      "meaning": ""
+    },
+    {
+      "type": "word",
+      "original": "fiha",
+      "corrected": "fiha",
+      "meaning": "",
+      "ambiguous": false,
+      "crucial": false,
+      "choices": [],
+      "name_like": false,
+      "unrecognized": false
+    },
+    {
+      "type": "text",
+      "text": "!",
+      "choices": [],
+      "meaning": ""
+    }
+  ]
+}
