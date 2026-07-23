@@ -1,0 +1,283 @@
+In the `experimental-three-tool-architecture` branch, integrate Korpus Malti as corpus evidence for candidate ranking.
+
+BERTu has already been added. Do not replace BERTu or the existing Maltese correction rules. The corpus should complement them by showing which words and short phrases are common or attested in real Maltese.
+
+First inspect the current experimental branch and understand:
+
+* how candidates are currently generated;
+* how BERTu scores or reranks candidates;
+* where candidate evidence and final confidence are calculated;
+* which existing hard rules protect Maltese spelling, morphology, `għ`, `ħ`, articles and suffixes.
+
+## Corpus integration
+
+Use Korpus Malti v4.0 from `MLRS/korpus_malti`, subject to its access and licence conditions.
+
+Do not require the full raw corpus to be loaded into memory at runtime.
+
+Create an offline preprocessing script that converts the corpus into compact frequency resources containing:
+
+* normalized word frequencies;
+* sentence-initial and ordinary capitalization frequencies where useful;
+* bigram frequencies;
+* optional trigram frequencies;
+* total token and n-gram counts;
+* metadata recording the corpus version and preprocessing settings.
+
+Support the vertical corpus format where each line may contain the surface word, POS tag, lemma and root. Preserve Maltese Unicode correctly.
+
+Exclude or separately handle:
+
+* punctuation-only entries;
+* malformed rows;
+* URLs;
+* obvious markup;
+* empty tokens;
+* extremely rare OCR-like noise;
+* personal or document-specific identifiers where practical.
+
+Do not treat absence from the corpus as proof that a word is invalid. Rare words, names, dialect words and valid inflections must remain possible.
+
+## Runtime corpus scorer
+
+Add a lightweight corpus scorer that loads only the compact indexes.
+
+For every candidate, calculate bounded evidence from:
+
+1. unigram frequency;
+2. previous-word plus candidate bigram;
+3. candidate plus next-word bigram;
+4. trigram evidence when available;
+5. optional lemma or POS evidence when safely available.
+
+Use smoothed log frequencies so very common words do not dominate everything.
+
+Corpus evidence must be a ranking bonus or penalty, not an automatic correction rule.
+
+Existing deterministic Maltese rules must remain more authoritative than corpus frequency.
+
+A candidate supported only by frequency must not override:
+
+* exact dictionary recognition;
+* explicit exception rules;
+* verified `għ` or `ħ` restoration;
+* article and preposition rules;
+* morphology and suffix constraints;
+* strong BERTu contextual evidence combined with structural evidence.
+
+## Relationship with BERTu
+
+Use this approximate sequence:
+
+1. generate bounded candidates;
+2. apply existing hard guards;
+3. score orthographic and morphological evidence;
+4. use corpus evidence to reduce the pool;
+5. retain approximately the best 3–8 candidates;
+6. use BERTu only to rerank genuinely ambiguous candidates;
+7. apply the final confidence and margin requirements;
+8. leave the token unresolved when evidence remains weak.
+
+Do not run BERTu over the entire raw candidate set.
+
+Batch BERTu scoring where possible.
+
+Add feature flags for:
+
+* corpus scoring enabled;
+* unigram scoring;
+* bigram scoring;
+* trigram scoring;
+* corpus shadow mode;
+* maximum corpus score contribution;
+* maximum candidates passed to BERTu.
+
+In shadow mode, corpus evidence must be logged but must not alter the result.
+
+## Testing
+
+Create automated tests using the examples below and additional examples derived from existing repository regression tests.
+
+The tests must compare:
+
+* baseline branch behaviour;
+* BERTu-only behaviour;
+* corpus-only behaviour;
+* BERTu plus corpus behaviour.
+
+For every example, record:
+
+* generated candidates;
+* corpus frequencies;
+* local bigram or trigram evidence;
+* BERTu scores;
+* final candidate;
+* confidence margin;
+* whether the result changed;
+* processing time.
+
+### Contextual candidate tests
+
+Use examples such as:
+
+1. `Jien mrot il-ħanut biex nixtri l-ħobż.`
+   Expected candidate: `mort`, not a rarer edit-distance neighbour.
+
+2. `Ilbieraħ mort il-baħar mal-ħbieb tiegħi.`
+   The corpus must support the common phrase `mort il-baħar`.
+
+3. `Huwa qiegħed jiktep ittra lill-għalliem.`
+   Do not replace a valid but possibly less frequent inflected word merely because another form is more frequent.
+
+4. `Aħna morna nixtru mill-ħanut il-ġdid.`
+   The context should favour `morna` rather than another close verb form.
+
+5. `Qiegħed nagħmel ix-xogħol tad-dar.`
+   Test the phrase evidence around `nagħmel ix-xogħol`.
+
+6. `It-tifel qiegħed jilgħab bil-ballun.`
+   Ensure article, verb and prepositional constructions are preserved.
+
+7. `It-tfal qegħdin jilagħbu fil-ġnien.`
+   Ensure the plural form is not replaced by a more common singular form.
+
+8. `Jien għandi partner.`
+   Preserve intentional Maltese-English code-switching where the English word is accepted.
+
+9. `Mort hdejn iz zlazi u gibt flixkun.`
+   Candidate ranking should favour:
+
+   * `ħdejn`;
+   * `iż-zlazi`;
+   * `ġibt`;
+     while preserving context and existing article rules.
+
+10. `Xi hadd hadli t-trolly.`
+    Test:
+
+    * `xi ħadd`;
+    * `ħadli`;
+    * `trolley` or the repository’s accepted form;
+      without letting corpus frequency bypass the specific rules.
+
+11. `Ghidtilha biex tersaq l-hemm.`
+    Test:
+
+    * `Għidtilha`;
+    * `hemm`;
+      and ensure capitalization is restored separately from lexical scoring.
+
+12. `Ma stajtx insib bilanc.`
+    Test whether the system proposes `bilanċ` using orthography plus corpus support.
+
+### Frequency trap tests
+
+Create tests where the most frequent word is not the correct word.
+
+Examples:
+
+* a valid plural versus a more frequent singular;
+* a valid feminine form versus a more frequent masculine form;
+* a valid verb person versus a more frequent third-person form;
+* a proper name that is absent from the corpus;
+* a technical Maltese word with low frequency;
+* an accepted English code-switched word.
+
+The corpus must not automatically win these cases.
+
+### Rare-valid-word tests
+
+Include valid but uncommon dictionary words and verify that they remain unchanged when correctly written.
+
+### Noise tests
+
+Inject corpus-like noise and verify it does not receive strong evidence:
+
+* malformed Unicode;
+* OCR substitutions;
+* fragments;
+* URLs;
+* repeated punctuation;
+* tokens containing accidental digits.
+
+## Evaluation
+
+Create a report with:
+
+* top-1 correction accuracy;
+* top-3 candidate recall;
+* false-correction rate;
+* unresolved-token rate;
+* accuracy specifically for context-dependent examples;
+* accuracy for rare valid words;
+* median and worst-case processing time;
+* memory used by the corpus indexes;
+* BERTu calls avoided because corpus scoring reduced the pool.
+
+Do not claim an improvement merely because corpus scoring changes an answer.
+
+Classify each changed result as:
+
+* clear improvement;
+* clear regression;
+* uncertain and requiring Maltese review;
+* performance-only change.
+
+## Safety requirements
+
+The integration must fail safely.
+
+If corpus files are missing, malformed or too large:
+
+* log the reason;
+* disable corpus evidence;
+* continue using the existing checker and BERTu.
+
+Do not download Korpus Malti during a live Cloud Run request.
+
+Preprocess it offline or during a controlled build step, and commit only legally permitted derived indexes.
+
+Do not commit the full corpus if its licence or access terms do not permit redistribution.
+
+At completion, provide:
+
+* a summary of all changed files;
+* corpus preprocessing instructions;
+* required environment variables;
+* index sizes and memory use;
+* test results;
+* examples where corpus evidence helped;
+* examples where it caused regressions;
+* a recommendation on whether corpus scoring is ready for shadow mode or live ranking.
+
+## Authority and fallback requirements
+
+This integration must operate beside the existing spellchecker, not above it.
+
+The current Maltese code remains the primary correction engine and final authority. Do not restructure it as a fallback that runs only when corpus or BERTu processing fails.
+
+The existing code must continue to:
+
+* recognize valid words;
+* generate deterministic Maltese repairs;
+* enforce orthographic and morphological guards;
+* generate and validate suffix forms;
+* handle articles and fused prepositions;
+* determine whether confidence is sufficient to correct;
+* leave uncertain words unresolved.
+
+The corpus and BERTu may only provide additional evidence for candidates already accepted into the evidence pool.
+
+Corpus absence must never reject a candidate by itself. Corpus frequency must not override a verified deterministic Maltese correction.
+
+Use corpus evidence primarily to reorder candidates. Remove a candidate only when it already has weak internal support and is contradicted by stronger structurally valid candidates.
+
+The final correction must still pass the existing hard guards and confidence thresholds.
+
+The required fallback behaviour is:
+
+* corpus unavailable: continue with existing code and BERTu;
+* BERTu unavailable: continue with existing code and corpus;
+* both unavailable: continue with the existing checker unchanged.
+
+Add tests proving that disabling both external components reproduces the existing experimental-branch output exactly.

@@ -1,0 +1,24 @@
+{
+  "corpus_name": "Korpus Malti",
+  "corpus_source": "MLRS",
+  "corpus_revision": "local-archive-subset",
+  "corpus_version": "4.2",
+  "selected_section": "All Sections",
+  "source_url": "file:///C:/Users/diyan/Downloads/All.zip",
+  "download_timestamp": "2026-07-23T00:00:00+00:00",
+  "preprocessing_version": "1.1.0",
+  "build_date": "2026-07-23T00:00:00+00:00",
+  "index_format_version": "1.0",
+  "min_freq": 2,
+  "stats": {
+    "total_tokens": 1412232,
+    "total_sentences": 64001,
+    "vocab_size": 38843,
+    "bigram_count": 138805,
+    "trigram_count": 123148,
+    "malformed_rows": 32965,
+    "valid_rows": 1412232
+  },
+  "checksums": {},
+  "attribution": "Korpus Malti v4.2 provided by MLRS (Maltese Language Resource Server), University of Malta."
+}
