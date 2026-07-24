@@ -301,10 +301,12 @@ def check_text():
 
         log_id = str(uuid.uuid4())
         try:
+            initial_notes = beta_sheet_logger.build_initial_notes(tokens)
             beta_sheet_logger.create_log(
                 log_id=log_id,
                 input_text=text,
                 initial_output=corrected_text,
+                notes=initial_notes,
                 final_output=corrected_text,
             )
         except Exception as e:

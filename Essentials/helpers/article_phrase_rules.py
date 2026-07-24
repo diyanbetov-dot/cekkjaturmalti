@@ -172,8 +172,10 @@ class MalteseArticlePhraseRules:
             and normalized[1] not in VOWELS
         )
 
-    def _adjectival_article_surface(self, word: str) -> str:
-        return f"l-i{word}" if self._requires_article_epenthetic_i(word) else f"l-{word}"
+    def _adjectival_article_surface(self, word: str, previous: str | None = None) -> str:
+        if self._requires_article_epenthetic_i(word):
+            return f"l-i{word}"
+        return f"{self.assimilate('l-', word, previous=previous)}{word}"
 
     def _contains_surface(self, surfaces: set[str], word: str) -> bool:
         exact = normalize_word_exact(word)
@@ -192,14 +194,16 @@ class MalteseArticlePhraseRules:
             return True
         return len(normalized) >= 2 and normalized[-1] == "'" and normalized[-2] in VOWELS
 
-    def assimilate(self, article: str, noun: str) -> str:
+    def assimilate(self, article: str, noun: str, previous: str | None = None) -> str:
         normalized_article = self.normalize(article).rstrip("-")
         normalized_noun = self.normalize(noun)
         if not normalized_noun:
             return article
         first = normalized_noun[0]
         if first in SUN_LETTERS:
-            return f"i{first}-" if normalized_article == "il" else f"{first}-"
+            if self.previous_ends_vowelish(previous):
+                return f"{first}-"
+            return f"i{first}-"
         return f"{normalized_article}-"
 
     def article_from_previous(self, previous: str | None) -> str:
@@ -483,6 +487,31 @@ class MalteseArticlePhraseRules:
         prefix = self.normalize(prefix).rstrip("-")
         noun = self.normalize(noun)
 
+        TEEN_NUMERALS_MAP = {
+            "ħdax": "ħdax", "hdax": "ħdax", "11": "11",
+            "tnax": "tnax", "12": "12",
+            "tlettax": "tlettax", "tlataq": "tlettax", "tlietaq": "tlettax", "13": "13",
+            "erbatax": "erbatax", "erbataq": "erbatax", "14": "14",
+            "ħmistax": "ħmistax", "hmistax": "ħmistax", "15": "15",
+            "sittax": "sittax", "16": "16",
+            "sbatax": "sbatax", "sbataq": "sbatax", "17": "17",
+            "tmintax": "tmintax", "tmntaq": "tmintax", "18": "18",
+            "dsatax": "dsatax", "dsataq": "dsatax", "19": "19",
+            "kemm": "kemm",
+        }
+        p_clean = prefix.lower().rstrip("-")
+        if p_clean.endswith("-il"):
+            p_clean = p_clean[:-3]
+        if p_clean in TEEN_NUMERALS_MAP:
+            canonical_num = TEEN_NUMERALS_MAP[p_clean]
+            n_clean = noun
+            n_lower = n_clean.lower()
+            for art_prefix in ("il-", "l-", "iċ-", "id-", "in-", "ir-", "is-", "it-", "ix-", "iż-", "ċ-", "d-", "n-", "r-", "s-", "t-", "x-", "ż-", "ic-", "iz-", "c-", "z-"):
+                if n_lower.startswith(art_prefix):
+                    n_clean = n_clean[len(art_prefix):]
+                    break
+            return f"{canonical_num}-il {n_clean}"
+
         spellchecker = getattr(self, "spellchecker", None)
         place_display = None
         if spellchecker is not None:
@@ -660,6 +689,8 @@ class MalteseArticlePhraseRules:
 
         article = self.normalize(words[index].text).rstrip("-")
         noun = self.normalize(words[index + 1].text)
+        if article in {"għad", "ghad"} and not noun.startswith("d"):
+            return None
         article_canonical = self._assimilated_prefix_canonical(article)
         if article_canonical and "-" in noun:
             typed_tail_prefix, possible_tail = noun.split("-", 1)
@@ -701,7 +732,7 @@ class MalteseArticlePhraseRules:
             "ix", "iz", "iż",
         } or article in SUN_LETTERS:
             corrected = (
-                self._adjectival_article_surface(corrected_noun)
+                self._adjectival_article_surface(corrected_noun, previous=previous)
                 if article == "l" or self.is_adjective_like(corrected_noun)
                 else self.corrected_article_phrase(
                     article,
@@ -810,7 +841,7 @@ class MalteseArticlePhraseRules:
 
         if prefix in {"il", "l", "din", "dan"} or prefix.startswith("i"):
             corrected = (
-                self._adjectival_article_surface(corrected_noun)
+                self._adjectival_article_surface(corrected_noun, previous=previous)
                 if self.is_adjective_like(corrected_noun)
                 else self.corrected_article_phrase(
                     prefix,
@@ -856,6 +887,12 @@ class MalteseArticlePhraseRules:
 
         initial = noun[0]
         for canonical, sun_stem in ASSIMILATED_PREFIX_FAMILIES.items():
+            canonical_key = self._assimilated_prefix_key(canonical)
+            stem_key = self._assimilated_prefix_key(sun_stem)
+            if typed_key != canonical_key and typed_key.startswith(stem_key):
+                last_char = typed_key[-1]
+                if last_char in SUN_LETTERS and initial != last_char:
+                    continue
             expected = sun_stem + initial if initial in SUN_LETTERS else canonical
             if self._assimilated_prefix_canonical(prefix) == canonical:
                 return expected, canonical
@@ -864,7 +901,7 @@ class MalteseArticlePhraseRules:
     def _assimilated_prefix_canonical(self, prefix: str) -> str | None:
         """Identify a compact preposition independently of its typed sun letter."""
         typed_key = self._assimilated_prefix_key(prefix)
-        if not typed_key:
+        if not typed_key or typed_key in {"għad", "ghad"}:
             return None
 
         compact_sun_letters = {"c", "d", "n", "r", "s", "t", "x", "z"}

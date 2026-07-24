@@ -50,7 +50,10 @@ class MalteseFusedPrepositionRules:
 
         def add_if_dictionary(candidate: str) -> None:
             candidate = self.normalize(candidate)
-            if candidate in self.spellchecker.dictionary_set:
+            if (
+                candidate in self.spellchecker.dictionary_set
+                or getattr(self.spellchecker, "_correct_noun_possessive_suffix", lambda x: None)(candidate) is not None
+            ):
                 self.add_unique(candidates, candidate)
 
         add_if_dictionary(normalized)
@@ -68,6 +71,7 @@ class MalteseFusedPrepositionRules:
             helper_groups = [
                 getattr(orthographic, "dictionary_gh_priority_variants", None),
                 getattr(orthographic, "dictionary_shortcut_variants", None),
+                getattr(orthographic, "shortcut_letter_variants", None),
                 getattr(orthographic, "dictionary_final_gh_h_hbar_variants", None),
                 getattr(orthographic, "dictionary_i_ie_variants", None),
             ]
@@ -101,44 +105,54 @@ class MalteseFusedPrepositionRules:
         noun_meaning = self.meaning_index.meaning_for(noun)
         return f"{prefix} {noun_meaning}" if noun_meaning else prefix
 
+    SUN_LETTERS = {"t", "d", "n", "r", "s", "z", "ż", "ċ", "ġ", "x"}
+
     def short_article_choices(self, noun: str) -> list[dict[str, str]]:
         article = self.article_rules.assimilate("l-", noun)
         definite = f"{article}{noun}"
         noun_meaning = self.meaning_index.meaning_for(noun)
 
+        first_char = noun[0].lower() if noun else ""
+        is_sun = first_char in self.SUN_LETTERS
+
         if self.article_rules.is_adjective(noun):
             superlative = ""
             if hasattr(self.article_rules, "_superlative_meaning"):
                 superlative = self.article_rules._superlative_meaning(noun_meaning)
-            return [
+            choices = [
                 {
                     "word": definite,
                     "meaning": superlative or self.noun_choice_meaning("the", noun),
-                },
-                {
+                }
+            ]
+            if not is_sun:
+                choices.append({
                     "word": f"l'{noun}",
                     "meaning": f"which is {noun_meaning}" if noun_meaning else "which is",
-                },
-                {
-                    "word": f"'l-{noun}",
-                    "meaning": self.noun_choice_meaning("to the", noun),
-                },
-            ]
+                })
+            choices.append({
+                "word": f"'l-{noun}",
+                "meaning": self.noun_choice_meaning("to the", noun),
+            })
+            return choices
 
-        return [
+        choices = [
             {
                 "word": definite,
                 "meaning": self.noun_choice_meaning("the", noun),
-            },
-            {
+            }
+        ]
+        if not is_sun:
+            choices.append({
                 "word": f"'l {noun}",
                 "meaning": self.noun_choice_meaning("to a", noun),
-            },
-            {
-                "word": f"'l-{noun}",
-                "meaning": self.noun_choice_meaning("to the", noun),
-            },
-        ]
+            })
+        choices.append({
+            "word": f"'l-{noun}",
+            "meaning": self.noun_choice_meaning("to the", noun),
+        })
+
+        return choices
 
     def match(self, word: str) -> FusedPrepositionSuggestion | None:
         normalized = self.normalize(word)
@@ -267,6 +281,7 @@ class MalteseFusedPrepositionRules:
                     candidate
                     for candidate in candidates
                     if self.article_rules.is_noun(candidate)
+                    or getattr(self.spellchecker, "_noun_possessive_base_for_surface", lambda x: None)(candidate) is not None
                 ]
 
             if not candidates:

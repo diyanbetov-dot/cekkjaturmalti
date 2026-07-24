@@ -82,6 +82,7 @@ function handleCreateLog(sheet, data) {
   var timestamp = sanitizeString(data.timestamp || formatDate(new Date()));
   var input = sanitizeString(data.input);
   var initialOutput = sanitizeString(data.initial_output);
+  var notes = sanitizeString(data.notes || "");
   var finalOutput = sanitizeString(data.final_output || initialOutput);
 
   var rowIndex = findRowByLogId(sheet, logId);
@@ -96,7 +97,7 @@ function handleCreateLog(sheet, data) {
     timestamp,
     input,
     initialOutput,
-    "",
+    notes,
     finalOutput,
     ""
   ]);
@@ -150,17 +151,29 @@ function handleUpdateChoice(sheet, data) {
     return createJsonResponse(true, "Duplicate event skipped.", 200, { skipped: true, event_id: eventId });
   }
 
-  // Format note: TOKEN - suggestions: OPTION 1, OPTION 2 - chosen by user: CHOICE.
-  var suggestionsStr = suggestionsList.join(", ");
-  var newNote = token + " - suggestions: " + suggestionsStr + " - chosen by user: " + chosen + ".";
-
   var notesCell = sheet.getRange(rowIndex, 5);
-  var currentNotes = (notesCell.getValue() || "").toString().trim();
+  var currentNotes = (notesCell.getValue() || "").toString();
 
-  if (!currentNotes || currentNotes === "No user selections.") {
-    notesCell.setValue(newNote);
+  var suggestionsStr = suggestionsList.join(", ");
+  var targetTokenPrefix = token + " - suggestions:";
+
+  if (currentNotes.indexOf(targetTokenPrefix) !== -1) {
+    // Update existing suggestion line with "- chosen by user: CHOICE."
+    var lines = currentNotes.split("\n");
+    for (var j = 0; j < lines.length; j++) {
+      if (lines[j].indexOf(targetTokenPrefix) === 0 && lines[j].indexOf("- chosen by user:") === -1) {
+        lines[j] = lines[j].replace(/\.?\s*$/, "") + " - chosen by user: " + chosen + ".";
+      }
+    }
+    notesCell.setValue(lines.join("\n"));
   } else {
-    notesCell.setValue(currentNotes + "\n" + newNote);
+    // Append new choice note line
+    var newNote = token + " - suggestions: " + suggestionsStr + " - chosen by user: " + chosen + ".";
+    if (!currentNotes.trim() || currentNotes.trim() === "No user selections.") {
+      notesCell.setValue(newNote);
+    } else {
+      notesCell.setValue(currentNotes.trim() + "\n" + newNote);
+    }
   }
 
   // Update Final Output (Column F)
