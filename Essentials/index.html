@@ -200,7 +200,7 @@
 
         textarea {
             min-height: 190px;
-            resize: vertical;
+            resize: none;
             line-height: 1.45;
         }
 
@@ -442,6 +442,7 @@
             visibility: hidden;
             transition: opacity 0.25s ease, visibility 0.25s ease;
         }
+
         .modal-overlay.active {
             opacity: 1;
             visibility: visible;
@@ -460,9 +461,11 @@
             transition: transform 0.25s ease;
             box-sizing: border-box;
         }
+
         .modal-overlay.active .modal-content {
             transform: scale(1);
         }
+
         body.dark-mode .modal-content {
             background: #1e293b;
             border-color: #334155;
@@ -478,14 +481,17 @@
             border-bottom: 1px solid #cbd5e1;
             padding-bottom: 8px;
         }
+
         body.dark-mode .modal-header {
             border-color: #334155;
         }
+
         .modal-header h2 {
             margin: 0;
             font-size: 1.25rem;
             font-weight: 800;
         }
+
         .close-modal-btn {
             background: transparent;
             border: none;
@@ -499,6 +505,7 @@
             width: 24px;
             height: 24px;
         }
+
         .close-modal-btn:hover {
             color: var(--accent);
         }
@@ -520,36 +527,42 @@
             flex-direction: column;
             gap: 8px;
         }
+
         .form-group {
             display: flex;
             flex-direction: column;
             gap: 2px;
         }
+
         .form-group label {
             font-weight: 700;
             font-size: 0.9rem;
             color: #475569;
             margin-bottom: 0;
         }
+
         body.dark-mode .form-group label {
             color: #cbd5e1;
         }
+
         .form-actions {
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
             margin-top: 2px;
         }
+
         .form-actions-right {
             display: flex;
             gap: 12px;
             align-items: flex-end;
         }
+
         .form-actions-right button {
             min-width: 100px;
             height: 38px;
         }
-        
+
         .screenshot-btn {
             height: 44px;
             width: auto;
@@ -558,7 +571,8 @@
             color: #0f172a;
             border-radius: 6px;
             display: flex;
-            align-items: center; /* flexbox layout splits button into two columns */
+            align-items: center;
+            /* flexbox layout splits button into two columns */
             padding: 0;
             font-size: 11.5px;
             font-weight: 700;
@@ -567,25 +581,30 @@
             overflow: hidden;
             transition: all 0.2s ease;
         }
+
         .screenshot-btn:hover {
             background-color: #f1f5f9;
             border-color: #94a3b8;
         }
+
         body.dark-mode .screenshot-btn {
             background-color: #1e293b;
             border-color: #475569;
             color: #f8fafc;
         }
+
         body.dark-mode .screenshot-btn:hover {
             background-color: #334155;
             border-color: #64748b;
         }
+
         /* Column 1: Square symbol side (height matches width) */
         .screenshot-btn .plus-box {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 42px; /* square aspect ratio relative to button height */
+            width: 42px;
+            /* square aspect ratio relative to button height */
             height: 42px;
             border-right: 1px solid #cbd5e1;
             background: #ffffff;
@@ -594,14 +613,17 @@
             box-sizing: border-box;
             color: #0f172a;
         }
+
         body.dark-mode .screenshot-btn .plus-box {
             border-right-color: #475569;
             background: #0f172a;
             color: #f8fafc;
         }
+
         /* Column 2: Adjacent text side with width to force wrap after 'screenshot/skritratt' */
         .screenshot-btn .btn-text {
-            width: 90px; /* limited width forces line break after first line */
+            width: 90px;
+            /* limited width forces line break after first line */
             padding: 2px 8px;
             text-align: left;
             text-justify: inter-word;
@@ -614,6 +636,7 @@
             position: relative;
             width: 100%;
         }
+
         .screenshot-preview {
             position: absolute;
             bottom: 12px;
@@ -624,24 +647,28 @@
             border: 1px solid #cbd5e1;
             overflow: hidden;
             background: #f8fafc;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             cursor: pointer;
             z-index: 10;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
+
         body.dark-mode .screenshot-preview {
             background: #0f172a;
             border-color: #475569;
         }
+
         .screenshot-preview:hover {
             transform: scale(1.05);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.15);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
         }
+
         .screenshot-preview img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
+
         .remove-screenshot-btn {
             position: absolute;
             top: 2px;
@@ -667,6 +694,7 @@
             box-sizing: border-box;
             z-index: 12;
         }
+
         .remove-screenshot-btn:hover {
             background: rgba(239, 68, 68, 0.9);
         }
@@ -688,22 +716,26 @@
             visibility: hidden;
             transition: opacity 0.25s ease, visibility 0.25s ease;
         }
+
         .lightbox-overlay.active {
             opacity: 1;
             visibility: visible;
         }
+
         .lightbox-content {
             position: relative;
             max-width: 90%;
             max-height: 90%;
         }
+
         .lightbox-content img {
             max-width: 100%;
             max-height: 85vh;
             border-radius: 8px;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
             border: 2px solid white;
         }
+
         .close-lightbox-btn {
             position: absolute;
             top: -40px;
@@ -1043,6 +1075,18 @@
             box-shadow: 0 0 14px rgba(168, 85, 247, 0.5);
         }
 
+        /* Equal-height, resizable editors only on wide landscape surfaces. */
+        @media screen and (min-width: 900px) and (orientation: landscape) {
+
+            textarea,
+            .result-box,
+            .result-editor {
+                height: 240px;
+                min-height: 190px;
+                overflow-y: auto;
+                resize: vertical;
+            }
+        }
 
         @media (max-width: 800px) {
             body {
@@ -1316,7 +1360,7 @@
             <div id="brandName" class="brand-name">Ikteb Malti Tajjeb</div>
             <div class="top-bar">
                 <a id="helpLink" class="help-link" href="mailto:cekkjaturmalti@gmail.com">
-                    <span class="help-icon" aria-hidden="true">?</span>                    
+                    <span class="help-icon" aria-hidden="true">?</span>
                     <span class="help-label">Help</span>
                 </a>
                 <button id="darkModeToggle" class="secondary" type="button">Dark Mode</button>
@@ -1342,7 +1386,8 @@
                 <div>
                     <label id="labelInput" for="textInput">Input text</label>
                     <textarea id="textInput" spellcheck="false" placeholder="Paste Maltese here..."></textarea>
-                    <p id="betaPrivacyNotice" class="beta-privacy-note" style="margin-top: 6px; font-size: 0.82rem; color: #718096; font-style: italic;"></p>
+                    <p id="betaPrivacyNotice" class="beta-privacy-note"
+                        style="margin-top: 6px; font-size: 0.82rem; color: #718096; font-style: italic;"></p>
                 </div>
 
                 <div>
@@ -1360,8 +1405,8 @@
                         </div>
                         <div id="resultEditor" class="result-editor hidden" contenteditable="true" role="textbox"
                             aria-multiline="true" aria-label="Edit corrected text"></div>
-                        <button id="outputEditToggle" class="output-edit-toggle" type="button"
-                            aria-expanded="false" aria-controls="resultEditor">T</button>
+                        <button id="outputEditToggle" class="output-edit-toggle" type="button" aria-expanded="false"
+                            aria-controls="resultEditor">T</button>
                     </div>
                 </div>
             </div>
@@ -1393,10 +1438,14 @@
             </div>
 
             <div id="status" class="status">Checking server...</div>
-        <p id="Notice" class="usage-note">
-            Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of outputted corrected text as per expected standards. Since it is still in the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for helping in improving Maltese digital tools!
-        </p>
-            
+            <p id="Notice" class="usage-note">
+                Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are
+                underway to increase the quality of outputted corrected text as per expected standards. Since it is
+                still in the testing phase, users and especially learners, are advised to use this tool with caution for
+                now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for
+                helping in improving Maltese digital tools!
+            </p>
+
         </section>
 
         <section id="devPanel" class="panel hidden">
@@ -1471,12 +1520,14 @@
                 </div>
                 <div class="form-group">
                     <label for="emailSubject">Suġġett / Subject:</label>
-                    <input type="text" id="emailSubject" required placeholder="Ikteb is-suġġett hawn / Write subject here" />
+                    <input type="text" id="emailSubject" required
+                        placeholder="Ikteb is-suġġett hawn / Write subject here" />
                 </div>
                 <div class="form-group">
                     <label for="emailBody">Messaġġ / Message:</label>
                     <div class="textarea-wrapper">
-                        <textarea id="emailBody" required rows="6" placeholder="Ikteb il-messaġġ tiegħek... / Write your message..."></textarea>
+                        <textarea id="emailBody" required rows="6"
+                            placeholder="Ikteb il-messaġġ tiegħek... / Write your message..."></textarea>
                         <div id="screenshotPreview" class="screenshot-preview hidden">
                             <img id="screenshotThumb" src="" alt="Screenshot" />
                             <button type="button" id="removeScreenshot" class="remove-screenshot-btn">&times;</button>
@@ -1650,7 +1701,7 @@
                 emailScreenshotBtnMobile: "Take screenshot",
                 emailStatusSending: "Sending...",
                 emailStatusSent: "Email sent successfully!",
-                betaPrivacyNotice: "Beta notice: Submitted text and generated corrections may be stored temporarily to evaluate and improve the spellchecker. Please do not submit confidential or sensitive information."
+                /*betaPrivacyNotice: "Beta notice: Submitted text and generated corrections may be stored temporarily to evaluate and improve the spellchecker. Please do not submit confidential or sensitive information.*/
             },
 
             mt: {
@@ -1724,7 +1775,7 @@
                 emailScreenshotBtnMobile: "Ħu skritratt",
                 emailStatusSending: "Qed jintbagħat...",
                 emailStatusSent: "L-email intbagħtet b'suċċess!",
-                betaPrivacyNotice: "Avviż beta: It-test sottomess u l-korrezzjonijiet iġġenerati jistgħu jinħażnu temporanjament biex jevalwaw u jtejbu ċ-ċekkjatur. Jekk jogħġbok tissottomettix informazzjoni kunfidenzjali jew sensittiva."
+                /*betaPrivacyNotice: "Avviż beta: It-test sottomess u l-korrezzjonijiet iġġenerati jistgħu jinħażnu temporanjament biex jevalwaw u jtejbu ċ-ċekkjatur. Jekk jogħġbok tissottomettix informazzjoni kunfidenzjali jew sensittiva.*/
             }
         };
 
@@ -1908,9 +1959,9 @@
             elements.alphaNote.textContent = labels.alphaNote;
             elements.mainSubtitle.textContent = labels.subtitle;
             elements.usageNote.textContent = labels.usageNote;
-            if (elements.betaPrivacyNotice) {
+            /*if (elements.betaPrivacyNotice) {
                 elements.betaPrivacyNotice.textContent = labels.betaPrivacyNotice;
-            }
+            }*/
             elements.Notice.textContent = labels.Notice;
             elements.sourcesNote.textContent = labels.sourcesNote;
 
@@ -2740,7 +2791,7 @@
                     suggestions: suggestionsList,
                     chosen: chosenWord,
                     final_output: latestCorrectedText
-                }).catch(() => {});
+                }).catch(() => { });
             }
         }
 
@@ -2982,7 +3033,7 @@
         //   to exclude the modal overlays from being visible in the screenshot without triggering flickering.
         // - Event listeners on screenshot preview click (triggers lightbox), remove button (clears attachment),
         //   and text input change (auto-saves draft).
-        
+
         const emailModal = document.getElementById("emailModal");
         const emailForm = document.getElementById("emailForm");
         const closeModal = document.getElementById("closeModal");
@@ -3059,7 +3110,7 @@
                 canvas.width = 800;
                 canvas.height = 600;
                 const ctx = canvas.getContext("2d");
-                
+
                 const grad = ctx.createLinearGradient(0, 0, 0, 600);
                 grad.addColorStop(0, "#f8fafc");
                 grad.addColorStop(1, "#e2e8f0");
@@ -3092,7 +3143,7 @@
                 ctx.fillStyle = "#f1f5f9";
                 ctx.fillRect(30, 320, 740, 200);
                 ctx.strokeRect(30, 320, 740, 200);
-                
+
                 ctx.fillStyle = "#475569";
                 ctx.font = "italic 16px system-ui";
                 ctx.fillText("Output preview...", 50, 360);
@@ -3107,7 +3158,7 @@
             emailModalStatus.className = "status";
             emailModalStatus.textContent = "";
             emailForm.querySelectorAll("input, textarea, button").forEach(el => el.disabled = false);
-            
+
             const draftStr = localStorage.getItem("cekkjatur_email_draft");
             if (draftStr) {
                 loadDraft();
@@ -3149,7 +3200,7 @@
             takeScreenshotBtn.disabled = true;
             const originalHTML = takeScreenshotBtn.querySelector(".btn-text").innerHTML;
             takeScreenshotBtn.querySelector(".btn-text").textContent = currentLang === "mt" ? "Tiġbid fil-progress..." : "Capturing...";
-            
+
             const dataUrl = await capturePageScreenshot();
             if (dataUrl) {
                 attachedScreenshot = dataUrl;
@@ -3157,7 +3208,7 @@
                 screenshotPreview.classList.remove("hidden");
                 saveDraft();
             }
-            
+
             takeScreenshotBtn.disabled = false;
             takeScreenshotBtn.querySelector(".btn-text").innerHTML = originalHTML;
         });
@@ -3199,7 +3250,7 @@
             await new Promise(resolve => setTimeout(resolve, 1500));
             emailModalStatus.className = "status success";
             emailModalStatus.textContent = t("emailStatusSent");
-            
+
             clearDraft();
             emailForm.reset();
 
@@ -3254,4 +3305,3 @@
 </body>
 
 </html>
-

@@ -487,31 +487,6 @@ class MalteseArticlePhraseRules:
         prefix = self.normalize(prefix).rstrip("-")
         noun = self.normalize(noun)
 
-        TEEN_NUMERALS_MAP = {
-            "ħdax": "ħdax", "hdax": "ħdax", "11": "11",
-            "tnax": "tnax", "12": "12",
-            "tlettax": "tlettax", "tlataq": "tlettax", "tlietaq": "tlettax", "13": "13",
-            "erbatax": "erbatax", "erbataq": "erbatax", "14": "14",
-            "ħmistax": "ħmistax", "hmistax": "ħmistax", "15": "15",
-            "sittax": "sittax", "16": "16",
-            "sbatax": "sbatax", "sbataq": "sbatax", "17": "17",
-            "tmintax": "tmintax", "tmntaq": "tmintax", "18": "18",
-            "dsatax": "dsatax", "dsataq": "dsatax", "19": "19",
-            "kemm": "kemm",
-        }
-        p_clean = prefix.lower().rstrip("-")
-        if p_clean.endswith("-il"):
-            p_clean = p_clean[:-3]
-        if p_clean in TEEN_NUMERALS_MAP:
-            canonical_num = TEEN_NUMERALS_MAP[p_clean]
-            n_clean = noun
-            n_lower = n_clean.lower()
-            for art_prefix in ("il-", "l-", "iċ-", "id-", "in-", "ir-", "is-", "it-", "ix-", "iż-", "ċ-", "d-", "n-", "r-", "s-", "t-", "x-", "ż-", "ic-", "iz-", "c-", "z-"):
-                if n_lower.startswith(art_prefix):
-                    n_clean = n_clean[len(art_prefix):]
-                    break
-            return f"{canonical_num}-il {n_clean}"
-
         spellchecker = getattr(self, "spellchecker", None)
         place_display = None
         if spellchecker is not None:
@@ -536,6 +511,12 @@ class MalteseArticlePhraseRules:
 
         if not noun or not self._is_article_target(noun):
             return None
+
+        # dal and dil are literal demonstrative forms, not generic
+        # assimilated preposition families.
+        if prefix in {"dal", "dil"}:
+            return f"{prefix}-{surface_noun}"
+
         starts_vowelish = self._starts_vowel_gh_or_h(noun)
 
         aliases = {
@@ -556,6 +537,9 @@ class MalteseArticlePhraseRules:
             "lil": "lill", "lill": "lill",
         }
         canonical = self._assimilated_prefix_canonical(prefix) or aliases.get(prefix)
+        if canonical in {"dal", "dil"}:
+            # Demonstrative forms assimilate literally (dal-kelb, dil-kelba).
+            return f"{canonical}-{surface_noun}"
         if canonical:
             if canonical == "fis":
                 if starts_vowelish:
@@ -889,6 +873,12 @@ class MalteseArticlePhraseRules:
         for canonical, sun_stem in ASSIMILATED_PREFIX_FAMILIES.items():
             canonical_key = self._assimilated_prefix_key(canonical)
             stem_key = self._assimilated_prefix_key(sun_stem)
+            # dal and dil are accepted only when they are actually typed.
+            # Do not infer them from dan, din, dawn, or da/di + a sun letter.
+            if canonical in {"dal", "dil"}:
+                if typed_key == canonical_key:
+                    return canonical
+                continue
             if typed_key != canonical_key and typed_key.startswith(stem_key):
                 last_char = typed_key[-1]
                 if last_char in SUN_LETTERS and initial != last_char:
@@ -908,6 +898,13 @@ class MalteseArticlePhraseRules:
         for canonical, sun_stem in ASSIMILATED_PREFIX_FAMILIES.items():
             canonical_key = self._assimilated_prefix_key(canonical)
             stem_key = self._assimilated_prefix_key(sun_stem)
+            # dal and dil are only canonical when typed exactly as dal/dil.
+            # dan, din, dawn, dak, dawk are demonstrative pronouns and must
+            # never be mapped to the dal/dil preposition+article family.
+            if canonical in {"dal", "dil"}:
+                if typed_key == canonical_key:
+                    return canonical
+                continue
             # A bare stem (ta, ma, bi, fi...) is a preposition, not an
             # already fused article.  It can only fuse once an explicit
             # following article has been parsed by the caller.  Treating it
