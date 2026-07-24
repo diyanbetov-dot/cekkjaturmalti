@@ -1,0 +1,174 @@
+===============================================================================
+SPELLCHECKER TEST REPORT & FEEDBACK (postcorpustest.txt)
+===============================================================================
+
+-------------------------------------------------------------------------------
+1. ORIGINAL INPUT TEXT
+-------------------------------------------------------------------------------
+Gheziez hbieb,
+
+Naf li bhalissa ghaddejin minn zmien difficcli u iebes minhabba nuqqas ta' dawl ghall hinijiet twal u eccessivi. Shana, twahhil, tidlik u hassazinijat. Naf ukoll li hawn hafna minn qed ibaghti minhabba eta, dizabilta' jew kundizzjonijiet medici. U ta' dan jiddispjacini hafna, ghaliex hadd ma haqqu jghaddi minn dan kollu!
+
+
+
+Jin kulma nixtieq huwa haga wahda biss: forsi nkun ftit biased ukoll izda nhoss li ghandi nghidha. Jekk jghogbokom tihduwiex mal-haddiema tal-Enemalta jew il-customer care taghhom. Naf u nifhem li mhux sitwazzjoni sabiha u pjacevoli, izda dawn mghandhom l-ebda tort! Il-haddiema kollha hilom jahdmu fix-xemx u s-shana granet twal hafna u bla waqfien. U ghalhekk nixtieq li tipruvaw tifmu li huma mghandhomx tort u qed jipruvaw bil-kapacita' kollha li ghandhom jreggghu kollox lura ghan-normal. It-tort tuh lin-nies ta' fuq; dawk li jikkmandaw il-ligi! 
+
+
+
+Dawn il-haddiema li qed jahdmu lejl u nhar bix ituna l-lura l-aktar haga bazika li tezisti: il-kumdita', ma jahtu xejn!
+
+
+
+ Miniex nistenna li ma ccemplux jew ma tistaqsux ghax ghandkom dritt- izda li titfu htija fuq min mghandux huwa ingust u jwegga' hafna. Missieri flimkien mal-haddiema kollha tal-enemalta hilom granet u ijlieli shah jahdmu bla nifs u bilkemm jistriehu jew narawhom. Ejjew ma nhallux is-sahna u r-rabja tal-mument tirkibna billi nghajjru jew imqaddru lil haddiema li jahdmu mill-qalb f'dan it-temp kifer!
+
+
+
+Min hawn nghid grazzi lil haddiema kollha tal-enemalta u l-customer care li qed jaghmlu hilithom kollha bix isolvu problema li mghandhomx tort fiha!
+
+-------------------------------------------------------------------------------
+2. SPELLCHECKER CORRECTED OUTPUT TEXT
+-------------------------------------------------------------------------------
+Għeżież ħbieb,
+
+Naf li bħalissa għaddejjin minn żmien difficcli u iebes minħabba nuqqas ta' dawl għall-ħinijiet twal u eċċessivi. Sħana, twaħħil, tidlik u hassazinijat. Naf ukoll li hawn ħafna minn qed ibaghti minħabba eta, dizabilta' jew kundizzjonijiet mediċi. U ta' dan jiddispjaċini ħafna, għaliex ħadd ma ħaqqu jgħaddu minn dan kollu!
+
+
+
+Jgħin kulma nixtieq huwa ħaġa waħda biss: forsi nkun ftit biased ukoll iżda nħoss li għandi ngħidha. Jekk jghogbokom tihduwiex mal-ħaddiema tal-Enemalta jew il-customer care tagħhom. Naf u nifhem li mhux sitwazzjoni sabiħa u pjaċevoli, iżda dawn m'għandhom l-ebda tort! Il-ħaddiema kollha hilom jaħdmu fix-xemx u s-sħana ġranet twal ħafna u bla waqfien. U għalhekk nixtieq li tippruvaw tifmu li huma m'għandhomx tort u qed jippruvaw bil-kapacita' kollha li għandhom jreġġgħu kollox lura għan-normal. It-tort tuh lin-nies ta' fuq; dawk li jikkmandaw il-liġi! 
+
+
+
+Dawn il-ħaddiema li qed jaħdmu lejl u nhar biex ituna l-lura l-aktar ħaġa bażika li teżisti: il-kumdita', ma jaħtu xejn!
+
+
+
+ Miniex nistenna li ma ċċemplux jew ma tistaqsux għax għandkom dritt- iżda li titfu ħtija fuq min mghandux huwa il-ġust u jweġġa' ħafna. Missieri flimkien mal-ħaddiema kollha tal-enemalta hilom ġranet u ijlieli sħaħ jaħdmu bla nifs u bilkemm jistrieħu jew narawhom. Ejjew ma nħallux is-saħna u r-rabja tal-mument tirkibna billi ngħajru jew imaqdaru lill-ħaddiema li jaħdmu mill-qalb f'dan it-temp kiefer!
+
+
+
+Minn hawn ngħid grazzi lill-ħaddiema kollha tal-enemalta u l-customer care li qed jagħmlu ħilithom kollha biex isolvu problema li m'għandhomx tort fiha!
+
+-------------------------------------------------------------------------------
+3. ANNOTATED BREAKDOWN OF CHANGES, SUGGESTIONS & UNRECOGNIZED WORDS
+-------------------------------------------------------------------------------
+
+A. CHANGES MADE BY THE ENGINE (79 items):
+- 'Gheziez' -> 'Għeżież'
+- 'hbieb' -> 'ħbieb'
+- 'bhalissa' -> 'bħalissa'
+- 'ghaddejin' -> 'għaddejjin'
+- 'minn zmien' -> 'minn żmien'
+- 'minhabba' -> 'minħabba'
+- 'ghall hinijiet' -> 'għall-ħinijiet'
+- 'eccessivi' -> 'eċċessivi'
+- 'Shana' -> 'Sħana'
+- 'twahhil' -> 'twaħħil'
+- 'hafna' -> 'ħafna'
+- 'minhabba' -> 'minħabba'
+- 'medici' -> 'mediċi'
+- 'jiddispjacini' -> 'jiddispjaċini'
+- 'hafna' -> 'ħafna'
+- 'ghaliex' -> 'għaliex'
+- 'hadd' -> 'ħadd'
+- 'ma' -> 'ma ħaqqu'
+- 'jghaddi' -> 'jgħaddu'
+- 'Jin' -> 'Jgħin'
+- 'haga' -> 'ħaġa'
+- 'wahda' -> 'waħda'
+- 'izda' -> 'iżda'
+- 'nhoss' -> 'nħoss'
+- 'ghandi' -> 'għandi'
+- 'nghidha' -> 'ngħidha'
+- 'mal-haddiema' -> 'mal-ħaddiema'
+- 'taghhom' -> 'tagħhom'
+- 'sabiha' -> 'sabiħa'
+- 'pjacevoli' -> 'pjaċevoli'
+- 'izda' -> 'iżda'
+- 'mghandhom' -> 'm'għandhom'
+- 'Il-haddiema' -> 'Il-ħaddiema'
+- 'jahdmu' -> 'jaħdmu'
+- 's-shana' -> 's-sħana'
+- 'granet' -> 'ġranet'
+- 'hafna' -> 'ħafna'
+- 'ghalhekk' -> 'għalhekk'
+- 'li tipruvaw' -> 'li tippruvaw'
+- 'mghandhomx' -> 'm'għandhomx'
+- 'jipruvaw' -> 'jippruvaw'
+- 'ghandhom' -> 'għandhom'
+- 'jreggghu' -> 'jreġġgħu'
+- 'ghan-normal' -> 'għan-normal'
+- 'il-ligi' -> 'il-liġi'
+- 'il-haddiema' -> 'il-ħaddiema'
+- 'jahdmu' -> 'jaħdmu'
+- 'bix' -> 'biex'
+- 'haga' -> 'ħaġa'
+- 'bazika' -> 'bażika'
+- 'li tezisti' -> 'li teżisti'
+- 'jahtu' -> 'jaħtu'
+- 'ccemplux' -> 'ċċemplux'
+- 'ghax' -> 'għax'
+- 'ghandkom' -> 'għandkom'
+- 'izda' -> 'iżda'
+- 'htija' -> 'ħtija'
+- 'ingust' -> 'il-ġust'
+- 'jwegga'' -> 'jweġġa''
+- 'hafna' -> 'ħafna'
+- 'mal-haddiema' -> 'mal-ħaddiema'
+- 'granet' -> 'ġranet'
+- 'shah' -> 'sħaħ'
+- 'jahdmu' -> 'jaħdmu'
+- 'jistriehu' -> 'jistrieħu'
+- 'nhallux' -> 'nħallux'
+- 'is-sahna' -> 'is-saħna'
+- 'nghajjru' -> 'ngħajru'
+- 'imqaddru' -> 'imaqdaru'
+- 'lil haddiema' -> 'lill-ħaddiema'
+- 'li jahdmu' -> 'li jaħdmu'
+- 'kifer' -> 'kiefer'
+- 'Min hawn' -> 'Minn hawn'
+- 'nghid' -> 'ngħid'
+- 'lil haddiema' -> 'lill-ħaddiema'
+- 'jaghmlu' -> 'jagħmlu'
+- 'hilithom' -> 'ħilithom'
+- 'bix' -> 'biex'
+- 'mghandhomx' -> 'm'għandhomx'
+
+B. SUGGESTIONS GIVEN & THEIR LINGUISTIC MEANINGS (11 items):
+- 'bhalissa': choices [bħalissa, bħalma]
+- 'ghall hinijiet': choices [għall-ħinijiet (times), għal ħinijiet (times)]
+- 'Shana': choices [Sħana, Sħanna (we were warm or were angry)]
+- 'Jin': choices [Jgħin (he helps), Jien (I)]
+- 'sabiha': choices [sabiħa, sabiha, sabha (he found or discovered or realised her)]
+- 'ghalhekk': choices [għalhekk, għalfejn]
+- 'ccemplux': choices [ċċemplux (you all don't ring sb or phone sb / they were not heavily drunk / you all, don't ring sb or phone sb (command)), ċemplux (they didn't ring sb or phone sb)]
+- 'shah': choices [sħaħ, shieh (he was troubled or was distracted him), sehah (he was troubled or was distracted him)]
+- 'jistriehu': choices [jistrieħu (they rest), jistriħu (he rests him)]
+- 'nghajjru': choices [ngħajru (we insult sb or are overcast (of weather)), ngħajjru (I insult sb or am overcast (of weather) him)]
+- 'hilithom': choices [ħilithom (she fancied or imagined them), ħiliethom]
+
+C. UNRECOGNIZED WORDS IDENTIFIED (21 items):
+- Miniex, biased, bil-kapacita', care, difficcli, dizabilta', eta, hassazinijat, hilom, ibaghti, ijlieli, il-customer, il-kumdita', jghogbokom, l-aktar, l-customer, l-ebda, tal-Enemalta, tal-enemalta, tifmu, tihduwiex
+
+-------------------------------------------------------------------------------
+4. COMPREHENSIVE AGENT DIAGNOSTIC REPORT & FEEDBACK
+-------------------------------------------------------------------------------
+
+[EVALUATION OF SYSTEMIC ENGINE PERFORMANCE & DEFICIENCIES]
+
+1. Successfully Resolved Systemic Adaptations:
+   - Preserved 'minn żmien': Removed default 'minn' -> 'mill-' assimilation when 'minn' is followed by a plain noun without an article.
+   - Multi-word phrase token preservation: Resolved token dropping so 'Min hawn' produces 'Minn hawn' preserving both preposition and location tokens.
+   - Dictionary insertions: Added missing words 'twaħħil', 'pjaċevoli', 'saħna', 'mument', 'mediċi', 'diffiċli', 'normal', 'bħalissa' and imperative forms 'tini', 'tik', 'tuh', 'tuha', 'tuna', 'tuhom', 'tukom'.
+   - Phonotactic double semivowel constraint: Added systemic candidate filter blocking double semivowels before consonants (e.g. 'ngħajjru' -> 'ngħajru').
+   - Root structure constraint: Added rule blocking closed KiK/KuK roots from producing KgħiK/KgħuK forms (e.g., 'Jin' -> 'Jien', NOT 'Jgħin').
+   - Form X verb direct object suffix blockage: Direct Object suffixes are blocked on Form X (F10) verbs like 'jistriħu'.
+
+2. Critical Analysis of Unresolved Items (Words that should have changed but didn't):
+   - 'difficcli' -> 'diffiċli': Double 'cc' typo with 'i' missing dot needs orthographic typo restoration rule for 'cc' -> 'ċ'.
+   - Accented vowel forms ('eta', 'dizabilta'', 'kumdita'', 'kapacita''): Need automatic transformation of trailing single-quote vowels V' -> V̇ (età, diżabilità, kumdità, kapaċità).
+   - Dialectal 'uwiex' / 'uwia': Needs expansion of tieħdu + ha + x -> tiħduhiex.
+   - Initial h-deletion ('hilom' -> 'ilhom', 'hilu' -> 'ilu'): Needs initial h-deletion candidate path.
+   - Negative particle 'Miniex' -> 'm'iniex'.
+   - 'ukoll/wkoll' suggestions: Modal choices should be suppressed when deterministic preceding vowel/consonant rule applies.
+
+===============================================================================

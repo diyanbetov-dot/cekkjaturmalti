@@ -85,12 +85,44 @@ class MalteseCompositeGenerator:
                         cand_doubled = f"{prefix}'{doubled}"
                         add_candidate(cand_doubled)
 
-        # 3. Multi-grapheme replacement composition (e.g., gh + h in same word)
+        # 3. Accented Vowel Transformation (e.g. eta' -> età, dizabilta' -> diżabilità, kumdita' -> kumdità)
+        if norm.endswith("'") and len(norm) > 2 and norm[-2] in "aeiou":
+            vowel = norm[-2]
+            acc_map = {"a": "à", "e": "è", "i": "ì", "o": "ò", "u": "ù"}
+            stem = norm[:-2]
+            for var in self._grapheme_variants(stem):
+                add_candidate(var + acc_map[vowel])
+
+        # 4. Dialectal uwiex / uwia -> uhiex / uha (e.g. tihduwiex -> tiħduhiex)
+        if norm.endswith("uwiex") or norm.endswith("uwia"):
+            stem = norm[:-5] if norm.endswith("uwiex") else norm[:-4]
+            for var in self._grapheme_variants(stem):
+                add_candidate(var + "uhiex")
+                add_candidate(var + "uha")
+
+        # 5. Initial h-deletion (e.g. hilhom -> ilhom, hilu -> ilu, hilek -> ilek)
+        if (norm.startswith("h") or norm.startswith("ħ")) and len(norm) > 2:
+            tail = norm[1:]
+            for var in self._grapheme_variants(tail):
+                add_candidate(var)
+
+        # 6. Multi-grapheme replacement composition (e.g., gh + h in same word)
         multi_variants = self._multi_grapheme_variants(norm)
         for var in multi_variants:
             add_candidate(var)
 
-        return results
+        # Post-filter results to enforce phonotactic and root-structure constraints:
+        # - Block jjC / wwC double semivowels before consonants (e.g. ngħajjru)
+        # - Block closed KiK/KuK -> KgħiK/KgħuK transformations (e.g. Jin -> Jgħin)
+        filtered_results = []
+        for cand in results:
+            if re.search(r'(jj|ww)[bdfġgħhħklmnprstvwzżċq]', cand, re.IGNORECASE):
+                continue
+            if re.match(r'^[bdfgjklmnprstvwzżġċħ][iu][bdfgjklmnprstvwzżġċħ]$', norm, re.IGNORECASE) and "għ" in cand.lower():
+                continue
+            filtered_results.append(cand)
+
+        return filtered_results
 
     def _grapheme_variants(self, stem: str) -> List[str]:
         variants = [stem]

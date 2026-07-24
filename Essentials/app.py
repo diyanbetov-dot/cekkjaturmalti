@@ -2,9 +2,12 @@
 import os
 import sys
 import time
+import uuid
 from dataclasses import asdict
 from pathlib import Path
 from flask import Flask, jsonify, request, send_from_directory
+
+from Essentials.helpers import beta_sheet_logger
 
 from Essentials.core.spellchecker import (
     UniversalMalteseSpellchecker,
@@ -296,7 +299,19 @@ def check_text():
             tokens=tokens,
         )
 
+        log_id = str(uuid.uuid4())
+        try:
+            beta_sheet_logger.create_log(
+                log_id=log_id,
+                input_text=text,
+                initial_output=corrected_text,
+                final_output=corrected_text,
+            )
+        except Exception as e:
+            app.logger.warning("Beta sheet logger create_log failed: %s", e)
+
         response_payload = {
+            "log_id": log_id,
             "original_text": text,
             "corrected_text": corrected_text,
             "changed": corrected_text != text,
@@ -321,6 +336,37 @@ def check_text():
         # Dictionary-based caches (_normalize, _graphemes, tag lookups) are kept warm
         # because they store pre-computed facts about the dictionary words, not user text.
         _trim_request_caches(spellchecker)
+
+
+@app.post("/log-suggestion-choice")
+def log_suggestion_choice():
+    data = request.get_json(silent=True) or {}
+    log_id = data.get("log_id")
+    if not log_id or not isinstance(log_id, str) or not log_id.strip():
+        return jsonify({"error": "log_id is required."}), 400
+
+    event_id = data.get("event_id", "")
+    token = data.get("token", "")
+    suggestions = data.get("suggestions", [])
+    chosen = data.get("chosen", "")
+    final_output = data.get("final_output", "")
+
+    if not isinstance(suggestions, list):
+        return jsonify({"error": "suggestions must be a list."}), 400
+
+    try:
+        beta_sheet_logger.update_choice(
+            log_id=log_id,
+            event_id=event_id,
+            token=token,
+            suggestions=suggestions,
+            chosen=chosen,
+            final_output=final_output,
+        )
+    except Exception as e:
+        app.logger.warning("Beta sheet logger update_choice failed: %s", e)
+
+    return jsonify({"ok": True, "log_id": log_id}), 200
 
 
 @app.post("/suggest-word")
