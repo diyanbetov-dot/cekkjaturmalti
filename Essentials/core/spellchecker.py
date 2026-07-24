@@ -192,8 +192,14 @@ class UniversalMalteseSpellchecker:
     VOWELS = set("aeiouàèìòù")
 
     # Maltese-like word tokens, including apostrophes and hyphens inside words.
+    #
+    # The final ``|\d+`` alternative allows standalone numeric tokens such as
+    # 11 to reach the narrowly scoped number+noun phrase handler. Ordinary
+    # numbers are preserved unchanged later in correct_text_rich().
     WORD_PATTERN = re.compile(
-        r"(?:[^\W\d_]+|\d+[^\W\d_][^\W_]*)(?:[-'\u2018\u2019\u02bc](?:[^\W\d_]+|\d+[^\W\d_][^\W_]*))*(?:['\u2018\u2019\u02bc])?",
+        r"(?:[^\W\d_]+|\d+[^\W\d_][^\W_]*|\d+)"
+        r"(?:[-'\u2018\u2019\u02bc](?:[^\W\d_]+|\d+[^\W\d_][^\W_]*|\d+))*"
+        r"(?:['\u2018\u2019\u02bc])?",
         re.UNICODE,
     )
 
@@ -625,9 +631,45 @@ class UniversalMalteseSpellchecker:
         "llejla": "llejla",
         "billejl": "billejl",
     }
+    NUMERAL_INPUT_ALIASES = {
+        "ħdax": "ħdax",
+        "hdax": "ħdax",
+        "tnax": "tnax",
+        "tlettax": "tlettax",
+        "erbatax": "erbatax",
+        "ħmistax": "ħmistax",
+        "sittax": "sittax",
+        "sbatax": "sbatax",
+        "tmintax": "tmintax",
+        "dsatax": "dsatax",
+    }
+    LONG_TEEN_NUMERALS = frozenset(
+        {
+            "ħdax",
+            "tnax",
+            "tlettax",
+            "erbatax",
+            "ħmistax",
+            "sittax",
+            "sbatax",
+            "tmintax",
+            "dsatax",
+        }
+    )
+    DIGIT_TEEN_TO_WORD = {
+        "11": "ħdax",
+        "12": "tnax",
+        "13": "tlettax",
+        "14": "erbatax",
+        "15": "ħmistax",
+        "16": "sittax",
+        "17": "sbatax",
+        "18": "tmintax",
+        "19": "dsatax",
+    }
     CARDINAL_TO_SHORT_ATTNUM = {
-        "ewġ": "żewġ",
-        "ewġt": "żewġ",
+        "żewġ": "żewġ",
+        "żewġt": "żewġ",
         "wieħed": "wieħed",
         "waħda": "waħda",
         "tlieta": "tliet",
@@ -649,6 +691,22 @@ class UniversalMalteseSpellchecker:
         "ġixt": "ġiex",
         "ħdax": "ħdax-il",
         "ħdax-il": "ħdax-il",
+        "tnax": "tnax-il",
+        "tnax-il": "tnax-il",
+        "tlettax": "tlettax-il",
+        "tlettax-il": "tlettax-il",
+        "erbatax": "erbatax-il",
+        "erbatax-il": "erbatax-il",
+        "ħmistax": "ħmistax-il",
+        "ħmistax-il": "ħmistax-il",
+        "sittax": "sittax-il",
+        "sittax-il": "sittax-il",
+        "sbatax": "sbatax-il",
+        "sbatax-il": "sbatax-il",
+        "tmintax": "tmintax-il",
+        "tmintax-il": "tmintax-il",
+        "dsatax": "dsatax-il",
+        "dsatax-il": "dsatax-il",
         "għoxrin": "għoxrin",
     }
     SHORT_ATTNUM_TO_LONG = {
@@ -665,6 +723,14 @@ class UniversalMalteseSpellchecker:
         "għaxar": "għaxart",
         "ġiex": "ġixt",
         "ħdax-il": "ħdax-il",
+        "tnax-il": "tnax-il",
+        "tlettax-il": "tlettax-il",
+        "erbatax-il": "erbatax-il",
+        "ħmistax-il": "ħmistax-il",
+        "sittax-il": "sittax-il",
+        "sbatax-il": "sbatax-il",
+        "tmintax-il": "tmintax-il",
+        "dsatax-il": "dsatax-il",
         "għoxrin": "għoxrin",
     }
     SINGULAR_NUMBER_WORDS = {
@@ -673,12 +739,19 @@ class UniversalMalteseSpellchecker:
         "tnax",
         "tnax-il",
         "tlettax",
+        "tlettax-il",
         "erbatax",
+        "erbatax-il",
         "ħmistax",
+        "ħmistax-il",
         "sittax",
+        "sittax-il",
         "sbatax",
+        "sbatax-il",
         "tmintax",
+        "tmintax-il",
         "dsatax",
+        "dsatax-il",
         "għoxrin",
     }
     COMPACT_XI_ARTICLE_PREFIXES = (
@@ -1253,6 +1326,17 @@ class UniversalMalteseSpellchecker:
         candidate_norm = self._normalize_word(candidate)
         if not source_norm or source_norm == candidate_norm:
             return True
+
+        # Do not prepend għ to a word that already starts with i.
+        # e.g.  ir -> għir  or  ix -> għix  is never valid:
+        # the leading i was already present in the typed input.
+        # (ejn -> għin is fine because the source does not start with i.)
+        if (
+            source_norm.startswith("i")
+            and not source_norm.startswith("għi")
+            and candidate_norm.startswith("għi")
+        ):
+            return False
 
         # Do not turn an inserted plain h into a new ħ. A typed h remains a
         # valid shortcut source because deleting ħ would not recover it.
@@ -3841,6 +3925,7 @@ class UniversalMalteseSpellchecker:
             self._no_possession_nouns = self._load_auxiliary_word_list(
                 self._auxiliary_word_list_paths(
                     NO_POSSESSION_NOUNS_DIC.name,
+                    "nopossessionnouns.txt",
                 )
             )
         return self._no_possession_nouns
@@ -7885,6 +7970,21 @@ class UniversalMalteseSpellchecker:
             return None
         return prefix, tail
 
+    def _canonicalize_numeral_input(self, word: str) -> str:
+        normalized = self._normalize_word(word)
+
+        if normalized.endswith("-il"):
+            bare_numeral = normalized[:-3]
+            canonical_bare = self.NUMERAL_INPUT_ALIASES.get(
+                bare_numeral,
+                bare_numeral,
+            )
+
+            if canonical_bare in self.LONG_TEEN_NUMERALS:
+                return canonical_bare
+
+        return self.NUMERAL_INPUT_ALIASES.get(normalized, normalized)
+
     def _number_phrase_payload(
         self,
         numeral_word: str,
@@ -7908,6 +8008,16 @@ class UniversalMalteseSpellchecker:
         else:
             article_prefix = self._normalize_word(article_word)
 
+        digit_numeral_surface: str | None = None
+        digit_candidate = numeral_norm
+
+        if digit_candidate.endswith("-il"):
+            digit_candidate = digit_candidate[:-3]
+
+        if digit_candidate in self.DIGIT_TEEN_TO_WORD:
+            digit_numeral_surface = digit_candidate
+            numeral_norm = self.DIGIT_TEEN_TO_WORD[digit_candidate]
+
         noun_article_prefix: str | None = None
         noun_surface_word = noun_word
         split_noun_article = self._split_article_token(noun_word)
@@ -7920,16 +8030,35 @@ class UniversalMalteseSpellchecker:
         if self._is_verb_tagged_word(noun_surface_word):
             return None
 
-        corrected_numeral = self._normalize_word(self.correct_word(numeral_word))
-        if corrected_numeral and article_rules.is_num(corrected_numeral):
-            numeral_norm = corrected_numeral
+        numeral_norm = self._canonicalize_numeral_input(numeral_norm)
+
+        if article_rules.is_num(numeral_norm):
+            corrected_numeral = numeral_norm
+        else:
+            corrected_numeral = self._canonicalize_numeral_input(
+                self.correct_word(numeral_norm)
+            )
+
+        if not corrected_numeral:
+            return None
+
+        if not article_rules.is_num(corrected_numeral):
+            return None
+
+        numeral_norm = corrected_numeral
 
         markers = self._word_tag_markers(numeral_norm)
         has_short_attnum = "SHORTATTNUM" in markers
         has_long_attnum = "LONGATTNUM" in markers
         has_ordnum = "ORDNUM" in markers
         has_cardnum = "CARDNUM" in markers
-        if not any((has_short_attnum, has_long_attnum, has_ordnum, has_cardnum)):
+
+        if not any((
+            has_short_attnum,
+            has_long_attnum,
+            has_ordnum,
+            has_cardnum,
+        )):
             return None
 
         corrected_noun = self._normalize_word(self.correct_word(noun_surface_word))
@@ -7977,14 +8106,22 @@ class UniversalMalteseSpellchecker:
             if require_long
             else plural_candidate
         )
-        singular_surface_number = self._number_surface_for_noun(
-            numeral_norm,
-            prefer_long=True,
-        )
-        plural_surface_number = self._number_surface_for_noun(
-            numeral_norm,
-            prefer_long=require_long,
-        )
+        if digit_numeral_surface is not None:
+            singular_surface_number = f"{digit_numeral_surface}-il"
+            plural_surface_number = (
+                f"{digit_numeral_surface}-il"
+                if require_long
+                else digit_numeral_surface
+            )
+        else:
+            singular_surface_number = self._number_surface_for_noun(
+                numeral_norm,
+                prefer_long=True,
+            )
+            plural_surface_number = self._number_surface_for_noun(
+                numeral_norm,
+                prefer_long=require_long,
+            )
 
         singular_phrase = compose_phrase(
             compose_number(singular_surface_number),
@@ -12777,7 +12914,32 @@ class UniversalMalteseSpellchecker:
                     last_end = matches[index + 2].end()
                     index += 3
                     continue
+            numeric_passthrough = (
+                original_norm.isdigit()
+                or (
+                    original_norm.endswith("-il")
+                    and original_norm[:-3].isdigit()
+                )
+            )
 
+            if numeric_passthrough:
+                tokens.append(
+                    {
+                        "type": "word",
+                        "original": original_word,
+                        "corrected": original_word,
+                        "meaning": "",
+                        "ambiguous": False,
+                        "crucial": False,
+                        "choices": [],
+                        "name_like": False,
+                    }
+                )
+                corrected_parts.append(original_word)
+                previous_surface_word = original_norm
+                last_end = match.end()
+                index += 1
+                continue
             if index + 1 < len(matches) and not getattr(
                 matches[index + 1], "is_quote", False
             ):
@@ -14024,28 +14186,70 @@ class UniversalMalteseSpellchecker:
                     index += 2
                     continue
 
-                if (
-                    current_norm == "ta"
-                    and next_norm in {"l", "il"}
-                    and index + 2 < len(matches)
-                    and not getattr(matches[index + 2], "is_quote", False)
-                ):
-                    article_noun = self.correct_word(word_tokens[index + 2].text)
-                    article_noun_norm = self._normalize_word(article_noun)
-                    if article_noun_norm:
-                        corrected_phrase = f"tal-{article_noun_norm}"
-                        literal_noun = (
-                            f"i{article_noun_norm}"
-                            if article_rules is not None
-                            and article_rules._requires_article_epenthetic_i(
-                                article_noun_norm
-                            )
-                            else article_noun_norm
+            if (
+                current_norm == "ta"
+                and next_norm in {"l", "il"}
+                and index + 2 < len(matches)
+                and not getattr(matches[index + 2], "is_quote", False)
+            ):
+                article_noun = self.correct_word(word_tokens[index + 2].text)
+                article_noun_norm = self._normalize_word(article_noun)
+
+                if article_noun_norm:
+                    corrected_phrase = f"tal-{article_noun_norm}"
+                    literal_noun = (
+                        f"i{article_noun_norm}"
+                        if article_rules is not None
+                        and article_rules._requires_article_epenthetic_i(
+                            article_noun_norm
                         )
-                        if sentence_initial:
-                            corrected_phrase = self._capitalize_first_letter(
-                                corrected_phrase
+                        else article_noun_norm
+                    )
+
+                    if sentence_initial:
+                        corrected_phrase = self._capitalize_first_letter(
+                            corrected_phrase
+                        )
+
+                    parallel_fused_ta = False
+
+                    if index >= 2:
+                        connector_norm = self._normalize_word(
+                            word_tokens[index - 1].text
+                        )
+                        parallel_left_norm = self._normalize_word(
+                            word_tokens[index - 2].text
+                        )
+
+                        parallel_fused_ta = (
+                            connector_norm in {"u", "jew"}
+                            and parallel_left_norm.startswith(
+                                (
+                                    "tal-",
+                                    "tat-",
+                                    "tad-",
+                                    "tan-",
+                                    "tar-",
+                                    "tas-",
+                                    "tax-",
+                                    "taċ-",
+                                    "tac-",
+                                    "taż-",
+                                    "taz-",
+                                )
                             )
+                        )
+
+                    if parallel_fused_ta:
+                        phrase_choices = [
+                            {
+                                "word": corrected_phrase,
+                                "meaning": self.meaning_for(article_noun_norm),
+                            }
+                        ]
+                        is_ambiguous = False
+                        is_crucial = False
+                    else:
                         phrase_choices = [
                             {
                                 "word": corrected_phrase,
@@ -14060,24 +14264,27 @@ class UniversalMalteseSpellchecker:
                                 "meaning": self.meaning_for(article_noun_norm),
                             },
                         ]
-                        tokens.append(
-                            {
-                                "type": "phrase",
-                                "original": text[
-                                    matches[index].start() : matches[index + 2].end()
-                                ],
-                                "corrected": corrected_phrase,
-                                "ambiguous": True,
-                                "crucial": True,
-                                "choices": phrase_choices,
-                                "name_like": False,
-                            }
-                        )
-                        corrected_parts.append(corrected_phrase)
-                        previous_surface_word = self._normalize_word(corrected_phrase)
-                        last_end = matches[index + 2].end()
-                        index += 3
-                        continue
+                        is_ambiguous = True
+                        is_crucial = True
+
+                    tokens.append(
+                        {
+                            "type": "phrase",
+                            "original": text[
+                                matches[index].start() : matches[index + 2].end()
+                            ],
+                            "corrected": corrected_phrase,
+                            "ambiguous": is_ambiguous,
+                            "crucial": is_crucial,
+                            "choices": phrase_choices,
+                            "name_like": False,
+                        }
+                    )
+                    corrected_parts.append(corrected_phrase)
+                    previous_surface_word = self._normalize_word(corrected_phrase)
+                    last_end = matches[index + 2].end()
+                    index += 3
+                    continue
 
                 if current_norm == "f" and index + 1 < len(matches):
                     between = text[matches[index].end() : matches[index + 1].start()]
@@ -15623,11 +15830,15 @@ class UniversalMalteseSpellchecker:
                 and not self._capitalized_name_kind(original_word)
             ):
                 corrected_word = self._normalize_word(corrected_word)
-            elif original_word.islower():
+            elif (
+                original_word.islower()
+                and original_norm not in self.dictionary_set
+            ):
                 exact_place_display = self._exact_place_word(original_word)
+
                 if (
                     exact_place_display
-                    and exact_place_display != self._normalize_word(original_word)
+                    and exact_place_display != original_norm
                 ):
                     corrected_word = exact_place_display
             restorative_norms = set()
