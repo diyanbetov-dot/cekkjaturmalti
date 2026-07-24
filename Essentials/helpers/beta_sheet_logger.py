@@ -31,6 +31,49 @@ def format_timestamp(dt: datetime = None) -> str:
     hms = dt.strftime("%H:%M:%S")
     return f"{day}/{month}/{year} {hms}"
 
+def build_initial_notes(tokens: list[dict]) -> str:
+    if not isinstance(tokens, list):
+        return ""
+
+    note_lines = []
+    unrecognized_words = []
+
+    for token in tokens:
+        if not isinstance(token, dict):
+            continue
+
+        text = token.get("corrected") or token.get("text") or ""
+        choices = token.get("choices")
+
+        if choices and isinstance(choices, list) and len(choices) > 0:
+            extracted_choices = []
+            for c in choices:
+                if isinstance(c, str):
+                    extracted_choices.append(c)
+                elif isinstance(c, dict):
+                    w = (
+                        c.get("word")
+                        or c.get("corrected")
+                        or c.get("candidate")
+                        or c.get("surface")
+                    )
+                    if w:
+                        extracted_choices.append(w)
+            if extracted_choices:
+                # Deduplicate preserving order
+                unique_choices = list(dict.fromkeys(extracted_choices))
+                note_lines.append(f"{text} - suggestions: {', '.join(unique_choices)}.")
+
+        if token.get("unrecognized"):
+            orig_or_corr = token.get("corrected") or token.get("text") or ""
+            if orig_or_corr and orig_or_corr not in unrecognized_words:
+                unrecognized_words.append(orig_or_corr)
+
+    if unrecognized_words:
+        note_lines.append(f"Unrecognized words: {', '.join(unrecognized_words)}.")
+
+    return "\n".join(note_lines) if note_lines else ""
+
 def _post_payload(payload: dict) -> bool:
     if not is_logging_enabled():
         return False
@@ -69,6 +112,7 @@ def create_log(
     log_id: str,
     input_text: str,
     initial_output: str,
+    notes: str = None,
     final_output: str = None,
     timestamp: str = None
 ) -> bool:
@@ -91,6 +135,7 @@ def create_log(
         "timestamp": str(timestamp)[:100],
         "input": str(input_text or "")[:MAX_FIELD_LENGTH],
         "initial_output": str(initial_output or "")[:MAX_FIELD_LENGTH],
+        "notes": str(notes or "")[:MAX_FIELD_LENGTH],
         "final_output": str(final_output or "")[:MAX_FIELD_LENGTH],
     }
 
