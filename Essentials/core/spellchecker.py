@@ -751,7 +751,6 @@ class UniversalMalteseSpellchecker:
         "themm": "t'hemm",
         "jithaq": "jidħaq",
         "hireg": "ħiereġ",
-        "ukoll": "wkoll",
         "alkemm": "għalkemm",
         "jafuwha": "jafuha",
         "mghamila": "m'għamilha",
@@ -5415,7 +5414,16 @@ class UniversalMalteseSpellchecker:
             if comp_gen is not None:
                 extend(comp_gen.generate_candidates(normalized))
 
-        return tuple(candidates)
+        filtered: list[str] = []
+        is_closed_kik_kuk = bool(re.match(r'^[bdfgjklmnprstvwzżġċħ][iu][bdfgjklmnprstvwzżġċħ]$', normalized, re.IGNORECASE))
+        for cand in candidates:
+            if re.search(r'(jj|ww)[bdfġgħhħklmnprstvwzżċq]', cand, re.IGNORECASE):
+                continue
+            if is_closed_kik_kuk and "għ" in cand.lower():
+                continue
+            filtered.append(cand)
+
+        return tuple(filtered)
 
     def _get_candidates(self, word: str) -> list[str]:
         normalized = self._normalize_word(word)
@@ -10824,10 +10832,48 @@ class UniversalMalteseSpellchecker:
                 ):
                     return f"which {relative_meaning}"
 
+        # 1. Prepositional phrases or hyphenated preposition forms
+        if " " in word:
+            parts = word.split(" ", 1)
+            p_prep = self._normalize_word(parts[0])
+            p_noun = parts[1]
+            noun_m = self.meaning_for(p_noun)
+            if noun_m:
+                prep_glosses = {
+                    "għal": "for", "ghal": "for", "għall": "for", "ghall": "for",
+                    "fi": "in", "fil": "in the", "fil-": "in the", "f'": "in",
+                    "bi": "with", "bil": "with the", "bil-": "with the", "b'": "with",
+                    "ta": "of", "ta'": "of", "tal": "of the", "tal-": "of the",
+                    "ma": "with", "ma'": "with", "mal": "with the", "mal-": "with the",
+                    "minn": "from", "mill": "from the", "mill-": "from the",
+                }
+                if p_prep in prep_glosses:
+                    return f"{prep_glosses[p_prep]} {noun_m}"
+
+        if normalized.startswith(("għall-", "ghall-", "fil-", "bil-", "tal-", "mal-", "mill-", "sal-")):
+            prefix_part, tail_part = normalized.split("-", 1)
+            tail_m = self.meaning_for(tail_part)
+            if tail_m:
+                prefix_map = {
+                    "għall": "for the", "ghall": "for the",
+                    "fil": "in the", "bil": "with the",
+                    "tal": "of the", "mal": "with the",
+                    "mill": "from the", "sal": "until the"
+                }
+                if prefix_part in prefix_map:
+                    return f"{prefix_map[prefix_part]} {tail_m}"
+
         noun_base = self._noun_possessive_base_for_surface(word)
         if noun_base:
             noun_meaning = self._get_meaning_index().meaning_for(noun_base)
             if noun_meaning:
+                possessive_glosses = [
+                    ("hom", "their"), ("kom", "your (plural)"), ("na", "our"),
+                    ("ha", "her"), ("u", "his"), ("h", "his"), ("ek", "your"), ("ok", "your"), ("i", "my")
+                ]
+                for suff, pron_gloss in possessive_glosses:
+                    if normalized.endswith(suff):
+                        return f"{pron_gloss} {noun_meaning}"
                 return noun_meaning
 
         tag_meanings: list[str] = []
@@ -11669,8 +11715,6 @@ class UniversalMalteseSpellchecker:
                     if (
                         min_decision is not None
                         and min_decision.corrected_phrase
-                        and corrected_next_norm_for_z_guard
-                        in {"kien", "fejn", "hu", "hi", "huma", "xiex", "min"}
                     ):
                         protected_z_phrase = min_decision.corrected_phrase
                         protected_previous_surface = min_decision.previous_surface
@@ -12282,7 +12326,7 @@ class UniversalMalteseSpellchecker:
                 verified_verb_norm = self._normalize_word(verified_verb)
                 if (
                     verified_verb_norm != original_norm
-                    and self._is_verb_tagged_word(verified_verb_norm)
+                    and self._is_verb_or_pronoun_tagged(verified_verb_norm)
                 ):
                     surface_verb = self._apply_surface_case(
                         original_word,
@@ -15622,10 +15666,12 @@ def _append_usage_log(
                 handle.write(entry)
     except Exception:
         try:
-            app.logger.exception(
-                "SPELLCHECK request_id=%s stage=usage_log_write_failed",
-                request_id,
-            )
-        except NameError:
+            from flask import current_app
+            if current_app:
+                current_app.logger.exception(
+                    "SPELLCHECK request_id=%s stage=usage_log_write_failed",
+                    request_id,
+                )
+        except Exception:
             pass
 

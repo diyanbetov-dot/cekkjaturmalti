@@ -233,6 +233,9 @@ class MalteseVerbFormIndex:
         if record.form_class == "F9":
             return True
 
+        if record.form_class.startswith("F10") or record.form_class == "F10":
+            return True
+
         return False
 
     def root_class(self, record: VerbFormRecord) -> str:

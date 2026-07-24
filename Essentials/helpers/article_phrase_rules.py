@@ -518,7 +518,7 @@ class MalteseArticlePhraseRules:
             "fil": "fil", "fl": "fil",
             "fis": "fis",
             "fir": "fir",
-            "minn": "mill", "mil": "mill", "mid": "mill", "mill": "mill",
+            "minn": None, "mil": "mill", "mid": "mill", "mill": "mill",
             "mic": "mill", "miċ": "mill",
             "għat": "għat", "ghat": "għat",
             "għal": "għall", "ghal": "għall",
@@ -932,7 +932,6 @@ class MalteseArticlePhraseRules:
             "lil": "lill",
             "għal": "għall",
             "ghal": "għall",
-            "minn": "mill",
             "sa": "sal",
         }
         canonical_prefix = prefix_map.get(preposition)

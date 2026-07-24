@@ -1342,6 +1342,7 @@
                 <div>
                     <label id="labelInput" for="textInput">Input text</label>
                     <textarea id="textInput" spellcheck="false" placeholder="Paste Maltese here..."></textarea>
+                    <p id="betaPrivacyNotice" class="beta-privacy-note" style="margin-top: 6px; font-size: 0.82rem; color: #718096; font-style: italic;"></p>
                 </div>
 
                 <div>
@@ -1535,6 +1536,7 @@
             Notice: document.getElementById("Notice"),
             labelInput: document.getElementById("labelInput"),
             textInput: document.getElementById("textInput"),
+            betaPrivacyNotice: document.getElementById("betaPrivacyNotice"),
             labelResults: document.getElementById("labelResults"),
             labelResultsText: document.getElementById("labelResultsText"),
             correctionTimer: document.getElementById("correctionTimer"),
@@ -1647,7 +1649,8 @@
                 emailScreenshotBtn: "Take a screenshot<br>of the page",
                 emailScreenshotBtnMobile: "Take screenshot",
                 emailStatusSending: "Sending...",
-                emailStatusSent: "Email sent successfully!"
+                emailStatusSent: "Email sent successfully!",
+                betaPrivacyNotice: "Beta notice: Submitted text and generated corrections may be stored temporarily to evaluate and improve the spellchecker. Please do not submit confidential or sensitive information."
             },
 
             mt: {
@@ -1720,11 +1723,13 @@
                 emailScreenshotBtn: "Ħu skritratt<br>tal-paġna",
                 emailScreenshotBtnMobile: "Ħu skritratt",
                 emailStatusSending: "Qed jintbagħat...",
-                emailStatusSent: "L-email intbagħtet b'suċċess!"
+                emailStatusSent: "L-email intbagħtet b'suċċess!",
+                betaPrivacyNotice: "Avviż beta: It-test sottomess u l-korrezzjonijiet iġġenerati jistgħu jinħażnu temporanjament biex jevalwaw u jtejbu ċ-ċekkjatur. Jekk jogħġbok tissottomettix informazzjoni kunfidenzjali jew sensittiva."
             }
         };
 
         let currentLang = localStorage.getItem("spellcheckerLang") || "en";
+        let currentLogId = null;
 
         let showSuggestions = localStorage.getItem("showSuggestions") !== "false";
         let alwaysShowCrucialSuggestions = localStorage.getItem("alwaysShowCrucialSuggestions") !== "false";
@@ -1903,6 +1908,9 @@
             elements.alphaNote.textContent = labels.alphaNote;
             elements.mainSubtitle.textContent = labels.subtitle;
             elements.usageNote.textContent = labels.usageNote;
+            if (elements.betaPrivacyNotice) {
+                elements.betaPrivacyNotice.textContent = labels.betaPrivacyNotice;
+            }
             elements.Notice.textContent = labels.Notice;
             elements.sourcesNote.textContent = labels.sourcesNote;
 
@@ -2690,6 +2698,18 @@
                 return;
             }
 
+            const tokenObj = latestTokens[tokenIndex];
+            const originalToken = tokenObj.corrected || tokenObj.text || "";
+
+            let suggestionsList = [];
+            if (Array.isArray(tokenObj.choices)) {
+                suggestionsList = tokenObj.choices.map(c => getChoiceWord(c)).filter(Boolean);
+            }
+
+            if (originalToken === chosenWord) {
+                return; // Prevent duplicate log if user clicks the currently selected word again
+            }
+
             latestTokens[tokenIndex].corrected = chosenWord;
 
             // A suggestion ending in a hyphen must join directly to the next word.
@@ -2710,6 +2730,18 @@
             latestCorrectedHtml = "";
 
             renderCorrectedText(latestTokens, latestCorrectedText);
+
+            if (currentLogId) {
+                const eventId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("evt_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9));
+                postJson("/log-suggestion-choice", {
+                    log_id: currentLogId,
+                    event_id: eventId,
+                    token: originalToken,
+                    suggestions: suggestionsList,
+                    chosen: chosenWord,
+                    final_output: latestCorrectedText
+                }).catch(() => {});
+            }
         }
 
         async function checkText() {
@@ -2730,6 +2762,7 @@
                 const edit_distance_tolerance = getEditDistanceTolerance();
                 const data = await postJson("/check-text", { text, edit_distance_tolerance });
 
+                currentLogId = data.log_id || null;
                 latestTokens = data.tokens || [];
                 latestCorrectedText = data.corrected_text || "";
                 latestCorrectedHtml = "";
@@ -2742,6 +2775,7 @@
                     "success"
                 );
             } catch (error) {
+                currentLogId = null;
                 elements.results.classList.remove("loading");
                 elements.results.innerHTML = "";
                 setRawStatus(error.message, "error");
@@ -2803,6 +2837,7 @@
 
         function clearAll() {
             setOutputEditing(false, { preserveText: true });
+            currentLogId = null;
             elements.textInput.value = "";
             elements.results.classList.remove("loading");
             elements.results.innerHTML = "";
