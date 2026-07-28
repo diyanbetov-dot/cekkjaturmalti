@@ -84,10 +84,10 @@ assert corrected_text("wġigħ kbir") == "Uġigħ kbir."
 
 assert corrected_text("misterjuz") == "Misterjuż."
 assert corrected_text("gustuz") == "Gustuż."
-assert corrected_text("ma' gustuz") == "ma' gustuż."
+assert corrected_text("ma' gustuz") == "Ma' gustuż."
 
-gustuz_token = token_for("ma' gustuz", "ma'")
-assert gustuz_token["corrected"] == "ma' gustuż"
+gustuz_token = app.spellchecker.correct_text_rich("ma' gustuz")["tokens"][0]
+assert gustuz_token["corrected"] == "Ma' gustuż"
 assert gustuz_token.get("ambiguous") is False
 assert gustuz_token.get("crucial") in {False, None}
 

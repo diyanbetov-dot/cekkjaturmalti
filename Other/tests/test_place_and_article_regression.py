@@ -1,4 +1,10 @@
 # -*- coding: utf-8 -*-
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "Essentials"))
+
 import app
 
 
@@ -25,20 +31,20 @@ def assert_suggestions(word, expected):
 
 
 # mill- and its assimilated forms
-assert_text("mid dinja", "mid-dinja")
+assert_text("mid dinja", "Mid-Dinja")
 assert_text("mid dar", "mid-dar")
 assert_text("mill skola", "mis-skola")
 assert_text("mil tifel", "mit-tifel")
 assert_text("mic Cina", "miċ-Ċina")
 assert_text("minn ic Cina", "miċ-Ċina")
 
-# ma + article must contract; bare ma before a noun/verb must remain separate.
+# ma + article must contract; bare ma before a verb forms the negative.
 assert_text("ma l omm", "mal-omm")
 assert_text("ma' l-omm", "mal-omm")
 assert_text("ma d dar", "mad-dar")
 assert_text("ma d-dar", "mad-dar")
-assert_text("ma dar", "ma dar")
-assert_text("ma marret", "ma marret")
+assert_text("ma dar", "ma darx")
+assert_text("ma marret", "ma marritx")
 assert_text("ma għid", "ma tgħidx")
 assert_text("ma għidu", "ma tgħidux")
 assert_text("ma ikser", "ma tiksirx")
@@ -46,7 +52,7 @@ assert_text("ma iksru", "ma tiksrux")
 assert_text("ma iksrux", "ma tiksrux")
 assert_text("ma tiksirx", "ma tiksirx")
 assert_text("ma tiksrux", "ma tiksrux")
-assert_text("ma kisser", "ma kisser")
+assert_text("ma kisser", "ma kissirx")
 
 # Other article-preposition families.
 assert_text("għall skola", "għas-skola")

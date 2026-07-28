@@ -113,8 +113,8 @@ def test_structural_candidates_feed_evidence_pipeline():
 def test_function_word_z_decisions_are_centralized():
     cases = {
         "ma membru": "Ma' membru.",
-        "ma hawn": "m'hawn.",
-        "ma għandu": "m'għandu.",
+        "ma hawn": "M'hawn.",
+        "ma għandu": "M'għandu.",
         "ma niflahx": "Ma niflaħx.",
         "ta quddiem": "Ta' quddiem.",
         "ta kemm": "Ta' kemm.",
