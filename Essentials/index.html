@@ -1060,10 +1060,13 @@
         }
 
         .report-helper-text {
-            margin-top: 10px;
-            color: #64748b;
+            margin: 6px 2px 0;
+            color: #94a3b8;
             font-size: 0.9em;
             font-style: italic;
+            line-height: 1.4;
+            pointer-events: none;
+            user-select: none;
         }
 
         .correction-timer {
@@ -1461,7 +1464,7 @@
         <div class="brand-ribbon-inner">
             <div id="brandName" class="brand-name">Ikteb Malti Tajjeb</div>
             <div class="top-bar">
-                <a id="helpLink" class="help-link" href="mailto:cekkjaturemalti@gmail.com">
+                <a id="helpLink" class="help-link" href="mailto:cekkjaturmalti@gmail.com">
                     <span class="help-icon" aria-hidden="true">?</span>
                     <span class="help-label">Help</span>
                 </a>
@@ -1544,7 +1547,7 @@
                 Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are
                 underway to increase the quality of outputted corrected text as per expected standards. Since it is
                 still in the testing phase, users and especially learners, are advised to use this tool with caution for
-                now. Please report wrong corrections and other findings to cekkjaturemalti@gmail.com. Thank you for
+                now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for
                 helping in improving Maltese digital tools!
             </p>
 
@@ -1618,13 +1621,7 @@
             <form id="emailForm" class="modal-form">
                 <div class="form-group">
                     <label for="emailTo">Għal / To:</label>
-                    <input type="email" id="emailTo" value="123@gmail.com" readonly />
-                </div>
-                <div class="form-group">
-                    <label for="emailFrom">L-email tiegħek / Your email:</label>
-                    <input type="email" id="emailFrom" required maxlength="254"
-                        autocomplete="email"
-                        placeholder="isem@example.com / name@example.com" />
+                    <input type="email" id="emailTo" value="cekkjaturmalti@gmail.com" readonly />
                 </div>
                 <div class="form-group">
                     <label for="emailSubject">Suġġett / Subject:</label>
@@ -1642,6 +1639,7 @@
                             <button type="button" id="removeScreenshot" class="remove-screenshot-btn">&times;</button>
                         </div>
                     </div>
+                    <div id="emailReportHelper" class="report-helper-text hidden" aria-hidden="true"></div>
                 </div>
                 <div id="emailModalStatus" class="status"></div>
                 <div class="form-actions">
@@ -1752,7 +1750,7 @@
                 lightModeBtnMobile: "☀️ Light Mode",
                 title: "Maltese Spell Checker",
                 alphaNote: "Beta 0.1.0",
-                Notice: "Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturemalti@gmail.com or pressing the Send a Message button. Thank you for helping in improving Maltese digital tools!",
+                Notice: "Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com or pressing the Send a Message button. Thank you for helping in improving Maltese digital tools!",
                 subtitle: "",
                 usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
                 sourcesNote: "Sources and References:\nVerbs: verb.mt\nOther: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -1808,8 +1806,6 @@
                 suggestionCoachmarkMaltese: "Press the Maltese suggestion if you wish to use it",
                 emailModalTitle: "Send Email",
                 emailToLabel: "To:",
-                emailFromLabel: "Your email:",
-                emailFromPlaceholder: "name@example.com",
                 emailSubjectLabel: "Subject:",
                 emailSubjectPlaceholder: "Write subject here",
                 emailBodyLabel: "Message:",
@@ -1839,7 +1835,7 @@
                 lightModeBtnMobile: "☀️ Dawl",
                 title: "Ċekkjatur tal-Malti",
                 alphaNote: "Beta 0.1.0",
-                Notice: "Avviż dwar Beta 0.1.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturemalti@gmail.com jew billi tagħfas il-buttuna Ibgħat Messaġġ. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
+                Notice: "Avviż dwar Beta 0.1.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com jew billi tagħfas il-buttuna Ibgħat Messaġġ. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
                 subtitle: "",
                 usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
                 sourcesNote: "Sorsi u Referenzi:\nVerbi: verb.mt\nKliem Ieħor: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -1893,8 +1889,6 @@
                 suggestionCoachmarkMaltese: "Agħfas fuq is-suġġeriment Malti jekk tixtieq tużah",
                 emailModalTitle: "Ibgħat Email",
                 emailToLabel: "Għal:",
-                emailFromLabel: "L-email tiegħek:",
-                emailFromPlaceholder: "isem@example.com",
                 emailSubjectLabel: "Suġġett:",
                 emailSubjectPlaceholder: "Ikteb is-suġġett hawn",
                 emailBodyLabel: "Messaġġ:",
@@ -2130,8 +2124,6 @@
             // Translate email modal
             document.querySelector("#emailModal h2").textContent = labels.emailModalTitle;
             document.querySelector("label[for='emailTo']").textContent = labels.emailToLabel;
-            document.querySelector("label[for='emailFrom']").textContent = labels.emailFromLabel;
-            document.getElementById("emailFrom").placeholder = labels.emailFromPlaceholder;
             document.querySelector("label[for='emailSubject']").textContent = labels.emailSubjectLabel;
             document.getElementById("emailSubject").placeholder = labels.emailSubjectPlaceholder;
             document.querySelector("label[for='emailBody']").textContent = labels.emailBodyLabel;
@@ -3277,6 +3269,7 @@
         const cancelEmail = document.getElementById("cancelEmail");
         const emailModalStatus = document.getElementById("emailModalStatus");
         const emailBodyEditor = document.getElementById("emailBody");
+        const emailReportHelper = document.getElementById("emailReportHelper");
 
         // Screenshot Elements
         const takeScreenshotBtn = document.getElementById("takeScreenshot");
@@ -3295,19 +3288,36 @@
 
         function setEmailBodyText(text) {
             emailBodyEditor.textContent = text || "";
+            emailReportHelper.textContent = "";
+            emailReportHelper.classList.add("hidden");
         }
 
         function setEmailReportBody(message, helper) {
-            emailBodyEditor.replaceChildren();
+            emailBodyEditor.textContent = message || "";
+            emailReportHelper.textContent = helper || "";
+            emailReportHelper.classList.toggle("hidden", !helper);
+        }
 
-            const messageBlock = document.createElement("div");
-            messageBlock.textContent = message;
-            emailBodyEditor.appendChild(messageBlock);
-
-            const helperBlock = document.createElement("div");
-            helperBlock.className = "report-helper-text";
-            helperBlock.textContent = helper;
-            emailBodyEditor.appendChild(helperBlock);
+        function splitLegacyReportDraft(body, reportedWord) {
+            const text = String(body || "");
+            if (!reportedWord) {
+                return { body: text, helper: "" };
+            }
+            const helperStarts = [
+                "\nYou may describe the word",
+                "\nTista' wkoll tiddeskrivi l-kelma"
+            ];
+            const helperIndex = helperStarts
+                .map(marker => text.indexOf(marker))
+                .filter(index => index >= 0)
+                .sort((a, b) => a - b)[0];
+            if (helperIndex === undefined) {
+                return { body: text, helper: "" };
+            }
+            return {
+                body: text.slice(0, helperIndex).trim(),
+                helper: t("reportHelper")
+            };
         }
 
         function resetEmailFormContent() {
@@ -3328,9 +3338,9 @@
 
         function saveDraft() {
             const draft = {
-                email: document.getElementById("emailFrom").value,
                 subject: document.getElementById("emailSubject").value,
                 body: getEmailBodyText(),
+                helper: emailReportHelper.textContent,
                 screenshot: attachedScreenshot,
                 reportedWord: pendingReportedWord
             };
@@ -3342,9 +3352,19 @@
                 const draftStr = localStorage.getItem("cekkjatur_email_draft");
                 if (draftStr) {
                     const draft = JSON.parse(draftStr);
-                    document.getElementById("emailFrom").value = draft.email || "";
+                    const migrated = splitLegacyReportDraft(
+                        draft.body,
+                        draft.reportedWord
+                    );
                     document.getElementById("emailSubject").value = draft.subject || "";
-                    setEmailBodyText(draft.body || "");
+                    if (draft.helper || migrated.helper) {
+                        setEmailReportBody(
+                            migrated.body,
+                            draft.helper || migrated.helper
+                        );
+                    } else {
+                        setEmailBodyText(migrated.body);
+                    }
                     pendingReportedWord = draft.reportedWord || "";
                     if (draft.screenshot) {
                         attachedScreenshot = draft.screenshot;
@@ -3513,11 +3533,11 @@
                     screenshotPreview.classList.add("hidden");
                 }
             }
-            document.getElementById("emailTo").value = "cekkjaturemalti@gmail.com";
+            document.getElementById("emailTo").value = "cekkjaturmalti@gmail.com";
 
             emailModal.classList.add("active");
             emailModal.classList.remove("hidden");
-            document.getElementById("emailFrom").focus();
+            document.getElementById("emailSubject").focus();
         }
 
         async function beginUnrecognizedReport(token) {
@@ -3559,7 +3579,6 @@
         // Draft auto-saving input listeners
         document.getElementById("emailSubject").addEventListener("input", saveDraft);
         emailBodyEditor.addEventListener("input", saveDraft);
-        document.getElementById("emailFrom").addEventListener("input", saveDraft);
 
         // Take Screenshot Button
         takeScreenshotBtn.addEventListener("click", async () => {
@@ -3623,7 +3642,7 @@
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        email: document.getElementById("emailFrom").value.trim(),
+                        email: "cekkjaturmalti@gmail.com",
                         subject: document.getElementById("emailSubject").value.trim(),
                         message,
                         screenshot: attachedScreenshot || "",
