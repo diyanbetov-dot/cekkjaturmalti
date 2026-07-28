@@ -245,4 +245,4 @@ def submit_feedback(
     }
 
     # A screenshot upload is larger than the ordinary spellcheck log payload.
-    return _post_payload(payload, timeout=12.0)
+    return _post_payload(payload, timeout=30.0)
