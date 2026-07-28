@@ -222,6 +222,13 @@ class MalteseArticlePhraseRules:
             else None
         )
         surface_noun = place_display or noun
+        if spellchecker is not None:
+            epenthetic_place = spellchecker._epenthetic_place_surface(
+                noun,
+                prefer_initial_i=True,
+            )
+            if epenthetic_place is not None:
+                return f"l-{epenthetic_place}"
         if self._requires_article_epenthetic_i(noun):
             return f"l-i{surface_noun}"
         typed = self.normalize(typed_article).rstrip("-")
@@ -499,8 +506,15 @@ class MalteseArticlePhraseRules:
 
         spellchecker = getattr(self, "spellchecker", None)
         place_display = None
+        epenthetic_place = None
         if spellchecker is not None:
             place_display = spellchecker._exact_place_word(noun)
+            epenthetic_place = spellchecker._epenthetic_place_surface(
+                noun,
+                prefer_initial_i=True,
+            )
+            if epenthetic_place is not None:
+                place_display = epenthetic_place
             if place_display:
                 if prefix in {"ta", "ta'"}:
                     return f"ta' {place_display}"
@@ -527,7 +541,7 @@ class MalteseArticlePhraseRules:
         if prefix in {"dal", "dil"}:
             return f"{prefix}-{surface_noun}"
 
-        starts_vowelish = self._starts_vowel_gh_or_h(noun)
+        starts_vowelish = self._starts_vowel_gh_or_h(surface_noun)
 
         aliases = {
             "tal": "tal",
@@ -580,6 +594,8 @@ class MalteseArticlePhraseRules:
         if prefix in {"xil", "x'l"}:
             return f"x'l-{surface_noun}" if starts_vowelish else f"xi{self.assimilate('il-', noun)}{surface_noun}"
         if prefix in {"il", "l", "ir", "in", "is", "it", "id", "iċ", "ic", "iż", "iz"} or prefix in SUN_LETTERS:
+            if epenthetic_place is not None:
+                return f"l-{surface_noun}"
             if prefix == "l" and starts_vowelish:
                 return f"l-{surface_noun}"
             return f"{self.assimilate('il-', noun)}{surface_noun}"

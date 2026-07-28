@@ -123,5 +123,70 @@ class TestBetaSheetLogger(unittest.TestCase):
         self.assertEqual(data.get("log_id"), "550e8400-e29b-41d4-a716-446655440000")
         self.assertNotIn("super_secret_key", str(data))
 
+    @patch.dict(os.environ, {
+        "SPELLCHECK_BETA_LOGGING": "true",
+        "SPELLCHECK_LOG_URL": "https://script.google.com/macros/s/test/exec",
+        "SPELLCHECK_LOG_SECRET": "feedback_secret"
+    })
+    @patch.object(beta_sheet_logger, "_post_payload", return_value=True)
+    def test_submit_feedback_payload(self, mock_post):
+        submitted = beta_sheet_logger.submit_feedback(
+            email="reader@example.com",
+            subject="Kelma mhux rikonoxxuta",
+            message="Il-kelma kienet test.",
+            screenshot_data_url="data:image/jpeg;base64,/9j/2Q==",
+            reported_word="test",
+            log_id="log-123",
+        )
+
+        self.assertTrue(submitted)
+        payload = mock_post.call_args.args[0]
+        self.assertEqual(payload["action"], "feedback_report")
+        self.assertEqual(payload["email"], "reader@example.com")
+        self.assertEqual(payload["reported_word"], "test")
+        self.assertEqual(payload["log_id"], "log-123")
+        self.assertEqual(mock_post.call_args.kwargs["timeout"], 12.0)
+
+    @patch.dict(os.environ, {"SPELLCHECK_BETA_LOGGING": "false"}, clear=True)
+    def test_feedback_route_requires_configured_service(self):
+        response = self.client.post("/submit-feedback", json={
+            "email": "reader@example.com",
+            "subject": "Test",
+            "message": "Test message"
+        })
+        self.assertEqual(response.status_code, 503)
+
+    def test_feedback_route_rejects_invalid_email(self):
+        response = self.client.post("/submit-feedback", json={
+            "email": "not-an-email",
+            "subject": "Test",
+            "message": "Test message"
+        })
+        self.assertEqual(response.status_code, 400)
+
+    @patch.dict(os.environ, {
+        "SPELLCHECK_BETA_LOGGING": "true",
+        "SPELLCHECK_LOG_URL": "https://script.google.com/macros/s/test/exec",
+        "SPELLCHECK_LOG_SECRET": "feedback_secret"
+    })
+    @patch.object(beta_sheet_logger, "submit_feedback", return_value=True)
+    def test_feedback_route_accepts_screenshot(self, mock_submit):
+        response = self.client.post("/submit-feedback", json={
+            "email": "reader@example.com",
+            "subject": "Unrecognized word",
+            "message": "Please inspect this word.",
+            "screenshot": "data:image/jpeg;base64,/9j/2Q==",
+            "reported_word": "kelma",
+            "language": "en",
+            "log_id": "log-123"
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.get_json()["ok"])
+        self.assertEqual(mock_submit.call_args.kwargs["reported_word"], "kelma")
+        self.assertTrue(
+            mock_submit.call_args.kwargs["screenshot_filename"].endswith(".jpg")
+        )
+
 if __name__ == "__main__":
     unittest.main()

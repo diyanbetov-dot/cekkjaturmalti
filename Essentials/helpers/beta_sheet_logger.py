@@ -8,6 +8,8 @@ from datetime import datetime
 logger = logging.getLogger("beta_sheet_logger")
 
 MAX_FIELD_LENGTH = 10000
+MAX_FEEDBACK_MESSAGE_LENGTH = 10000
+MAX_SCREENSHOT_DATA_URL_LENGTH = 3_000_000
 
 def is_logging_enabled() -> bool:
     flag = os.getenv("SPELLCHECK_BETA_LOGGING", "false").strip().lower()
@@ -74,7 +76,7 @@ def build_initial_notes(tokens: list[dict]) -> str:
 
     return "\n".join(note_lines) if note_lines else ""
 
-def _post_payload(payload: dict) -> bool:
+def _post_payload(payload: dict, timeout: float = 2.5) -> bool:
     if not is_logging_enabled():
         return False
 
@@ -92,8 +94,28 @@ def _post_payload(payload: dict) -> bool:
     try:
         try:
             import requests
-            resp = requests.post(url, json=payload_to_send, timeout=2.5, allow_redirects=True)
-            return resp.status_code == 200
+            resp = requests.post(
+                url,
+                json=payload_to_send,
+                timeout=timeout,
+                allow_redirects=True,
+            )
+            if resp.status_code != 200:
+                return False
+            try:
+                response_payload = resp.json()
+            except (TypeError, ValueError):
+                return True
+            if (
+                isinstance(response_payload, dict)
+                and response_payload.get("ok") is False
+            ):
+                logger.warning(
+                    "Google Apps Script rejected payload: %s",
+                    response_payload.get("error", "unknown error"),
+                )
+                return False
+            return True
         except ImportError:
             import urllib.request
             req = urllib.request.Request(
@@ -102,8 +124,23 @@ def _post_payload(payload: dict) -> bool:
                 headers={"Content-Type": "application/json; charset=utf-8"},
                 method="POST"
             )
-            with urllib.request.urlopen(req, timeout=2.5) as resp:
-                return resp.status == 200
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                if resp.status != 200:
+                    return False
+                try:
+                    response_payload = json.loads(resp.read().decode("utf-8"))
+                except (AttributeError, TypeError, ValueError, UnicodeDecodeError):
+                    return True
+                if (
+                    isinstance(response_payload, dict)
+                    and response_payload.get("ok") is False
+                ):
+                    logger.warning(
+                        "Google Apps Script rejected payload: %s",
+                        response_payload.get("error", "unknown error"),
+                    )
+                    return False
+                return True
     except Exception as e:
         logger.warning("Google Sheets log POST failed (failing open): %s", e)
         return False
@@ -171,3 +208,41 @@ def update_choice(
     }
 
     return _post_payload(payload)
+
+
+def submit_feedback(
+    *,
+    email: str,
+    subject: str,
+    message: str,
+    screenshot_data_url: str = "",
+    screenshot_filename: str = "cekkjatur-report.jpg",
+    language: str = "mt",
+    page_url: str = "",
+    user_agent: str = "",
+    reported_word: str = "",
+    log_id: str = "",
+) -> bool:
+    """Send a feedback report through the configured Google Apps Script endpoint."""
+    if not is_logging_enabled():
+        return False
+
+    payload = {
+        "action": "feedback_report",
+        "timestamp": format_timestamp(),
+        "email": str(email or "")[:254],
+        "subject": str(subject or "")[:200],
+        "message": str(message or "")[:MAX_FEEDBACK_MESSAGE_LENGTH],
+        "screenshot_data_url": str(screenshot_data_url or "")[
+            :MAX_SCREENSHOT_DATA_URL_LENGTH
+        ],
+        "screenshot_filename": str(screenshot_filename or "")[:150],
+        "language": str(language or "")[:10],
+        "page_url": str(page_url or "")[:1000],
+        "user_agent": str(user_agent or "")[:500],
+        "reported_word": str(reported_word or "")[:200],
+        "log_id": str(log_id or "")[:100],
+    }
+
+    # A screenshot upload is larger than the ordinary spellcheck log payload.
+    return _post_payload(payload, timeout=12.0)

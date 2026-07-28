@@ -1,5 +1,8 @@
 # Essentials/app.py - Flask API Entry Point & Server Configuration
 import os
+import base64
+import binascii
+import re
 import sys
 import time
 import uuid
@@ -135,6 +138,7 @@ suffix_generator = MalteseSuffixGenerator(
 )
 
 spellchecker.suffix_generator = suffix_generator
+spellchecker.finalize_usage_verb_mappings()
 
 fused_preposition_rules = MalteseFusedPrepositionRules(
     spellchecker=spellchecker,
@@ -163,6 +167,14 @@ log_spellcheck_event(
 
 ENABLE_DEV_TOOLS = False
 SHOW_STATUS_MESSAGES = False
+
+FEEDBACK_EMAIL_PATTERN = re.compile(
+    r"^[^@\s]{1,64}@[^@\s]{1,190}\.[^@\s]{2,63}$"
+)
+FEEDBACK_SCREENSHOT_PATTERN = re.compile(
+    r"^data:(image/(?:png|jpeg|webp));base64,([A-Za-z0-9+/=\r\n]+)$"
+)
+MAX_FEEDBACK_SCREENSHOT_BYTES = 2_000_000
 
 @app.get("/")
 def home():
@@ -369,6 +381,97 @@ def log_suggestion_choice():
         app.logger.warning("Beta sheet logger update_choice failed: %s", e)
 
     return jsonify({"ok": True, "log_id": log_id}), 200
+
+
+@app.post("/submit-feedback")
+def submit_feedback():
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        return jsonify({"error": "A JSON feedback payload is required."}), 400
+
+    email = str(data.get("email", "")).strip()
+    subject = str(data.get("subject", "")).strip()
+    message = str(data.get("message", "")).strip()
+    screenshot_data_url = str(data.get("screenshot", "") or "").strip()
+    language = str(data.get("language", "mt") or "mt").strip().lower()
+    reported_word = str(data.get("reported_word", "") or "").strip()
+    log_id = str(data.get("log_id", "") or "").strip()
+    page_url = str(data.get("page_url", "") or "").strip()
+
+    if not FEEDBACK_EMAIL_PATTERN.fullmatch(email) or len(email) > 254:
+        return jsonify({"error": "Please enter a valid email address."}), 400
+    if not subject or len(subject) > 200:
+        return jsonify({"error": "Subject must contain 1 to 200 characters."}), 400
+    if not message or len(message) > beta_sheet_logger.MAX_FEEDBACK_MESSAGE_LENGTH:
+        return (
+            jsonify(
+                {
+                    "error": (
+                        "Message must contain 1 to "
+                        f"{beta_sheet_logger.MAX_FEEDBACK_MESSAGE_LENGTH} characters."
+                    )
+                }
+            ),
+            400,
+        )
+
+    screenshot_filename = ""
+    if screenshot_data_url:
+        if len(screenshot_data_url) > beta_sheet_logger.MAX_SCREENSHOT_DATA_URL_LENGTH:
+            return jsonify({"error": "The screenshot is too large."}), 413
+        match = FEEDBACK_SCREENSHOT_PATTERN.fullmatch(screenshot_data_url)
+        if match is None:
+            return jsonify({"error": "The screenshot format is invalid."}), 400
+        try:
+            screenshot_bytes = base64.b64decode(match.group(2), validate=True)
+        except (binascii.Error, ValueError):
+            return jsonify({"error": "The screenshot data is invalid."}), 400
+        if len(screenshot_bytes) > MAX_FEEDBACK_SCREENSHOT_BYTES:
+            return jsonify({"error": "The screenshot is too large."}), 413
+        extension = {
+            "image/png": "png",
+            "image/jpeg": "jpg",
+            "image/webp": "webp",
+        }[match.group(1)]
+        screenshot_filename = f"cekkjatur-report-{uuid.uuid4().hex[:12]}.{extension}"
+
+    if not beta_sheet_logger.is_logging_enabled():
+        return jsonify({"error": "The feedback service is not configured."}), 503
+    log_url, log_secret = beta_sheet_logger.get_log_config()
+    if not log_url or not log_secret:
+        return jsonify({"error": "The feedback service is not configured."}), 503
+
+    try:
+        submitted = beta_sheet_logger.submit_feedback(
+            email=email,
+            subject=subject,
+            message=message,
+            screenshot_data_url=screenshot_data_url,
+            screenshot_filename=screenshot_filename,
+            language=language if language in {"en", "mt"} else "mt",
+            page_url=page_url,
+            user_agent=request.headers.get("User-Agent", ""),
+            reported_word=reported_word,
+            log_id=log_id,
+        )
+    except Exception:
+        app.logger.exception("Feedback report submission failed")
+        submitted = False
+
+    if not submitted:
+        return (
+            jsonify(
+                {
+                    "error": (
+                        "The feedback report could not be delivered. "
+                        "Please try again."
+                    )
+                }
+            ),
+            502,
+        )
+
+    return jsonify({"ok": True}), 200
 
 
 @app.post("/suggest-word")
