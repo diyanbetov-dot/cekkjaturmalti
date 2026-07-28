@@ -60,7 +60,7 @@ assert_text("ghall xi hadd", "Għal xi ħadd.")
 assert_text("X'taghmel", "X'tagħmel.")
 assert_text("Mhemmx", "M'hemmx.")
 assert_text("GHALL GOST", "GĦALL-GOST.")
-assert_text("C-cans", "C-cans.")
+assert_text("C-cans", "C-ċans.")
 
 assert_text("Nicole marret id-dar.", "Nicole marret id-dar.")
 assert_text("Diyan qal hekk.", "Diyan qal hekk.")

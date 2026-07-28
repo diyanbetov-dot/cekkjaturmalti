@@ -368,6 +368,16 @@ class MalteseArticlePhraseRules:
             return True
         return self.is_adjective_like(normalized)
 
+    def _is_function_word_tail(self, word: str) -> bool:
+        spellchecker = getattr(self, "spellchecker", None)
+        if spellchecker is None:
+            return False
+        tags = spellchecker.word_tags.get(self.normalize(word), set())
+        return any(
+            tag.split("-", 1)[0] in {"DET", "PRON"}
+            for tag in tags
+        )
+
     def _starts_vowel_gh_or_h(self, word: str) -> bool:
         normalized = self.normalize(word)
         return bool(
@@ -494,17 +504,17 @@ class MalteseArticlePhraseRules:
             if place_display:
                 if prefix in {"ta", "ta'"}:
                     return f"ta' {place_display}"
-                if prefix in {"minn", "min", "mil", "mid", "mill"}:
+                if prefix in {"minn", "min"}:
                     return f"minn {place_display}"
-                if prefix in {"għal", "ghal", "għall", "ghall"}:
+                if prefix in {"għal", "ghal"}:
                     return f"għal {place_display}"
-                if prefix in {"bħal", "bhal", "bħall", "bhall"}:
+                if prefix in {"bħal", "bhal"}:
                     return f"bħal {place_display}"
-                if prefix in {"ma", "ma'", "mal"}:
+                if prefix in {"ma", "ma'"}:
                     return f"ma' {place_display}"
-                if prefix in {"fi", "fil", "fl"}:
+                if prefix == "fi":
                     return f"f'{place_display}" if self._starts_vowel_gh_or_h(noun) else f"fi {place_display}"
-                if prefix in {"bi", "bil", "bl"}:
+                if prefix == "bi":
                     return f"b'{place_display}" if self._starts_vowel_gh_or_h(noun) else f"bi {place_display}"
 
         surface_noun = place_display or noun
@@ -674,6 +684,22 @@ class MalteseArticlePhraseRules:
         article = self.normalize(words[index].text).rstrip("-")
         noun = self.normalize(words[index + 1].text)
         if article in {"għad", "ghad"} and not noun.startswith("d"):
+            return None
+        if article in {"għax", "ghax"} and not noun.startswith("x"):
+            return None
+        if article in {
+            "bħal", "bhal", "bħall", "bhall",
+            "għal", "ghal", "għall", "ghall",
+        } and self._is_function_word_tail(noun):
+            return None
+        spellchecker = getattr(self, "spellchecker", None)
+        if spellchecker is not None and any(
+            str(tag).startswith(("ADVERB", "CONJ", "PRON"))
+            for tag in spellchecker.word_tags.get(article, set())
+        ):
+            # A complete function word is not a mistyped assimilated prefix.
+            # For example, ``biss apparat`` means "only equipment"; parsing
+            # ``biss`` as ``bi+s`` would incorrectly produce ``bl-apparat``.
             return None
         article_canonical = self._assimilated_prefix_canonical(article)
         if article_canonical and "-" in noun:
@@ -891,7 +917,7 @@ class MalteseArticlePhraseRules:
     def _assimilated_prefix_canonical(self, prefix: str) -> str | None:
         """Identify a compact preposition independently of its typed sun letter."""
         typed_key = self._assimilated_prefix_key(prefix)
-        if not typed_key or typed_key in {"għad", "ghad"}:
+        if not typed_key or typed_key in {"għad", "ghad", "għax", "ghax"}:
             return None
 
         compact_sun_letters = {"c", "d", "n", "r", "s", "t", "x", "z"}

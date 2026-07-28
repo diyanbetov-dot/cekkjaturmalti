@@ -42,9 +42,9 @@ class ArticleRelativeAndMaTests(unittest.TestCase):
         self.check_text("l'hemm", "L'hemm.")
 
     def test_negative_ma_contracts_before_a_vowel(self):
-        self.check_text("ma eżistiet", "m'eżistiet.")
+        self.check_text("ma eżistiet", "M'eżistietx.")
         self.check_text("mezistiet", "M'eżistiet.")
-        self.check_text("ma marret", "Ma marret.")
+        self.check_text("ma marret", "Ma marritx.")
 
     def test_mlt_tags_supply_meanings(self):
         self.assertEqual(app.meaning_index.meaning_for("Ċina"), "China")
