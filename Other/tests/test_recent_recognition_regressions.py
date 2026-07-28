@@ -54,6 +54,10 @@ def test_negative_ma_adds_x_only_without_negative_blocker():
         app.spellchecker.correct_text_rich("ma insuqx")["corrected_text"]
         == "Ma nsuqx."
     )
+    assert (
+        app.spellchecker.correct_text_rich("ħadd ma johrog")["corrected_text"]
+        == "Ħadd ma joħroġ."
+    )
 
 
 def test_function_word_phrases_do_not_receive_far_suggestions():
@@ -151,3 +155,106 @@ def test_recent_exact_and_structural_regressions():
 
     liktar_choices = _choice_words(app.spellchecker.correct_text_rich("liktar"))
     assert liktar_choices == ["L-iktar", "L'iktar", "'l-iktar"]
+
+
+def test_recent_currency_usage_and_entity_preservation():
+    assert (
+        app.spellchecker.correct_text_rich("Resparmio Casa €1,99c u JB")[
+            "corrected_text"
+        ]
+        == "Resparmio Casa €1.99 u JB."
+    )
+    assert (
+        app.spellchecker.correct_text_rich("Mill JB")["corrected_text"]
+        == "Mill-JB."
+    )
+
+    usage = app.spellchecker.correct_text_rich("tikkomplenja")
+    usage_token = next(
+        token for token in usage["tokens"] if token.get("type") == "maltese_usage"
+    )
+    assert usage["corrected_text"] == "Tikkomplenja."
+    assert usage_token["maltese_suggestion"] == ["Tilmenta"]
+
+    euro = app.spellchecker.correct_text_rich("Euro Euros")
+    assert [
+        token.get("maltese_suggestion")
+        for token in euro["tokens"]
+        if token.get("type") == "english_phrase"
+    ] == [["Ewro"], ["Ewro"]]
+
+
+def test_tagged_maltese_usage_verbs_follow_tense_and_person():
+    cases = {
+        "ddawnlowdja": ["Niżżel"],
+        "ddawnlowdjat": ["Niżżlet"],
+        "aplowdjajt": ["Tellajt"],
+        "kkomplejnja": ["Ilmenta"],
+        "kkomplejnjat": ["Ilmentat"],
+        "kkomplenjat": ["Ilmentat"],
+        "llegjat": ["Weħlet"],
+        "jillegja": ["Jeħel"],
+        "streccja": ["Tmattar"],
+        "streċċjat": ["Tmattret"],
+        "rreppjat": ["Geżwret"],
+        "jixxerja": ["Jaqsam ma' ħaddieħor"],
+        "xxerjat": ["Qasmet ma' ħaddieħor"],
+        "xxerjaw": ["Qasmu ma' ħaddieħor", "Aqsmu ma' ħaddieħor"],
+        "rrileksjat": ["Strieħet"],
+        "jirrileksja": ["Jistrieħ"],
+    }
+
+    for source, expected in cases.items():
+        result = app.spellchecker.correct_text_rich(source)
+        token = next(
+            item for item in result["tokens"] if item.get("type") == "maltese_usage"
+        )
+        assert token["maltese_suggestion"] == expected
+        assert not token.get("unrecognized")
+
+
+def test_cultural_names_places_and_kinship_context():
+    assert (
+        app.spellchecker.correct_text_rich("Ganni u ganni")["corrected_text"]
+        == "Ġanni u għanni."
+    )
+    assert (
+        app.spellchecker.correct_text_rich("Cina u cina")["corrected_text"]
+        == "Ċina u Ċina."
+    )
+    assert (
+        app.spellchecker.correct_text_rich("Mort Mdina u morna Mdina")[
+            "corrected_text"
+        ]
+        == "Mort Imdina u morna Mdina."
+    )
+    assert (
+        app.spellchecker.correct_text_rich("il Mdina")["corrected_text"]
+        == "L-Imdina."
+    )
+    assert (
+        app.spellchecker.correct_text_rich("hija ma jtikx")["corrected_text"]
+        == "Ħija ma jtikx."
+    )
+    assert (
+        app.spellchecker.correct_text_rich("hija ma tmurx")["corrected_text"]
+        == "Hija ma tmurx."
+    )
+
+
+def test_tliet_and_ta_adverb_surface_choices():
+    assert (
+        app.spellchecker.correct_text_rich("tlieta tfal")["corrected_text"]
+        == "Tlett itfal."
+    )
+    assert (
+        app.spellchecker.correct_text_rich("tlieta baqriet")["corrected_text"]
+        == "Tliet baqriet."
+    )
+    assert (
+        app.spellchecker.correct_text_rich("tlett saqajn")["corrected_text"]
+        == "Tliet saqajn."
+    )
+    result = app.spellchecker.correct_text_rich("ta imbagħad")
+    assert result["corrected_text"] == "Ta' imbagħad."
+    assert _choice_words(result) == ["Ta' imbagħad", "Ta imbagħad"]

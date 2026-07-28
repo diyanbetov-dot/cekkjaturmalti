@@ -818,7 +818,7 @@
         }
 
         .ambiguous-word.crucial-word::before {
-            content: "!";
+            content: "?";
             background: var(--ribbon-accent);
             color: white;
             border-color: var(--button-accent-hover);
@@ -884,7 +884,25 @@
             text-decoration-color: #dc2626;
             text-decoration-thickness: 1.5px;
             text-underline-offset: 0.14em;
-            cursor: help;
+            cursor: pointer;
+        }
+
+        .suggestion-coachmark {
+            position: fixed;
+            z-index: 1600;
+            width: max-content;
+            max-width: min(17rem, calc(100vw - 16px));
+            padding: 7px 9px;
+            border: 1px solid rgba(100, 116, 139, 0.35);
+            border-radius: 6px;
+            background: rgba(226, 232, 240, 0.96);
+            color: #475569;
+            box-shadow: 0 5px 16px rgba(15, 23, 42, 0.16);
+            font-size: 0.78rem;
+            font-style: italic;
+            line-height: 1.3;
+            pointer-events: none;
+            box-sizing: border-box;
         }
 
         .name-like-word {
@@ -980,6 +998,71 @@
 
         .suggestion-row.info-row .suggestion-meaning {
             color: #6b7280;
+            font-style: italic;
+        }
+
+        .unrecognized-report-row {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 7px 8px;
+            color: #64748b;
+            font-size: 0.86rem;
+            font-style: italic;
+        }
+
+        .unrecognized-report-button {
+            border: 1px solid var(--ribbon-accent);
+            border-radius: 5px;
+            background: rgba(190, 18, 60, 0.08);
+            color: var(--ribbon-accent);
+            padding: 2px 5px;
+            font: inherit;
+            font-style: italic;
+            font-weight: 800;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .unrecognized-report-button:hover {
+            background: var(--ribbon-accent);
+            color: white;
+        }
+
+        .email-body-editor {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 190px;
+            max-height: 50vh;
+            overflow-y: auto;
+            resize: vertical;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            padding-bottom: 78px;
+            background: #fbfdff;
+            font: inherit;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .email-body-editor:empty::before {
+            content: attr(data-placeholder);
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        .email-body-editor[aria-disabled="true"] {
+            opacity: 0.72;
+            cursor: wait;
+        }
+
+        .report-helper-text {
+            margin-top: 10px;
+            color: #64748b;
+            font-size: 0.9em;
             font-style: italic;
         }
 
@@ -1334,6 +1417,23 @@
             border-color: #475569;
         }
 
+        body.dark-mode .suggestion-coachmark {
+            border-color: rgba(148, 163, 184, 0.45);
+            background: rgba(51, 65, 85, 0.97);
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .unrecognized-report-row,
+        body.dark-mode .report-helper-text {
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .email-body-editor {
+            background: #0f172a;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
         body.dark-mode .suggestion-row.info-row .suggestion-meaning {
             color: #cbd5e1;
         }
@@ -1361,7 +1461,7 @@
         <div class="brand-ribbon-inner">
             <div id="brandName" class="brand-name">Ikteb Malti Tajjeb</div>
             <div class="top-bar">
-                <a id="helpLink" class="help-link" href="mailto:cekkjaturmalti@gmail.com">
+                <a id="helpLink" class="help-link" href="mailto:cekkjaturemalti@gmail.com">
                     <span class="help-icon" aria-hidden="true">?</span>
                     <span class="help-label">Help</span>
                 </a>
@@ -1444,7 +1544,7 @@
                 Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are
                 underway to increase the quality of outputted corrected text as per expected standards. Since it is
                 still in the testing phase, users and especially learners, are advised to use this tool with caution for
-                now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for
+                now. Please report wrong corrections and other findings to cekkjaturemalti@gmail.com. Thank you for
                 helping in improving Maltese digital tools!
             </p>
 
@@ -1521,6 +1621,12 @@
                     <input type="email" id="emailTo" value="123@gmail.com" readonly />
                 </div>
                 <div class="form-group">
+                    <label for="emailFrom">L-email tiegħek / Your email:</label>
+                    <input type="email" id="emailFrom" required maxlength="254"
+                        autocomplete="email"
+                        placeholder="isem@example.com / name@example.com" />
+                </div>
+                <div class="form-group">
                     <label for="emailSubject">Suġġett / Subject:</label>
                     <input type="text" id="emailSubject" required
                         placeholder="Ikteb is-suġġett hawn / Write subject here" />
@@ -1528,8 +1634,9 @@
                 <div class="form-group">
                     <label for="emailBody">Messaġġ / Message:</label>
                     <div class="textarea-wrapper">
-                        <textarea id="emailBody" required rows="6"
-                            placeholder="Ikteb il-messaġġ tiegħek... / Write your message..."></textarea>
+                        <div id="emailBody" class="email-body-editor" contenteditable="true"
+                            role="textbox" aria-multiline="true"
+                            data-placeholder="Ikteb il-messaġġ tiegħek... / Write your message..."></div>
                         <div id="screenshotPreview" class="screenshot-preview hidden">
                             <img id="screenshotThumb" src="" alt="Screenshot" />
                             <button type="button" id="removeScreenshot" class="remove-screenshot-btn">&times;</button>
@@ -1645,7 +1752,7 @@
                 lightModeBtnMobile: "☀️ Light Mode",
                 title: "Maltese Spell Checker",
                 alphaNote: "Beta 0.1.0",
-                Notice: "Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com or pressing the Send a Message button. Thank you for helping in improving Maltese digital tools!",
+                Notice: "Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturemalti@gmail.com or pressing the Send a Message button. Thank you for helping in improving Maltese digital tools!",
                 subtitle: "",
                 usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
                 sourcesNote: "Sources and References:\nVerbs: verb.mt\nOther: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -1691,8 +1798,18 @@
                 serverReady: "Ready. Loaded {words} words and {paradigms} paradigms.",
                 serverError: "Could not reach the Flask server. Run python app.py, then open http://127.0.0.1:5000/.",
                 unrecognizedWord: "This word could not be recognized.",
+                unrecognizedPrompt: "This word was unrecognized. Do you wish to",
+                unrecognizedReportAction: "report it?",
+                reportSubject: "Unrecognized word: {word}",
+                reportBody: "I wrote down this word but it was not recognized by the spellchecker: {word}.",
+                reportHelper: "You may describe the word to explain better why it should have been recognized, is it a name? If not what does the word mean?",
+                suggestionCoachmarkOpen: "Press to show suggestions",
+                suggestionCoachmarkChoose: "Choose the word you wanted to use",
+                suggestionCoachmarkMaltese: "Press the Maltese suggestion if you wish to use it",
                 emailModalTitle: "Send Email",
                 emailToLabel: "To:",
+                emailFromLabel: "Your email:",
+                emailFromPlaceholder: "name@example.com",
                 emailSubjectLabel: "Subject:",
                 emailSubjectPlaceholder: "Write subject here",
                 emailBodyLabel: "Message:",
@@ -1703,6 +1820,7 @@
                 emailScreenshotBtnMobile: "Take screenshot",
                 emailStatusSending: "Sending...",
                 emailStatusSent: "Email sent successfully!",
+                emailStatusError: "The message could not be sent. Please try again.",
                 /*betaPrivacyNotice: "Beta notice: Submitted text and generated corrections may be stored temporarily to evaluate and improve the spellchecker. Please do not submit confidential or sensitive information.*/
             },
 
@@ -1721,7 +1839,7 @@
                 lightModeBtnMobile: "☀️ Dawl",
                 title: "Ċekkjatur tal-Malti",
                 alphaNote: "Beta 0.1.0",
-                Notice: "Avviż dwar Beta 0.1.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com jew billi tagħfas il-buttuna Ibgħat Messaġġ. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
+                Notice: "Avviż dwar Beta 0.1.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturemalti@gmail.com jew billi tagħfas il-buttuna Ibgħat Messaġġ. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
                 subtitle: "",
                 usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
                 sourcesNote: "Sorsi u Referenzi:\nVerbi: verb.mt\nKliem Ieħor: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
@@ -1765,8 +1883,18 @@
                 serverReady: "Bil-lest.  {words} kliem u {paradigms} mudelli ġew illowdjati.",
                 serverError: "Is-server tal-Flask ma qabadx. Ikteb python app.py, imbagħad iftaħ http://127.0.0.1:5000/.",
                 unrecognizedWord: "Din il-kelma ma setgħetx tingħaraf.",
+                unrecognizedPrompt: "Din il-kelma ma setgħetx tingħaraf. Tixtieq",
+                unrecognizedReportAction: "tirraportaha?",
+                reportSubject: "Kelma mhux rikonoxxuta: {word}",
+                reportBody: "Ktibt din il-kelma imma ma setgħetx tingħaraf miċ-ċekkjatur: {word}.",
+                reportHelper: "Tista' wkoll tiddeskrivi l-kelma biex tispjega għaliex ma ngħarfitx, x'tifsira għandha? Jew dan xi isem?",
+                suggestionCoachmarkOpen: "Agħfas hawn biex tara s-suġġerimenti",
+                suggestionCoachmarkChoose: "Agħżel il-kelma li ridt tikteb",
+                suggestionCoachmarkMaltese: "Agħfas fuq is-suġġeriment Malti jekk tixtieq tużah",
                 emailModalTitle: "Ibgħat Email",
                 emailToLabel: "Għal:",
+                emailFromLabel: "L-email tiegħek:",
+                emailFromPlaceholder: "isem@example.com",
                 emailSubjectLabel: "Suġġett:",
                 emailSubjectPlaceholder: "Ikteb is-suġġett hawn",
                 emailBodyLabel: "Messaġġ:",
@@ -1777,6 +1905,7 @@
                 emailScreenshotBtnMobile: "Ħu skritratt",
                 emailStatusSending: "Qed jintbagħat...",
                 emailStatusSent: "L-email intbagħtet b'suċċess!",
+                emailStatusError: "Il-messaġġ ma setax jintbagħat. Erġa' pprova.",
                 /*betaPrivacyNotice: "Avviż beta: It-test sottomess u l-korrezzjonijiet iġġenerati jistgħu jinħażnu temporanjament biex jevalwaw u jtejbu ċ-ċekkjatur. Jekk jogħġbok tissottomettix informazzjoni kunfidenzjali jew sensittiva.*/
             }
         };
@@ -1796,6 +1925,10 @@
         let pastizziInterval = null;
         let partyMode = false;
         let devToy = null;
+        let suggestionCoachmarkUsed = false;
+        let suggestionCoachmarkAnchor = null;
+        let suggestionCoachmarkElement = null;
+        let pendingReportedWord = "";
 
         let lastStatus = {
             key: "serverChecking",
@@ -1997,10 +2130,12 @@
             // Translate email modal
             document.querySelector("#emailModal h2").textContent = labels.emailModalTitle;
             document.querySelector("label[for='emailTo']").textContent = labels.emailToLabel;
+            document.querySelector("label[for='emailFrom']").textContent = labels.emailFromLabel;
+            document.getElementById("emailFrom").placeholder = labels.emailFromPlaceholder;
             document.querySelector("label[for='emailSubject']").textContent = labels.emailSubjectLabel;
             document.getElementById("emailSubject").placeholder = labels.emailSubjectPlaceholder;
             document.querySelector("label[for='emailBody']").textContent = labels.emailBodyLabel;
-            document.getElementById("emailBody").placeholder = labels.emailBodyPlaceholder;
+            document.getElementById("emailBody").dataset.placeholder = labels.emailBodyPlaceholder;
             document.getElementById("cancelEmail").textContent = labels.emailCancelBtn;
             document.getElementById("sendEmail").textContent = labels.emailSendBtn;
 
@@ -2250,25 +2385,96 @@
             return popover;
         }
 
-        function createInfoPopover(message) {
+        function createUnrecognizedPopover(token) {
             const popover = document.createElement("span");
             popover.className = "suggestion-popover";
 
             const row = document.createElement("span");
-            row.className = "suggestion-row info-row";
+            row.className = "unrecognized-report-row";
+            row.append(document.createTextNode(`${t("unrecognizedPrompt")} `));
 
-            const filler = document.createElement("span");
-            filler.setAttribute("aria-hidden", "true");
-            filler.textContent = "";
+            const reportButton = document.createElement("button");
+            reportButton.type = "button";
+            reportButton.className = "unrecognized-report-button";
+            reportButton.textContent = t("unrecognizedReportAction");
+            reportButton.addEventListener("click", async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                reportButton.disabled = true;
+                await beginUnrecognizedReport(token);
+                reportButton.disabled = false;
+            });
 
-            const meaning = document.createElement("span");
-            meaning.className = "suggestion-meaning";
-            meaning.textContent = message;
-
-            row.appendChild(filler);
-            row.appendChild(meaning);
+            row.appendChild(reportButton);
             popover.appendChild(row);
             return popover;
+        }
+
+        function dismissSuggestionCoachmark() {
+            if (suggestionCoachmarkElement) {
+                suggestionCoachmarkElement.remove();
+            }
+            suggestionCoachmarkElement = null;
+            suggestionCoachmarkAnchor = null;
+        }
+
+        function positionSuggestionCoachmark(anchor, afterPopover = false) {
+            if (!suggestionCoachmarkElement || !anchor) {
+                return;
+            }
+
+            const popover = anchor.querySelector(".suggestion-popover");
+            const source = afterPopover && popover && anchor.classList.contains("open")
+                ? popover
+                : anchor;
+            const sourceRect = source.getBoundingClientRect();
+            const margin = 8;
+
+            suggestionCoachmarkElement.style.left = `${sourceRect.left}px`;
+            suggestionCoachmarkElement.style.top = `${sourceRect.bottom + 6}px`;
+            const coachmarkRect = suggestionCoachmarkElement.getBoundingClientRect();
+            const left = Math.max(
+                margin,
+                Math.min(
+                    sourceRect.left,
+                    window.innerWidth - coachmarkRect.width - margin
+                )
+            );
+            let top = sourceRect.bottom + 6;
+            if (top + coachmarkRect.height > window.innerHeight - margin) {
+                top = Math.max(margin, sourceRect.top - coachmarkRect.height - 6);
+            }
+            suggestionCoachmarkElement.style.left = `${left}px`;
+            suggestionCoachmarkElement.style.top = `${top}px`;
+        }
+
+        function showSuggestionCoachmark(anchor, key, afterPopover = false) {
+            dismissSuggestionCoachmark();
+            const coachmark = document.createElement("div");
+            coachmark.className = "suggestion-coachmark";
+            coachmark.textContent = t(key);
+            document.body.appendChild(coachmark);
+            suggestionCoachmarkElement = coachmark;
+            suggestionCoachmarkAnchor = anchor;
+            positionSuggestionCoachmark(anchor, afterPopover);
+        }
+
+        function maybeShowFirstSuggestionCoachmark() {
+            if (suggestionCoachmarkUsed) {
+                return;
+            }
+            const firstSuggestion = elements.results.querySelector(
+                ".ambiguous-word, .english-word, .place-word"
+            );
+            if (!firstSuggestion) {
+                return;
+            }
+            suggestionCoachmarkUsed = true;
+            showSuggestionCoachmark(
+                firstSuggestion,
+                "suggestionCoachmarkOpen",
+                false
+            );
         }
 
         function closeOpenPopovers(except = null) {
@@ -2329,10 +2535,22 @@
         }
 
         function openInteractivePopover(span) {
+            const willOpen = !span.classList.contains("open");
             closeOpenPopovers(span);
             span.classList.toggle("open");
             if (span.classList.contains("open")) {
-                requestAnimationFrame(() => positionPopoverWithinViewport(span));
+                requestAnimationFrame(() => {
+                    positionPopoverWithinViewport(span);
+                    if (willOpen && span === suggestionCoachmarkAnchor) {
+                        const coachmarkKey = (
+                            span.classList.contains("english-word")
+                            || span.classList.contains("place-word")
+                        )
+                            ? "suggestionCoachmarkMaltese"
+                            : "suggestionCoachmarkChoose";
+                        showSuggestionCoachmark(span, coachmarkKey, true);
+                    }
+                });
             }
         }
 
@@ -2357,7 +2575,7 @@
                     return;
                 }
 
-                if (token.type === "english_phrase") {
+                if (token.type === "english_phrase" || token.type === "maltese_usage") {
                     if (
                         allowEnglishSuggestions
                         && token.maltese_suggestion
@@ -2541,7 +2759,7 @@
                         wordText.textContent = corrected;
                         span.appendChild(wordText);
                         span.appendChild(
-                            createInfoPopover(t("unrecognizedWord"))
+                            createUnrecognizedPopover(token)
                         );
 
                         span.addEventListener("click", (event) => {
@@ -2762,6 +2980,7 @@
         }
 
         function chooseSuggestion(tokenIndex, chosenWord) {
+            dismissSuggestionCoachmark();
             if (!latestTokens[tokenIndex]) {
                 return;
             }
@@ -2836,6 +3055,7 @@
                 latestCorrectedHtml = "";
 
                 renderCorrectedText(latestTokens, latestCorrectedText);
+                requestAnimationFrame(maybeShowFirstSuggestionCoachmark);
                 setCorrectionTimer(performance.now() - timerStartedAt);
 
                 setStatusByKey(
@@ -3056,6 +3276,7 @@
         const closeModal = document.getElementById("closeModal");
         const cancelEmail = document.getElementById("cancelEmail");
         const emailModalStatus = document.getElementById("emailModalStatus");
+        const emailBodyEditor = document.getElementById("emailBody");
 
         // Screenshot Elements
         const takeScreenshotBtn = document.getElementById("takeScreenshot");
@@ -3068,11 +3289,50 @@
 
         let attachedScreenshot = null;
 
+        function getEmailBodyText() {
+            return (emailBodyEditor.innerText || "").trim();
+        }
+
+        function setEmailBodyText(text) {
+            emailBodyEditor.textContent = text || "";
+        }
+
+        function setEmailReportBody(message, helper) {
+            emailBodyEditor.replaceChildren();
+
+            const messageBlock = document.createElement("div");
+            messageBlock.textContent = message;
+            emailBodyEditor.appendChild(messageBlock);
+
+            const helperBlock = document.createElement("div");
+            helperBlock.className = "report-helper-text";
+            helperBlock.textContent = helper;
+            emailBodyEditor.appendChild(helperBlock);
+        }
+
+        function resetEmailFormContent() {
+            emailForm.reset();
+            setEmailBodyText("");
+            pendingReportedWord = "";
+        }
+
+        function setEmailFormDisabled(disabled) {
+            emailForm
+                .querySelectorAll("input, button")
+                .forEach((element) => {
+                    element.disabled = disabled;
+                });
+            emailBodyEditor.contentEditable = disabled ? "false" : "true";
+            emailBodyEditor.setAttribute("aria-disabled", String(disabled));
+        }
+
         function saveDraft() {
             const draft = {
+                email: document.getElementById("emailFrom").value,
                 subject: document.getElementById("emailSubject").value,
-                body: document.getElementById("emailBody").value,
-                screenshot: attachedScreenshot
+                body: getEmailBodyText(),
+                screenshot: attachedScreenshot,
+                reportedWord: pendingReportedWord
             };
             localStorage.setItem("cekkjatur_email_draft", JSON.stringify(draft));
         }
@@ -3082,8 +3342,10 @@
                 const draftStr = localStorage.getItem("cekkjatur_email_draft");
                 if (draftStr) {
                     const draft = JSON.parse(draftStr);
+                    document.getElementById("emailFrom").value = draft.email || "";
                     document.getElementById("emailSubject").value = draft.subject || "";
-                    document.getElementById("emailBody").value = draft.body || "";
+                    setEmailBodyText(draft.body || "");
+                    pendingReportedWord = draft.reportedWord || "";
                     if (draft.screenshot) {
                         attachedScreenshot = draft.screenshot;
                         screenshotThumb.src = draft.screenshot;
@@ -3102,6 +3364,53 @@
             localStorage.removeItem("cekkjatur_email_draft");
             attachedScreenshot = null;
             screenshotPreview.classList.add("hidden");
+        }
+
+        async function compressScreenshotDataUrl(dataUrl) {
+            if (!dataUrl) {
+                return null;
+            }
+
+            const image = await new Promise((resolve, reject) => {
+                const candidate = new Image();
+                candidate.onload = () => resolve(candidate);
+                candidate.onerror = reject;
+                candidate.src = dataUrl;
+            });
+
+            const maxWidth = 1600;
+            const maxPixels = 4_000_000;
+            let scale = Math.min(
+                1,
+                maxWidth / image.naturalWidth,
+                Math.sqrt(maxPixels / (image.naturalWidth * image.naturalHeight))
+            );
+            let width = Math.max(1, Math.round(image.naturalWidth * scale));
+            let height = Math.max(1, Math.round(image.naturalHeight * scale));
+            let compressed = dataUrl;
+
+            for (let attempt = 0; attempt < 4; attempt += 1) {
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext("2d");
+                context.fillStyle = document.body.classList.contains("dark-mode")
+                    ? "#0f172a"
+                    : "#ffffff";
+                context.fillRect(0, 0, width, height);
+                context.drawImage(image, 0, 0, width, height);
+                compressed = canvas.toDataURL(
+                    "image/jpeg",
+                    attempt === 0 ? 0.78 : 0.62
+                );
+                if (compressed.length <= 2_600_000) {
+                    break;
+                }
+                width = Math.max(1, Math.round(width * 0.78));
+                height = Math.max(1, Math.round(height * 0.78));
+            }
+
+            return compressed;
         }
 
         async function capturePageScreenshot() {
@@ -3168,27 +3477,66 @@
                 dataUrl = canvas.toDataURL("image/png");
             }
 
-            return dataUrl;
+            try {
+                return await compressScreenshotDataUrl(dataUrl);
+            } catch (error) {
+                console.warn("Screenshot compression failed", error);
+                return dataUrl;
+            }
         }
 
-        function openEmailModal() {
+        function openEmailModal(options = {}) {
             emailModalStatus.className = "status";
             emailModalStatus.textContent = "";
-            emailForm.querySelectorAll("input, textarea, button").forEach(el => el.disabled = false);
+            setEmailFormDisabled(false);
 
-            const draftStr = localStorage.getItem("cekkjatur_email_draft");
-            if (draftStr) {
-                loadDraft();
+            if (options.prefill) {
+                clearDraft();
+                resetEmailFormContent();
+                document.getElementById("emailSubject").value = options.subject || "";
+                setEmailReportBody(options.message || "", options.helper || "");
+                pendingReportedWord = options.reportedWord || "";
+                attachedScreenshot = options.screenshot || null;
+                if (attachedScreenshot) {
+                    screenshotThumb.src = attachedScreenshot;
+                    screenshotPreview.classList.remove("hidden");
+                } else {
+                    screenshotPreview.classList.add("hidden");
+                }
             } else {
-                emailForm.reset();
-                attachedScreenshot = null;
-                screenshotPreview.classList.add("hidden");
+                const draftStr = localStorage.getItem("cekkjatur_email_draft");
+                if (draftStr) {
+                    loadDraft();
+                } else {
+                    resetEmailFormContent();
+                    attachedScreenshot = null;
+                    screenshotPreview.classList.add("hidden");
+                }
             }
-            document.getElementById("emailTo").value = "cekkjaturmalti@gmail.com";
+            document.getElementById("emailTo").value = "cekkjaturemalti@gmail.com";
 
             emailModal.classList.add("active");
             emailModal.classList.remove("hidden");
-            document.getElementById("emailSubject").focus();
+            document.getElementById("emailFrom").focus();
+        }
+
+        async function beginUnrecognizedReport(token) {
+            const word = String(
+                token.original || token.corrected || token.text || ""
+            ).trim();
+            closeOpenPopovers();
+            dismissSuggestionCoachmark();
+
+            const screenshot = await capturePageScreenshot();
+            openEmailModal({
+                prefill: true,
+                subject: t("reportSubject", { word }),
+                message: t("reportBody", { word }),
+                helper: t("reportHelper"),
+                reportedWord: word,
+                screenshot
+            });
+            saveDraft();
         }
 
         function hideEmailModal() {
@@ -3210,7 +3558,8 @@
 
         // Draft auto-saving input listeners
         document.getElementById("emailSubject").addEventListener("input", saveDraft);
-        document.getElementById("emailBody").addEventListener("input", saveDraft);
+        emailBodyEditor.addEventListener("input", saveDraft);
+        document.getElementById("emailFrom").addEventListener("input", saveDraft);
 
         // Take Screenshot Button
         takeScreenshotBtn.addEventListener("click", async () => {
@@ -3261,18 +3610,47 @@
 
         emailForm.addEventListener("submit", async (event) => {
             event.preventDefault();
-            emailForm.querySelectorAll("input, textarea, button").forEach(el => el.disabled = true);
+            const message = getEmailBodyText();
+            if (!message) {
+                emailBodyEditor.focus();
+                return;
+            }
+            setEmailFormDisabled(true);
             emailModalStatus.className = "status";
             emailModalStatus.textContent = t("emailStatusSending");
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            emailModalStatus.className = "status success";
-            emailModalStatus.textContent = t("emailStatusSent");
+            try {
+                const response = await fetch("/submit-feedback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: document.getElementById("emailFrom").value.trim(),
+                        subject: document.getElementById("emailSubject").value.trim(),
+                        message,
+                        screenshot: attachedScreenshot || "",
+                        language: currentLang,
+                        page_url: window.location.href,
+                        log_id: currentLogId || "",
+                        reported_word: pendingReportedWord
+                    })
+                });
+                const responseData = await response.json().catch(() => ({}));
+                if (!response.ok || !responseData.ok) {
+                    throw new Error(responseData.error || t("emailStatusError"));
+                }
 
-            clearDraft();
-            emailForm.reset();
-
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            hideEmailModal();
+                emailModalStatus.className = "status success";
+                emailModalStatus.textContent = t("emailStatusSent");
+                clearDraft();
+                resetEmailFormContent();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                hideEmailModal();
+            } catch (error) {
+                emailModalStatus.className = "status error";
+                emailModalStatus.textContent = error.message || t("emailStatusError");
+            } finally {
+                setEmailFormDisabled(false);
+                document.getElementById("emailTo").readOnly = true;
+            }
         });
 
         elements.helpLink.addEventListener("click", (event) => {

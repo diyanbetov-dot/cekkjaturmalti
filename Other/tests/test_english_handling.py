@@ -57,6 +57,20 @@ assert max_word["type"] == "english_phrase"
 assert max_word["maltese_suggestion"] == ["mgħax"]
 assert max_word["english_note"] == "il-kelma massimu bl-Ingliż"
 
+assert not hasattr(type(spellchecker), "ENGLISH_MAPPINGS")
+assert len(spellchecker._english_usage_mappings) == 74
+assert {"car", "seat", "new moon", "full moon"}.isdisjoint(
+    spellchecker.dictionary_set
+)
+
+new_moon = token_for("rajna new moon illum", "new moon")
+assert new_moon["type"] == "english_phrase"
+assert new_moon["maltese_suggestion"] == ["qamar mitluf"]
+
+full_moon = token_for("rajna full moon illum", "full moon")
+assert full_moon["type"] == "english_phrase"
+assert full_moon["maltese_suggestion"] == ["qamar kwinta"]
+
 misspelled = token_for("għandi aotomatic illum", "aotomatic")
 assert misspelled["type"] == "word"
 assert misspelled.get("unrecognized") is True
