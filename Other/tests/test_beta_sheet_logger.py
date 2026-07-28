@@ -145,7 +145,7 @@ class TestBetaSheetLogger(unittest.TestCase):
         self.assertEqual(payload["email"], "reader@example.com")
         self.assertEqual(payload["reported_word"], "test")
         self.assertEqual(payload["log_id"], "log-123")
-        self.assertEqual(mock_post.call_args.kwargs["timeout"], 12.0)
+        self.assertEqual(mock_post.call_args.kwargs["timeout"], 30.0)
 
     @patch.dict(os.environ, {"SPELLCHECK_BETA_LOGGING": "false"}, clear=True)
     def test_feedback_route_requires_configured_service(self):
