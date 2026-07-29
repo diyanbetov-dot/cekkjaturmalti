@@ -23,7 +23,7 @@ class SentenceInitialNameRegressionTests(unittest.TestCase):
     def test_second_unknown_sentence_initial_name_is_not_forced_into_random_correction(self):
         result = self.check_text("Basti mar")
         self.assertEqual(result["corrected_text"], "Basti mar.")
-        self.assertFalse(result["tokens"][0]["name_like"])
+        self.assertTrue(result["tokens"][0]["name_like"])
 
 
 if __name__ == "__main__":

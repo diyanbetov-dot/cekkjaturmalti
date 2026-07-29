@@ -761,6 +761,51 @@ class MalteseOrthographicGenerator:
         )
 
     # ------------------------------------------------------------------
+    # g/k confusion beside another consonant
+    # ------------------------------------------------------------------
+
+    def substitute_g_k_in_cluster(self, word: str) -> list[str]:
+        """Swap g/k only beside a consonant or at the end of a word."""
+        normalized = self._normalize(word)
+        graphemes = self._graphemes(normalized)
+        variants: list[str] = []
+
+        for index, letter in enumerate(graphemes):
+            if letter not in {"g", "k"}:
+                continue
+            previous_is_consonant = (
+                index > 0 and graphemes[index - 1] not in self.VOWELS
+            )
+            next_is_consonant = (
+                index + 1 < len(graphemes)
+                and graphemes[index + 1] not in self.VOWELS
+            )
+            if not (previous_is_consonant or next_is_consonant or index == len(graphemes) - 1):
+                continue
+            changed = list(graphemes)
+            changed[index] = "k" if letter == "g" else "g"
+            self._add_unique(variants, self._from_graphemes(changed))
+
+        return variants
+
+    def dictionary_g_k_cluster_variants(self, word: str) -> list[str]:
+        matches: list[str] = []
+        for candidate in self.substitute_g_k_in_cluster(word):
+            if self._is_dictionary_word(candidate):
+                self._add_unique(matches, candidate)
+            for lookup in self.strict_lookup_variants(candidate):
+                if self._is_dictionary_word(lookup):
+                    self._add_unique(matches, lookup)
+        return matches
+
+    def correct_g_k_cluster_confusion(self, word: str) -> str | None:
+        return self.first_dictionary_match(
+            word,
+            self.substitute_g_k_in_cluster(word),
+            expand_strict=True,
+        )
+
+    # ------------------------------------------------------------------
     # i/ie confusion
     # ------------------------------------------------------------------
 

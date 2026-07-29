@@ -221,10 +221,23 @@ class MalteseSuffixGenerator:
     def _parse_specific_guesses(self, parsed: ParsedSuffix) -> list[str]:
         guesses = self._inverse_base_guesses(parsed.typed_stem)
 
+        if parsed.typed_stem == "had":
+            guesses.insert(0, "\u0127a")
+
+        if parsed.typed_stem == "ħad":
+            guesses.insert(0, "ħa")
+
         # DO suffixes contract a base "ie" to "i".  Undo that contraction
         # while finding the dictionary base, but keep it strictly bounded to
         # real verb entries so this cannot become a general vowel insertion.
         if parsed.spec.kind in {"DO", "DO_IDO"}:
+            stem_graphemes = self._graphemes(parsed.typed_stem)
+            if len(stem_graphemes) >= 3 and stem_graphemes[1] == "e":
+                expanded_initial_ie = self._from_graphemes(
+                    [stem_graphemes[0], "i", "e", *stem_graphemes[2:]]
+                )
+                if self.verb_index.word_records(expanded_initial_ie):
+                    self._add_unique_word(guesses, expanded_initial_ie)
             for guess in tuple(guesses):
                 graphemes = self._graphemes(guess)
                 for index, grapheme in enumerate(graphemes[:-1]):

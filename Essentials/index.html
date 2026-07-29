@@ -2470,6 +2470,9 @@
         }
 
         function closeOpenPopovers(except = null) {
+            if (except === null) {
+                dismissSuggestionCoachmark();
+            }
             document
                 .querySelectorAll(
                     ".ambiguous-word.open, .english-word.open, .place-word.open, .unknown-word.open"
