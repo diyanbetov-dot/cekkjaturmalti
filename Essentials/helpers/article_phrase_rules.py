@@ -769,7 +769,9 @@ class MalteseArticlePhraseRules:
             choices = self.phrase_choices(corrected_noun, previous)
             if article == "il" and corrected_noun == "belt":
                 choices = self._belt_place_choices()
-            if article == "l" or self._requires_article_epenthetic_i(corrected_noun):
+            if article in {"il", "l"}:
+                if choices:
+                    choices[0] = {**choices[0], "word": corrected}
                 choices.extend(self.literal_article_choices(article, corrected_noun, previous))
             return ArticlePhraseSuggestion(index, index + 2, corrected, choices)
 
@@ -878,7 +880,9 @@ class MalteseArticlePhraseRules:
             choices = self.phrase_choices(corrected_noun, previous)
             if prefix == "il" and corrected_noun == "belt":
                 choices = self._belt_place_choices()
-            if prefix == "l" or prefix.startswith("i"):
+            if prefix in {"il", "l"}:
+                if choices:
+                    choices[0] = {**choices[0], "word": corrected}
                 literal_article = "l" if prefix == "l" else "il"
                 choices.extend(
                     self.literal_article_choices(

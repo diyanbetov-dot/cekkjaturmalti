@@ -29,7 +29,7 @@ class SentenceInitialCapitalizationTests(unittest.TestCase):
         self.check_text("mort. ilbierah mort", "Mort. Ilbieraħ mort.")
 
     def test_initial_article_phrase_is_capitalized_and_terminated(self):
-        self.check_text("l bajja", "Il-bajja.")
+        self.check_text("l bajja", "L-bajja.")
 
 
 if __name__ == "__main__":

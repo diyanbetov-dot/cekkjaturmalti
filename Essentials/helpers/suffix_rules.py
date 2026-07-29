@@ -817,6 +817,13 @@ class MalteseSuffixRules:
 
         return None
 
+    def contract_ie_before_direct_object(self, word: str) -> str:
+        """Contract first-syllable ie to e, and later ie sequences to i."""
+        normalized = self.normalize(word)
+        if len(normalized) >= 3 and normalized[1:3] == "ie":
+            return normalized[0] + "e" + normalized[3:].replace("ie", "i")
+        return normalized.replace("ie", "i")
+
     def final_apostrophe_to_gh(self, word: str) -> str | None:
         g = self.graphemes(word)
 
@@ -904,6 +911,11 @@ class MalteseSuffixRules:
         base = record.word
         g = self.graphemes(base)
 
+        # The perfect 3SM ħa uses the suppletive ħad- stem before suffixes.
+        # Its suffix shapes therefore follow consonant-final behaviour.
+        if base == "ħa" and record.root == "'ħd":
+            return spec.canonical_surfaces
+
         if spec.label == "DO_2S":
             if g and self.is_vowel(g[-1]):
                 return ("k",)
@@ -949,13 +961,37 @@ class MalteseSuffixRules:
         root_class = self.verb_index.root_class(record)
         is_medial = root_class == "F1_MEDIAL_LIQUID_OR_GUTTURAL"
 
-        # Default addition is always a possible fallback.
-        self.add_unique(
-            stems,
-            base,
-            "DEFAULT_ADD",
-            "add suffix directly",
+        if base == "ħa" and record.root == "'ħd":
+            self.add_unique(
+                stems,
+                "ħad",
+                "HA_SUPPLETIVE_HAD",
+                "ħa uses ħad- before pronominal suffixes",
+            )
+            return stems
+
+        perf_1p_final_a_with_object = bool(
+            record.is_perf
+            and record.person == "1P"
+            and base.endswith("a")
+            and spec.kind in {"DO", "DO_IDO"}
         )
+        if perf_1p_final_a_with_object:
+            self.add_unique(
+                stems,
+                self.final_a_to_ie(base),
+                "PERF_1P_FINAL_A_TO_IE_DO",
+                "perfect 1P final -a -> -ie before a direct-object suffix",
+            )
+        else:
+            # Default addition is the regular fallback when the finite form
+            # does not require a stem alternation before its object suffix.
+            self.add_unique(
+                stems,
+                base,
+                "DEFAULT_ADD",
+                "add suffix directly",
+            )
 
         if record.is_stem and record.stem_kind == "IS":
             self.add_unique(
@@ -1273,12 +1309,20 @@ class MalteseSuffixRules:
             preserve_final_weak_ie = (
                 spec.kind in {"DO", "DO_IDO"}
                 and record.is_perf
-                and record.person == "3SM"
-                and self.verb_index.is_final_weak(record)
-                and (rule_id == "FINAL_WEAK_A_TO_IE_DO" or stem.endswith("ie"))
+                and (
+                    (
+                        record.person == "3SM"
+                        and self.verb_index.is_final_weak(record)
+                        and (
+                            rule_id == "FINAL_WEAK_A_TO_IE_DO"
+                            or stem.endswith("ie")
+                        )
+                    )
+                    or rule_id == "PERF_1P_FINAL_A_TO_IE_DO"
+                )
             )
             if spec.kind in {"DO", "DO_IDO"} and not preserve_final_weak_ie:
-                stem = stem.replace("ie", "i")
+                stem = self.contract_ie_before_direct_object(stem)
             for suffix in self.surface_suffixes_for_record(record, spec):
                 surface = self.normalize(stem + suffix)
 
