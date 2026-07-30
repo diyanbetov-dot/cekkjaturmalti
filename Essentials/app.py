@@ -32,6 +32,8 @@ from Essentials.core.spellchecker import (
     CORPUS_TRIGRAM,
     CORPUS_MAX_SCORE,
     CORPUS_BERTU_MAX,
+    CORPUS_CONTEXT_MODE,
+    CORPUS_CONTEXT_MARGIN,
     _append_usage_log,
     _trim_request_caches,
 )
@@ -41,6 +43,7 @@ from Essentials.helpers.apertium_analyzer import OptionalApertiumAnalyzer
 from Essentials.helpers.article_phrase_rules import MalteseArticlePhraseRules, WordToken
 from Essentials.helpers.context_analyzer import OptionalSentenceContextAnalyzer
 from Essentials.helpers.corpus_scorer import MalteseCorpusScorer
+from Essentials.helpers.corpus_context_selector import CorpusContextSelector
 from Essentials.helpers.doubled_letter_generator import MalteseDoubledLetterGenerator
 from Essentials.helpers.fused_preposition_rules import MalteseFusedPrepositionRules
 from Essentials.helpers.orthographic_generator import MalteseOrthographicGenerator
@@ -114,6 +117,11 @@ corpus_scorer = MalteseCorpusScorer(
     max_score_contribution=CORPUS_MAX_SCORE,
 )
 spellchecker.corpus_scorer = corpus_scorer
+spellchecker.corpus_context_selector = CorpusContextSelector(
+    corpus_scorer,
+    mode=CORPUS_CONTEXT_MODE,
+    minimum_margin=CORPUS_CONTEXT_MARGIN,
+)
 
 if getattr(corpus_scorer, "status", ""):
     logger = __import__("logging").getLogger(__name__)

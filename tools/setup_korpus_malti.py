@@ -178,7 +178,11 @@ def discover_corpus_files(corpus_dir: Path) -> List[Path]:
 def parse_vertical_row(line: str) -> Optional[Tuple[str, str]]:
     if not line or line.startswith("#"):
         return None
-    parts = [part.strip() for part in line.split("|")]
+    # Korpus Malti v4 vertical files are tab-separated. Older fixtures and
+    # exports use pipes, so accept both without indexing a complete annotated
+    # row as one surface token.
+    delimiter = "\t" if "\t" in line else "|"
+    parts = [part.strip() for part in line.split(delimiter)]
     if not parts:
         return None
     token_surface = parts[0]

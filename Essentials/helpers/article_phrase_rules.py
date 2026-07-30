@@ -352,6 +352,27 @@ class MalteseArticlePhraseRules:
             {"word": f"'{to_article}-{literal_noun}", "meaning": add_runtime_meaning("to the")},
         ]
 
+    def _allows_literal_article_choices(self, previous: str | None) -> bool:
+        """Limit ``'l``/``'il`` ambiguity to a governing *ta* or *ħa* verb."""
+        if not previous:
+            return False
+        spellchecker = getattr(self, "spellchecker", None)
+        if spellchecker is None:
+            return False
+
+        normalized = self.normalize(previous).strip(".,!?;:")
+        if not normalized:
+            return False
+
+        records = list(spellchecker._verb_records_for_surface(normalized))
+        for generated in spellchecker._exact_suffix_matches_cached(normalized):
+            records.extend(
+                spellchecker.suffix_generator.verb_index.word_records(
+                    generated.base
+                )
+            )
+        return any(record.root in {"għtj", "'ħd"} for record in records)
+
     def num_choices(self, numeral: str, previous: str | None) -> list[dict[str, str]]:
         meaning = self.meaning_index.meaning_for(numeral)
         return [{"word": numeral, "meaning": f"the {meaning}" if meaning else "the"}]
@@ -532,8 +553,10 @@ class MalteseArticlePhraseRules:
                     return f"b'{place_display}" if self._starts_vowel_gh_or_h(noun) else f"bi {place_display}"
 
         surface_noun = place_display or noun
+        if self._requires_article_epenthetic_i(noun):
+            surface_noun = f"i{surface_noun}"
 
-        if not noun or not self._is_article_target(noun):
+        if not noun:
             return None
 
         # dal and dil are literal demonstrative forms, not generic
@@ -698,7 +721,8 @@ class MalteseArticlePhraseRules:
             return None
 
         article = self.normalize(words[index].text).rstrip("-")
-        noun = self.normalize(words[index + 1].text)
+        raw_noun = words[index + 1].text
+        noun = self.normalize(raw_noun)
         if article in {"għad", "ghad"} and not noun.startswith("d"):
             return None
         if article in {"għax", "ghax"} and not noun.startswith("x"):
@@ -709,6 +733,18 @@ class MalteseArticlePhraseRules:
         } and self._is_function_word_tail(noun):
             return None
         spellchecker = getattr(self, "spellchecker", None)
+        if (
+            spellchecker is not None
+            and spellchecker._is_verb_tagged_word(article)
+            and self._assimilated_prefix_key(noun)
+            in {"c", "d", "n", "r", "s", "t", "x", "z"}
+            and index + 2 < len(words)
+        ):
+            # The current word is a finite verb followed by a standalone
+            # assimilated article, e.g. ``mar r Rabat``. Leave the verb alone
+            # so the next iteration can consume ``r Rabat`` as the article
+            # phrase.
+            return None
         if spellchecker is not None and any(
             str(tag).startswith(("ADVERB", "CONJ", "PRON"))
             for tag in spellchecker.word_tags.get(article, set())
@@ -718,6 +754,21 @@ class MalteseArticlePhraseRules:
             # ``biss`` as ``bi+s`` would incorrectly produce ``bl-apparat``.
             return None
         article_canonical = self._assimilated_prefix_canonical(article)
+        if (
+            article_canonical
+            and spellchecker is not None
+            and spellchecker._is_verb_tagged_word(article)
+            and not noun.startswith(article[-1:])
+            and self._assimilated_prefix_key(article) not in {
+                "tal", "mal", "bil", "fil", "fis", "lill", "xil",
+                "mil", "mid", "mill", "ghal", "ghall", "ghat",
+                "bhal", "bhall", "sal", "mic",
+            }
+        ):
+            # A lexical verb such as ``mar`` must not be reverse-parsed as
+            # ma + assimilated r. The following l/il remains available to
+            # the ordinary article matcher on the next iteration.
+            return None
         if article_canonical and "-" in noun:
             typed_tail_prefix, possible_tail = noun.split("-", 1)
             if (
@@ -735,10 +786,26 @@ class MalteseArticlePhraseRules:
                 if candidate != noun and self._is_article_target(candidate):
                     corrected_noun = candidate
 
-        if not self._is_article_target(corrected_noun):
+        structural_unknown_tail = bool(
+            self._assimilated_prefix_surface(article, corrected_noun)
+            or article in {
+                "il", "l", "ic", "iċ", "id", "in", "ir", "is", "it",
+                "ix", "iz", "iż", *SUN_LETTERS,
+                "tal", "mal", "bil", "fil", "fis", "lill", "xil",
+                "mil", "mid", "mill", "għal", "ghal", "għall", "ghall",
+                "għat", "ghat", "bħal", "bhal", "bħall", "bhall",
+                "sal", "mic", "miċ",
+            }
+        )
+        if not self._is_article_target(corrected_noun) and not structural_unknown_tail:
             return None
 
         previous = words[index - 1].text if index > 0 else None
+        if spellchecker is not None:
+            corrected_noun = spellchecker._match_capitalisation(
+                raw_noun,
+                corrected_noun,
+            )
 
         bare_preposition = self._bare_preposition_article_choice(article, corrected_noun)
         if bare_preposition is not None:
@@ -772,7 +839,14 @@ class MalteseArticlePhraseRules:
             if article in {"il", "l"}:
                 if choices:
                     choices[0] = {**choices[0], "word": corrected}
-                choices.extend(self.literal_article_choices(article, corrected_noun, previous))
+                if self._allows_literal_article_choices(previous):
+                    choices.extend(
+                        self.literal_article_choices(
+                            article,
+                            corrected_noun,
+                            previous,
+                        )
+                    )
             return ArticlePhraseSuggestion(index, index + 2, corrected, choices)
 
         if article_canonical or article in {
@@ -807,10 +881,25 @@ class MalteseArticlePhraseRules:
         prefix, noun = normalized.split("-", 1)
         if not noun:
             return None
+        if prefix in {"il", "l"} and noun in {"hawn", "hemm", "hinn"}:
+            return None
 
         corrected_noun = self._strict_dictionary_tail(noun) or noun
         if not self._is_article_target(corrected_noun):
-            return None
+            structural_prefix = (
+                prefix in {
+                    "il", "l", "din", "dan",
+                    "tal", "mal", "bil", "fil", "fis", "lill", "xil",
+                    "mil", "mis", "mill", "għal", "ghal", "għall", "ghall",
+                    "għat", "ghat", "bħal", "bhal", "bħall", "bhall",
+                    "sal", "mic", "miċ",
+                }
+                or prefix in SUN_LETTERS
+                or prefix.startswith("i")
+                or self._assimilated_prefix_canonical(prefix) is not None
+            )
+            if not structural_prefix:
+                return None
 
         spellchecker = getattr(self, "spellchecker", None)
         noun_display = (
@@ -883,14 +972,15 @@ class MalteseArticlePhraseRules:
             if prefix in {"il", "l"}:
                 if choices:
                     choices[0] = {**choices[0], "word": corrected}
-                literal_article = "l" if prefix == "l" else "il"
-                choices.extend(
-                    self.literal_article_choices(
-                        literal_article,
-                        corrected_noun,
-                        previous,
+                if self._allows_literal_article_choices(previous):
+                    literal_article = "l" if prefix == "l" else "il"
+                    choices.extend(
+                        self.literal_article_choices(
+                            literal_article,
+                            corrected_noun,
+                            previous,
+                        )
                     )
-                )
             return ArticlePhraseSuggestion(0, 1, corrected, choices)
 
         if prefix in {
@@ -923,7 +1013,7 @@ class MalteseArticlePhraseRules:
             # Do not infer them from dan, din, dawn, or da/di + a sun letter.
             if canonical in {"dal", "dil"}:
                 if typed_key == canonical_key:
-                    return canonical
+                    return canonical, canonical
                 continue
             if typed_key != canonical_key and typed_key.startswith(stem_key):
                 last_char = typed_key[-1]
@@ -1003,16 +1093,27 @@ class MalteseArticlePhraseRules:
         prefix_map = {
             "ta": "tal",
             "ta'": "tal",
+            "tal": "tal",
             "ma": "mal",
             "ma'": "mal",
+            "mal": "mal",
             "bħal": "bħall",
             "bhal": "bħall",
+            "bħall": "bħall",
+            "bhall": "bħall",
             "bi": "bil",
+            "bil": "bil",
             "fi": "fil",
+            "fil": "fil",
+            "mill": "mill",
             "lil": "lill",
+            "lill": "lill",
             "għal": "għall",
             "ghal": "għall",
+            "għall": "għall",
+            "ghall": "għall",
             "sa": "sal",
+            "sal": "sal",
         }
         canonical_prefix = prefix_map.get(preposition)
         if not canonical_prefix:
@@ -1063,10 +1164,12 @@ class MalteseArticlePhraseRules:
                     {
                         "word": f"ta 'l {literal_noun}",
                         "meaning": self.meaning_index.meaning_for(noun),
+                        "suggestion_kind": "literal_article",
                     },
                     {
                         "word": f"ta' l-{literal_noun}",
                         "meaning": self.meaning_index.meaning_for(noun),
+                        "suggestion_kind": "literal_article",
                     },
                 ]
             )
@@ -1147,7 +1250,10 @@ class MalteseArticlePhraseRules:
 
             corrected = self.corrected_article_phrase(article, noun, previous)
             choices = self.phrase_choices(noun, previous)
-            choices.extend(self.literal_article_choices(article, noun, previous))
+            if self._allows_literal_article_choices(previous):
+                choices.extend(
+                    self.literal_article_choices(article, noun, previous)
+                )
             return ArticlePhraseSuggestion(0, 1, corrected, choices)
 
         return None

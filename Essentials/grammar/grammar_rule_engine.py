@@ -689,14 +689,20 @@ class MalteseGrammarRuleEngine:
         findings: list[GrammarFinding] = []
         for index, head in enumerate(request_words[:-1]):
             tail = request_words[index + 1]
+            head_markers = self.spellchecker._word_tag_markers(head)
+            if head_markers & {"ADVERB", "CONJ", "NOUN", "PREP", "PRON"}:
+                # A surface that is also a function word is not a reliable
+                # finite-verb controller.  ``basta tfejqu`` must therefore
+                # remain intact even though ``basta`` also has a verb entry.
+                continue
             head_records = [
                 record
-                for record in self.spellchecker._verb_records_for_surface(head)
+                for record in self._verb_chain_records(head)
                 if record.tense != "IMP" and record.person
             ]
             tail_records = [
                 record
-                for record in self.spellchecker._verb_records_for_surface(tail)
+                for record in self._verb_chain_records(tail)
                 if record.tense != "IMP" and record.person
             ]
             if not head_records or not tail_records:
@@ -734,6 +740,41 @@ class MalteseGrammarRuleEngine:
                 )
             )
         return findings
+
+    def _verb_chain_records(self, word: str) -> list:
+        """Combine lexical and exact suffix readings only for verb chains."""
+        suffix_generator = getattr(self.spellchecker, "suffix_generator", None)
+        verb_index = getattr(suffix_generator, "verb_index", None)
+        if verb_index is None:
+            return []
+
+        normalized = self._normalized(word)
+        records = list(verb_index.word_records(normalized))
+        seen = {
+            (
+                record.word,
+                record.raw_tag,
+                record.root,
+                record.form_class,
+                record.tense,
+                record.person,
+            )
+            for record in records
+        }
+        for generated in self.spellchecker._exact_suffix_matches_cached(normalized):
+            for record in verb_index.word_records(generated.base):
+                key = (
+                    record.word,
+                    record.raw_tag,
+                    record.root,
+                    record.form_class,
+                    record.tense,
+                    record.person,
+                )
+                if key not in seen:
+                    records.append(record)
+                    seen.add(key)
+        return records
 
     def _definite_np_article_propagation(self, request_words: list[str]) -> list[GrammarFinding]:
         if self.article_rules is None:

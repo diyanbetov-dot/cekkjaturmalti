@@ -1,0 +1,818 @@
+MALTESE SPELLCHECKER DIAGNOSTIC REPORT AND REQUEST FOR TECHNICAL REVIEW
+=======================================================================
+
+Purpose
+-------
+
+This document is intended to be given to another GPT for a careful technical
+diagnosis of the current Maltese spellchecker. The requested response should
+propose general, maintainable fixes and should not solve the examples through
+large collections of whole-word replacements unless a manual exception is
+explicitly requested below.
+
+The application currently uses an X/Y/Z/W-style correction pipeline, generated
+verb suffixes, article and preposition phrase handling, a grammar rule engine,
+candidate evidence, optional corpus scoring, and an optional BERTu reranker.
+Several layers can still select or rewrite a correction independently. The
+examples below show that correct candidates may be generated but then displaced
+by a different layer.
+
+
+1. NEW RULE FOR l- / 'l / 'l- / 'il / 'il- AMBIGUITY
+======================================================
+
+Current problem
+---------------
+
+When the input contains a separate "l" or "il" before a noun or adjective, the
+application currently tends to provide all of these families:
+
+* l-/il-: the ordinary definite article
+* 'l/'il: "to a ..."
+* 'l-/'il-: "to the ..."
+
+This is too permissive. For example:
+
+* mar il-bajja
+* mar l-bajja
+* L-unika operazzjoni
+* il-mara
+* l-problema
+
+must not receive the "to a/to the" apostrophe alternatives merely because the
+writer supplied "l" or "il".
+
+Required new rule
+-----------------
+
+The alternatives 'l, 'l-, 'il, and 'il- may be generated from an input l/il
+only when the following noun or adjective is governed by the VERB "ta" or the
+VERB "ħa", including inflected, suffixed, or negative forms of those verbs.
+
+The rule must identify the underlying verb analysis, not merely a surface
+prefix. This matters because:
+
+* "ta" can also be ta' or another non-verbal surface;
+* "ħa" can be ambiguous with a particle;
+* a suffixed verb may look unlike its base;
+* a negative form must still retain its underlying verb identity.
+
+Examples:
+
+* "mar il bajja" -> "mar il-bajja"; no 'il or 'il- choices.
+* "mar l bajja" -> "mar l-bajja"; no 'l or 'l- choices.
+* "L unika operazzjoni" -> "L-unika operazzjoni"; no apostrophe alternatives.
+* "ta l kaxxiera" may expose the relevant ambiguity, including "'l-kaxxiera",
+  because verbal "ta" can govern the destination/recipient.
+* Equivalent forms of verbal "ħa", and suffixed or negative forms of ta/ħa,
+  must be recognized through their morphological record.
+
+Important design requirement:
+
+Article normalization and apostrophe ambiguity generation should be separate.
+The article may still be normalized when the following word is unknown, but the
+apostrophe alternatives require the specific governing-verb evidence above.
+
+
+2. SUFFIX-AWARE VERB-CHAIN GUARD
+================================
+
+Observed failure:
+
+Input:
+    għoġbu jikkuntattjani
+
+Current output:
+    għoġbu jikkuntattjaw
+
+Required output:
+    għoġbu jikkuntattjani
+
+Required analysis:
+
+* għoġbu = għoġob + u
+* jikkuntattjani = jikkuntattja + ni
+* The underlying finite verbs are both 3SM.
+* The surface għoġbu can coincide with a plain 3P-looking form, but the suffix
+  parse and the second verb provide evidence for the 3SM reading.
+
+The grammar engine must compare the person/number of the finite BASES after
+separating DO/IDO suffixes. It must not compare only the final surface forms.
+
+Required hard guards:
+
+1. If an exact generated suffix analysis exists, do not discard its suffix.
+2. Compare the underlying finite base person, tense, form, and suffix structure.
+3. If a surface has both a plain 3P analysis and a 3SM-plus-suffix analysis,
+   use the neighboring verb and local syntax to disambiguate.
+4. A grammar rewrite must not replace a valid suffixed verb with an unsuffixed
+   or differently suffixed paradigm form.
+5. Keep the valid rule "marret jixtri" -> "marret tixtri", but only after suffix
+   and POS ambiguity guards have passed.
+
+Regression tests:
+
+* għoġbu jikkuntattjani -> unchanged
+* basta tfejqu -> unchanged
+* marret jixtri -> marret tixtri
+* a valid DO, IDO, or DO+IDO form must retain all of its suffixes after grammar
+  agreement.
+
+
+3. OVER-PERMISSIVE VERB-CHAIN GRAMMAR
+=====================================
+
+Observed failure:
+
+Input:
+    basta tfejqu
+
+Current output:
+    basta jfejjaq
+
+Required output:
+    basta tfejqu
+
+"basta" can have a verbal dictionary analysis, but in this sentence it is the
+prepositional/conjunctive expression "provided that/as long as". The grammar
+engine is treating it as a perfect 3SM verb and forcing the following verb into
+3SM.
+
+Required general fix:
+
+* Do not run automatic verb-chain agreement when the proposed head is also
+  tagged PREP, CONJ, ADVERB, particle, or another common non-verbal category,
+  unless stronger syntactic evidence proves the verbal use.
+* Exact valid suffixed forms such as tfejqu must be preserved.
+* Production rewriting should require a narrowly validated verb-chain pattern,
+  not merely two adjacent surfaces that each possess at least one verb record.
+
+
+4. CURRENT CORPUS ROLE AND WHY IT IS NOT SOLVING CONTEXT
+========================================================
+
+Current implementation findings
+-------------------------------
+
+1. Corpus scoring is disabled by default:
+
+   SPELLCHECK_CORPUS_SCORING defaults to false.
+
+   The corpus index files are present in Essentials/corpus, but their presence
+   alone does not activate scoring. Deployment must explicitly enable it.
+
+2. When candidate evidence is built, corpus annotation is currently called
+   without prev_word, next_word, or prev_prev_word.
+
+3. Consequently, even if scoring is enabled:
+
+   * unigram frequency can contribute;
+   * previous-word bigram scoring receives no previous word;
+   * next-word bigram scoring receives no next word;
+   * trigram scoring receives no context;
+   * therefore the corpus is not meaningfully contextual in the live candidate
+     path.
+
+4. Corpus evidence increases a candidate's confidence, but the final evidence
+   rank uses a capped confidence bonus. More importantly, earlier deterministic
+   X/Y selections and later grammar rewrites can bypass or overwrite the
+   evidence ranking.
+
+5. Absence from the corpus is deliberately neutral rather than a penalty. This
+   is safe, but means corpus data cannot reject an implausible candidate unless
+   competing candidates reach the same selector and receive useful contextual
+   scores.
+
+Real examples the corpus currently fails to resolve:
+
+* "għoġbu jikkuntattjani" should prefer the valid suffixed chain over
+  "għoġbu jikkuntattjaw".
+* "basta tfejqu" should preserve the PREP/CONJ use of basta.
+* "kulljumm" should strongly prefer common "kuljum" over unrelated "kulma".
+* "baqa sfigurat" should prefer "baqa' sfigurat" over "baqqa sfigurat".
+* "minn fejn" should remain "minn fejn", while "min fejn" should normalize to
+  "minn fejn".
+
+What corpus integration should do
+---------------------------------
+
+* Receive the corrected previous and next lexical words for every candidate.
+* Score the whole local candidate phrase, not only an isolated token.
+* Apply contextual evidence only after hard linguistic guards.
+* Never override exact morphology or create a candidate.
+* Help rank already valid candidates, for example baqa'/baqqa and
+  jikkuntattjani/jikkuntattjaw.
+* Record diagnostics showing the unigram, left bigram, right bigram, and trigram
+  contributions separately.
+* Be invoked by the one authoritative final candidate selector.
+
+
+5. CURRENT BERTU ROLE AND WHY IT IS NOT SOLVING CONTEXT
+=======================================================
+
+Current implementation findings
+-------------------------------
+
+* A lazy BertuReranker object is instantiated and attached to the spellchecker.
+* The helper can score or rerank candidates in a sentence.
+* Evaluation scripts call the reranker.
+* The production correction path does not currently call score_candidates() or
+  rerank().
+* Therefore BERTu being "available" does not mean it affects website output.
+* It currently has effectively no role in the live examples in this report.
+
+What BERTu should and should not do
+----------------------------------
+
+BERTu may be useful as a final tie-breaker after:
+
+1. exact dictionary and generated-suffix validation;
+2. hard Maltese spelling and morphology guards;
+3. article/preposition structural normalization;
+4. POS filtering;
+5. corpus n-gram scoring.
+
+It should compare a small bounded list of complete candidate sentences or local
+windows. It must not:
+
+* generate spellings;
+* override exact valid suffix analyses;
+* authorize an impossible article or suffix;
+* rewrite a token when the candidate set is not genuinely ambiguous.
+
+Useful BERTu tests:
+
+* għoġbu jikkuntattjani / għoġbu jikkuntattjaw
+* basta tfejqu / basta jfejjaq
+* baqa' sfigurat / baqqa sfigurat
+* kuljum nirringrazzja / kulma nirringrazzja
+* minn fejn nieħdu / min fejn nieħdu
+
+Before deployment, measure whether BERTu's quality increase justifies its memory
+and latency. It should remain optional behind a true/false configuration flag.
+
+
+6. CORRECTION AND RANKING REGRESSIONS
+=====================================
+
+6.1 baqa versus baqqa
+---------------------
+
+Input:
+    baqa sfigurat
+
+Current output:
+    baqqa sfigurat
+
+Current suggestions include:
+    baqqa, baqqaha, baqa'
+
+Required behavior:
+
+* baqqa remains a valid possible word.
+* Omission of a final apostrophe must be checked before consonant doubling.
+* In this context, baqa' must be primary.
+* baqqa may remain a secondary suggestion if its meaning is shown.
+
+This should already have been handled by the final-apostrophe priority path.
+The failure indicates that a doubled-letter selector is taking precedence over
+the final-apostrophe candidate or that the evidence winner is later ignored.
+
+
+6.2 kulljumm versus kuljum/kulma
+--------------------------------
+
+Input:
+    kulljumm nirringrazzja
+
+Current output:
+    kulma nirringrazzja
+
+Required output:
+    kuljum nirringrazzja
+
+The input differs from kuljum through excess doubling. The normalization should
+reduce the excess letter structure and produce an exact dictionary form before
+phrase or pronoun alternatives such as kulma are considered.
+
+This should already have been fixed by X-stage duplicate normalization and exact
+dictionary priority. The failure indicates that a later lexicalized-form or
+suggestion path can still override the better candidate.
+
+
+6.3 niehdu
+----------
+
+Input:
+    niehdu
+
+Required output:
+    nieħdu
+
+This is a basic Maltese-character repair and should already be covered by the
+special-character/dictionary path. It continues to survive unchanged or lose to
+inferior vowel variants in some tests.
+
+Required fix:
+
+* The exact dictionary hit obtained through h -> ħ must outrank generated vowel
+  variants.
+* A plain h may represent ħ when that change produces an exact valid surface.
+* The result must be preserved through Z and grammar stages.
+
+
+6.4 qalla
+---------
+
+Input in context:
+    It-tabib ħares lejn il-mara, u qalla...
+
+Required output:
+    ...u qalilha...
+
+Explicit requested manual repair:
+
+    qalla -> qalilha
+
+This is intentionally a manual word repair. Verify that the resulting qalilha
+is recognized as qal + IDO 3SF and receives the appropriate meaning.
+
+
+6.5 minn fejn
+-------------
+
+Current regression:
+    minn fejn -> min fejn
+
+Required hard contextual rule:
+
+* min must never appear immediately before fejn.
+* min fejn -> minn fejn
+* minn fejn -> unchanged
+* Suggestions must attach only to min/minn, not tag the entire following phrase.
+
+This should already have been covered by the earlier min/minn phrase cleanup.
+
+
+6.6 l'ħiellek from lilek
+-------------------------
+
+Input:
+    lillek
+
+Current primary output:
+    lilek
+
+Bad suggestion:
+    l'ħiellek
+
+The primary simplification to lilek is acceptable. l'ħiellek is too remote and
+must be rejected.
+
+Likely guard requirements:
+
+* An exact valid preposition/pronoun surface should stop distant alternatives.
+* Do not reinterpret an internal initial l in lilek as the standalone 'l
+  preposition.
+* Do not introduce ħ when no dedicated h/ħ/għ structural rule supports it.
+* Require consonant-anchor compatibility after removing recognized prefixes and
+  suffixes.
+* Do not display alternatives whose meanings are unavailable or unrelated.
+
+This path requires focused diagnostics showing which generator introduced the
+apostrophe and ħ.
+
+
+6.7 dritta
+----------
+
+Input:
+    jagħmilha dritta
+
+Current output:
+    jagħmilha ddritta
+
+Current suggestion:
+    ddrittaha
+
+Required output:
+    jagħmilha dritta
+
+The context requires the adjective dritta, not the verb ddritta. The extra
+ddrittaha suggestion also duplicates the object already expressed by
+jagħmilha.
+
+Required general fix:
+
+* In verb + object + adjective structures, prefer the adjective analysis.
+* Do not generate a DO-suffixed verb alternative when the local syntax already
+  contains the governing verb and object.
+* Verify that dritt/dritta/dritti possess complete adjective entries.
+
+
+6.8 qedha
+---------
+
+Input:
+    qedha l bajja
+
+Current output:
+    qeda l-bajja
+
+Current alternatives:
+    qeda, qedaha
+
+Required contextual result:
+    qiegħda l-bajja
+
+The feminine copular/locative form is intended. This was previously expected to
+be covered by qiegħed/qiegħda spelling repair logic. It is currently losing to
+the unrelated verb qeda and its suffix.
+
+
+6.9 jikkuntattjani
+------------------
+
+Input:
+    għoġbu jikkuntattjani privat
+
+Current output:
+    għoġbu jikkuntattjaw privat
+
+Required output:
+    għoġbu jikkuntattjani privat
+
+This is primarily the suffix-aware grammar problem described above. It is not a
+dictionary spelling error.
+
+
+7. ARTICLE AND PREPOSITION STRUCTURAL FAILURES
+==============================================
+
+7.1 mill l isptar
+-----------------
+
+Input:
+    mill l isptar
+
+Current output:
+    mill-l isptar
+
+Required output:
+    mill-isptar
+
+The parser must collapse the whole sequence, not merely attach the first two
+tokens. The handling should be analogous to previously implemented forms such
+as lill-ispettur.
+
+Required general behavior:
+
+* recognize redundant article chains after fused prepositions;
+* preserve the epenthetic i required by sC forms;
+* consume all tokens belonging to the phrase;
+* do not leave a second l outside the fused word;
+* work even when the following noun is not recognized.
+
+Tests:
+
+* mill l isptar -> mill-isptar
+* minn l isptar -> mill-isptar
+* mil l isptar -> mill-isptar
+* lill spettur -> lill-ispettur
+* lil l spettur -> lill-ispettur
+
+
+7.2 tat traffiku
+----------------
+
+Input:
+    incident ikrah tat traffiku
+
+Current output:
+    inċident ikrah tat traffiku
+
+Required output:
+    inċident ikrah tat-traffiku
+
+The article/preposition surface is structurally clear even if traffiku is
+missing from the dictionary. Recognition may affect meaning and suggestions,
+but it must not block hyphen insertion.
+
+Required general behavior:
+
+* fused article/preposition forms such as tat-, tad-, tan-, tas-, etc. should
+  normalize their hyphen based on surface structure;
+* the unknown tail remains unrecognized but the fused prefix is still repaired;
+* later dictionary additions should remove the red squiggle without changing
+  the structural code.
+
+Dictionary verification:
+
+* traffiku should be recognized and have a suitable noun meaning.
+* sptar exists as a noun family, but isptar/article-prefixed behavior needs
+  verification.
+
+
+7.3 Exact case of alla and Alla
+-------------------------------
+
+There are two intended forms:
+
+* alla
+* Alla
+
+The application must preserve exactly which form the writer supplied, except
+for normal sentence-initial capitalization.
+
+Examples:
+
+* l Alla -> l-Alla
+* l alla -> l-alla
+
+Article processing must not lowercase a proper-name tail and must not force the
+common-noun form into the proper-name form.
+
+
+8. SUFFIX REPAIR FOR illibsuwha
+===============================
+
+Input:
+    jerġgħu illibsuwha fuq wiċċu
+
+Intended candidates:
+    ilibsuha
+    jlibsuha
+
+The final surface depends on the existing contextual i-/j- path.
+
+Required operations:
+
+1. normalize the erroneous initial double l;
+2. recognize the underlying verb;
+3. normalize -uwha to -uha;
+4. retain the DO 3SF suffix;
+5. apply the i-/j- surface decision only after the verb and suffix are valid.
+
+In the supplied context, the preceding jerġgħu ends in a vowel, so the existing
+i-/j- rules should determine whether jlibsuha is required.
+
+This must be implemented as a general suffix repair for valid verb structures,
+not as a whole-word replacement.
+
+Regression families:
+
+* -uwha -> -uha
+* equivalent -uw + h-suffix combinations
+* the same repair with initial i-/j- alternation
+* forms with ordinary single/double consonant correction
+
+
+9. GRAMMAR, CASE, AND PUNCTUATION ISSUES
+=======================================
+
+* The first supplied paragraph ends in "Grazzi" without terminal punctuation.
+  A multiword sentence/paragraph without .?! should receive a final period.
+* Existing .?! must be preserved.
+* Spacing must normalize around punctuation:
+  "ir-raġel,li" -> "ir-raġel, li".
+* Mid-sentence input capitalization should not be blindly retained:
+  "... problema, Ghax ..." should normally become "... problema, għax ...".
+* "u ir-raġel" should be checked against the established contextual article-i
+  removal rules.
+* "kien" in "L-unika operazzjoni ... kien li" may require feminine agreement;
+  this should be diagnosed rather than hardcoded.
+
+
+10. DICTIONARY OR COVERAGE ITEMS
+================================
+
+The following need dictionary verification or additions where absent:
+
+* traffiku
+* magħlub, magħluba, magħlubin
+* dritt, dritta, dritti as the relevant adjective family
+* sptar/isptar behavior
+* qiegħda as the feminine copular/locative form
+* ġisem possessive forms such as ġismi, ġismek, ġismu, ġisimha, ġisimna,
+  ġisimkom, and ġisimhom, according to the correct Maltese paradigm
+
+Observed coverage failures:
+
+* maghlub remains unrecognized instead of becoming magħlub.
+* ghendek remains unrecognized instead of becoming għandek.
+* gismu becomes ġissmu instead of ġismu.
+* isptar remains unrecognized inside a phrase.
+
+These should not all be solved as manual replacements. ghendek and gismu are
+evidence that compositional basic/suffix repair is failing or being outranked.
+
+
+11. USER ERRORS TO RETAIN AS LABELED DATA, NOT BROAD RULES
+==========================================================
+
+11.1 Qanzet
+-----------
+
+The intended word was:
+    qabżet
+
+The input Qanzet was a user error. The current output Qanżħet is not desired.
+Do not introduce a broad n -> b or arbitrary ħ-insertion rule merely to repair
+this example. It may remain unrecognized unless a safe contextual model ranks
+qabżet from an already valid bounded candidate set.
+
+
+11.2 met aimorru
+----------------
+
+The intended phrase was:
+    meta imorru
+
+This was a user spacing/typing error. Do not add an unsafe general rule that
+freely removes leading letters or joins/splits arbitrary words.
+
+
+11.3 ftehimu
+------------
+
+ftehimu was identified as user error. Do not create a special correction rule
+for it. If testing the underlying verb, use verified canonical dictionary
+forms and keep this example in noisy-input evaluation only.
+
+
+12. THINGS EXPECTED TO HAVE ALREADY WORKED
+==========================================
+
+The following failures are regressions or incomplete integrations because the
+project already contains or previously discussed the relevant mechanism:
+
+* final apostrophe restoration before doubling: baqa -> baqa';
+* exact Maltese special-character replacement: niehdu -> nieħdu;
+* duplicate-letter normalization: kulljumm -> kuljum;
+* preserving exact generated suffix forms: jikkuntattjani and tfejqu;
+* qiegħed/qiegħda spelling normalization: qedha -> qiegħda;
+* min/minn contextual handling: min fejn -> minn fejn;
+* article/preposition repair even with an unknown tail: tat-traffiku;
+* redundant fused article collapse: mill l isptar -> mill-isptar;
+* contextual i-/j- selection after a verb has been validated;
+* name/proper-noun capitalization preservation inside article phrases;
+* final punctuation insertion for multiword text;
+* the X/Y/Z/W principle that only one final selector should choose a correction.
+
+
+13. LIKELY ARCHITECTURAL CAUSES
+==============================
+
+The examples collectively suggest these structural problems:
+
+1. Candidate generation and candidate selection are still mixed.
+2. A deterministic X/Y branch may choose before corpus/BERTu context exists.
+3. Candidate evidence can rank a good form, but live correct_word logic may use
+   a different ordering.
+4. Grammar can rewrite a valid output after spelling and suffix validation.
+5. Grammar compares surface verb records without preserving suffix parses.
+6. POS-ambiguous words such as basta can trigger verb-chain rewriting.
+7. Article ambiguity is generated from the literal l/il surface without a
+   governing-verb condition.
+8. Phrase repair sometimes depends too heavily on whether the noun is known.
+9. Proper-name capitalization can be lost when a phrase is rebuilt.
+10. Corpus context is not passed into the candidate pool.
+11. BERTu is not called by the production selector.
+12. Some suggestion paths bypass the same hard guards used for corrections.
+
+
+14. REQUIRED IMPLEMENTATION ORDER
+=================================
+
+Recommended order, easiest/highest-confidence first:
+
+1. Add regression tests for every expected pair in this report.
+2. Restrict 'l/'l-/'il/'il- ambiguity to morphologically verified verbal ta/ħa
+   governance.
+3. Guard exact suffixed verbs from grammar rewriting.
+4. Exclude PREP/CONJ/ADVERB-ambiguous heads such as basta from automatic
+   verb-chain rewrites.
+5. Make min fejn impossible and preserve minn fejn.
+6. Restore final-apostrophe priority for baqa'.
+7. Restore exact special-character priority for nieħdu.
+8. Make duplicate normalization choose kuljum before kulma.
+9. Fix unknown-tail article/preposition normalization: tat-traffiku and
+   mill-isptar.
+10. Add the requested manual qalla -> qalilha repair.
+11. Implement general -uwha -> -uha suffix repair and reapply i-/j- context.
+12. Filter l'ħiellek and equivalent distant suggestions.
+13. Preserve exact alla/Alla case through article reconstruction.
+14. Complete dictionary coverage.
+15. Pass actual previous/next context into corpus scoring.
+16. Route the final bounded ambiguity set through BERTu only as an optional
+    tie-breaker.
+17. Ensure one authoritative final selector produces the output and suggestions.
+18. Rerun unrelated regression suites to ensure these changes do not reopen
+    earlier article, suffix, name, numeral, English, or punctuation failures.
+
+
+15. REQUIRED TEST MATRIX
+========================
+
+Article ambiguity:
+
+* mar il bajja -> Mar il-bajja.
+* mar l bajja -> Mar l-bajja.
+* L unika operazzjoni -> L-unika operazzjoni.
+* ta l kaxxiera -> permit only the linguistically justified ta/tal/'l choices.
+* a suffixed form of verbal ta + l + noun -> retain justified 'l ambiguity.
+* a negative form of verbal ħa + l + noun -> retain justified 'l ambiguity.
+
+Suffix and grammar:
+
+* għoġbu jikkuntattjani -> unchanged.
+* basta tfejqu -> unchanged.
+* marret jixtri -> marret tixtri.
+* jerġgħu illibsuwha -> jerġgħu jlibsuha, subject to the existing i-/j- rule.
+* valid DO, IDO, and DO+IDO forms must keep all suffixes.
+
+Ranking:
+
+* baqa sfigurat -> baqa' sfigurat; baqqa may be secondary.
+* kulljumm nirringrazzja -> kuljum nirringrazzja.
+* niehdu -> nieħdu.
+* lilek/lillek must not suggest l'ħiellek.
+* qedha l bajja -> qiegħda l-bajja.
+* jagħmilha dritta -> unchanged after ordinary spelling normalization.
+
+Articles and prepositions:
+
+* tat traffiku -> tat-traffiku.
+* tat unknownword -> tat-unknownword, with only the tail unrecognized.
+* mill l isptar -> mill-isptar.
+* lil l spettur -> lill-ispettur.
+* min fejn -> minn fejn.
+* minn fejn -> unchanged.
+
+Case and punctuation:
+
+* l Alla -> l-Alla.
+* l alla -> l-alla.
+* a multiword paragraph ending in Grazzi -> Grazzi.
+* ir-ragel ,li -> ir-raġel, li.
+
+User-error controls:
+
+* Qanzet has target qabżet for evaluation, but must not authorize broad n/b or
+  arbitrary ħ insertion.
+* met aimorru has target meta imorru for evaluation, but must not authorize an
+  unsafe general split/join rule.
+* ftehimu remains labeled noisy input rather than a manual rule.
+
+
+16. QUESTIONS THE TECHNICAL REVIEW SHOULD ANSWER
+================================================
+
+Please inspect the current repository and answer:
+
+1. Which exact functions currently generate apostrophe article alternatives,
+   and where should the ta/ħa governance condition live?
+2. How should verbal ta/ħa be identified across suffixes and negation without
+   confusing ta', the future particle ħa, or unrelated surfaces?
+3. Which function rewrites għoġbu jikkuntattjani and basta tfejqu, and how can
+   its verb-chain analysis use base-plus-suffix records?
+4. Which automatic selectors bypass CandidateEvidence ranking?
+5. Why can baqa' rank as a valid candidate yet baqqa become the live output?
+6. Why can kuljum be generated yet kulma become the live output?
+7. Why is corpus context omitted when annotate_corpus is called?
+8. Where should previous/next corrected tokens be passed into corpus scoring?
+9. Should corpus_score be represented directly in the final rank rather than
+   only indirectly through confidence?
+10. Where should BERTu be called in production, and what candidate/time budget
+    is safe for Cloud Run?
+11. How can BERTu remain optional without changing deterministic output when it
+    is unavailable?
+12. How should unknown-tail article repair be separated from lexical
+    recognition?
+13. Which suggestion generators allow l'ħiellek, and which hard guard is absent?
+14. How should -uwha -> -uha compose with doubling and i-/j- surface selection?
+15. Which changes are safe structural fixes, which require dictionary data, and
+    which should remain manual exceptions?
+
+
+17. ACCEPTANCE CRITERIA
+=======================
+
+The work is complete only when:
+
+* all non-user-error examples produce the requested primary output;
+* legitimate secondary meanings remain available where requested;
+* irrelevant apostrophe alternatives disappear outside verbal ta/ħa contexts;
+* valid suffixes survive grammar processing;
+* unknown nouns do not prevent article/preposition surface normalization;
+* no broad unsafe repair is introduced for Qanzet or met aimorru;
+* corpus diagnostics prove whether unigram/bigram/trigram evidence affected each
+  choice;
+* BERTu diagnostics prove whether it was called and whether it changed ranking;
+* unrelated established regression tests remain unchanged;
+* runtime and memory are measured before enabling BERTu or contextual corpus
+  scoring on Cloud Run.
+
+No implementation should be started from this report until the reviewer has
+mapped each observed failure to its actual generating, selecting, Z-stage, or
+grammar function and proposed a bounded regression test for it.

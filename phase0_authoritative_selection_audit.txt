@@ -1,0 +1,523 @@
+PHASE 0 AUDIT - AUTHORITATIVE CANDIDATE SELECTION
+=================================================
+
+Date: 2026-07-29
+Branch: main
+HEAD: af422ec (Fix surface corrections and suggestion handling)
+Remote state: main is synchronized with origin/main.
+
+This is a read-only production-code audit. No production file was changed while
+preparing it. The local working tree remains authoritative.
+
+
+1. LOCAL GIT STATE
+==================
+
+Tracked source changes already present before this audit:
+
+  Essentials/core/spellchecker.py
+  Essentials/finaldics/dev_extra.dic
+  Essentials/grammar/grammar_rule_engine.py
+  Essentials/helpers/article_phrase_rules.py
+  Other/tests/test_recent_surface_suffix_regressions.py
+
+Generated tracked bytecode is also modified under Essentials/__pycache__ and
+Essentials/helpers/__pycache__.
+
+Untracked files already present:
+
+  Other/tests/test_current_output_regressions.py
+  bertu_corpus_current_and_target_architecture.txt
+  gpt_spellchecker_diagnostic_report.txt
+
+Tracked textual diff size: 356 insertions and 30 deletions. The principal
+uncommitted changes add article-governance guards, exact-suffix preservation,
+unknown-tail article handling, noun-possessive priority, manual qalla/qedha
+repairs, and regression tests.
+
+Focused baseline:
+
+  23 passed in 84.84 seconds
+
+Command:
+
+  .venv\Scripts\python.exe -m pytest -q --tb=short \
+    Other\tests\test_current_output_regressions.py \
+    Other\tests\test_recent_surface_suffix_regressions.py \
+    Other\tests\test_corpus_scorer.py \
+    Other\tests\test_corpus_integration.py
+
+The normal Windows pytest temp folder was inaccessible. Re-running with a
+writable --basetemp passed. This was an environment permission issue, not a
+test failure.
+
+Two passing tests currently encode obsolete or incorrect contracts:
+
+  - test_recent_surface_suffix_regressions.py expects paired quotes to be
+    stripped. The new specification requires byte-for-byte preservation.
+  - test_current_output_regressions.py expects illibsuwha -> Ilibsuha.
+    Ilibsuha does not exist. The correct target is Ilibbsuha, from the exact
+    generated base libbsu + DO 3SF -ha, followed by contextual initial i-.
+
+
+2. FUNCTION LEGEND
+==================
+
+Generators:
+
+  AQ  = paired-quote span protector (required; not yet implemented)
+  AR  = MalteseArticlePhraseRules
+  PX  = UniversalMalteseSpellchecker._phase_x_collect_candidates
+  PY  = _phase_y_basic_resolution / priority_basic_candidate
+  SG  = MalteseSuffixGenerator + MalteseVerbFormIndex
+  NP  = noun/possessive generator
+  NR  = _number_phrase_payload and numbered-noun helpers
+  FP  = function-phrase decisions (min/minn, ma/ma', and contractions)
+  GR  = MalteseGrammarRuleEngine
+
+Selectors or later filters:
+
+  CW  = correct_word early-return chain
+  CT  = correct_text_rich phrase/token loop
+  AC  = ambiguity_choices
+  AF  = _finalize_ambiguity_choices
+  VC  = _clean_visible_choices_for_token
+  Z   = _phase_z_finalize_surface_word plus the other scattered final surface
+        rewrites in correct_text_rich
+
+Model reach:
+
+  C=no and B=no below mean the live request did not call corpus scoring or
+  BERTu. Instrumentation across every required case recorded:
+
+    CandidateEvidence pool calls: 0
+    corpus score_candidate calls: 0
+    BERTu score_candidates calls: 0
+
+
+3. FAILURE-TO-FUNCTION MAPPING
+==============================
+
+The "records" column names the morphology or structure that must constrain the
+choice. "Overwrite" identifies the stage that can currently supersede or hide
+an earlier result. C/B are corpus/BERTu reach.
+
+| Input | Current local output | Expected | Desired generator | Bad generator | Exact selector | Overwrite | Records | C/B | Bounded fix | Regression test | Risk |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| mar il bajja | Mar il-bajja. | same | AR split article | none | CT article branch | AF/VC | mar VERB + il + SINGNOUNF | no/no | Keep ordinary article output; no literal 'l alternatives | test_article_ambiguity_governance.py | low |
+| mar l bajja | Mar l-bajja. | same | AR split article | none | CT article branch | AF/VC | mar VERB + l + SINGNOUNF | no/no | Same guard for typed l | same | low |
+| L unika operazzjoni | L-unika operazzjoni. | same | AR split article | none | CT article branch | Z case/punctuation | adjective/noun article tail | no/no | Preserve ordinary l- and case | same | low |
+| ta l kaxxiera | Tal-kaxxiera; 3 choices | same, including governed literal choices | AR contraction + literal_article_choices | duplicated CT special branch | CT ta+l+noun branch | AF/VC | governing VERB ta + article + noun | no/no | Derive choices once from verified governing-verb analysis | same | medium |
+| għoġbu jikkuntattjani | unchanged | unchanged | SG exact base+suffix records | GR surface person guess | CT then GR | grammar findings | għoġob+u; jikkuntattja+ni | no/no | Compare finite bases after suffix separation; never discard exact suffix | test_suffix_preservation.py | high |
+| basta tfejqu | unchanged | unchanged | SG/CW exact morphology | GR treats basta as verb | GR._verb_chain_person_number | grammar rewrite | basta is POS-ambiguous/nonverbal; tfejqu valid | no/no | Require unambiguous verbal head or stronger syntax | test_verb_chain_agreement.py | high |
+| baqa sfigurat | Baqa' sfigurat; Baqqa suggestion | same | PX terminal apostrophe | broad doubled-letter candidate | PY | AC/AF | baqa' exact; baqqa also lexical | no/no | Keep apostrophe deterministic, alternative only as suggestion | test_candidate_priority.py | medium |
+| kulljumm nirringrazzja | Kuljum nirringrazzja. | same | PX bounded de-doubling | lexical kulma | PY | AC/AF | kuljum exact adverb | no/no | Rank minimum bounded repair before lexical neighbor | same | medium |
+| niehdu | Niehdu; suggests Nieħdu | prompt says Nieħdu | CW exact dictionary | none: input itself has exact rare records | CW exact-hit return | AC | nieħdu F1 MPERF-1P; niehdu F3 IMP-2P and PERF-3P | no/no | Policy decision required; context may select nieħdu, but a standalone rewrite conflicts with exact-valid-morphology rule | test_candidate_priority.py | high |
+| qalla | Qalilha. | same | approved manual repair | none | PX/PY | none | qalla -> qalilha permitted | no/no | Keep the one approved manual map | same | low |
+| min fejn | Minn fejn. | same | FP min/minn decision | token-only min candidate | CT function phrase | AF/VC | minn is required before fejn | no/no | Keep decision scoped to min token, not whole phrase | test_candidate_priority.py | low |
+| minn fejn | unchanged | unchanged | FP | none | CT function phrase | none | exact phrase | no/no | Exact pass-through | same | low |
+| lillek | Lilek.; no visible bad choice | Lilek.; never l'ħiellek | PX basic repair | leading-l missing-għ/h reconstruction generates l'ħiellek | PY then VC hides it | AC/VC | lilek PRON/IDO form | no/no | Reject generator before ranking using consonant/suffix compatibility | test_candidate_priority.py | medium |
+| jagħmilha dritta | unchanged | unchanged | SG exact suffix + dictionary adjective | fuzzy suffix/verb ambiguity | CW/CT | GR/AC | jagħmel+ha; dritta adjective | no/no | Exact morphology lock shared by all later stages | test_suffix_preservation.py | high |
+| qedha l bajja | Qiegħda l-bajja. | same | approved current qedha repair + AR | surface qeda/qedaha variants | PY + CT | AC | qiegħda + article noun | no/no | Keep correction record authoritative through article pass | test_candidate_priority.py | medium |
+| mill l isptar | Mill-isptar. | same | AR contraction | unknown-tail fallback variants | CT article contraction | Z | minn+il; sptar with epenthetic i | no/no | Normalize contraction before lexical status | test_article_unknown_tails.py | medium |
+| tat traffiku | Tat-traffiku. | same | AR unknown-tail structural rule | no useful lexical candidate needed | CT article fallback | Z | ta'+it- structural form; unknown/English tail allowed | no/no | Structure remains valid even if tail is unknown | same | low |
+| l Alla | L-Alla. | same | AR split article | lowercasing reconstruction | CT article branch | Z | exact proper name casing | no/no | Carry source-tail casing into Z | test_case_preservation.py | low |
+| l alla | L-alla. | same | AR split article | name normalizer | CT article branch | Z | lowercase lexical form | no/no | Do not force name capitalization without exact protected-name match | same | low |
+| jilbsuwha | Jilbsuha. | same | SG suffix typo uwha->uha | surface-only typo map | PY | AC | jilbsu + DO 3SF -ha is exact | no/no | Require complete exact generated surface | test_suffix_preservation.py | medium |
+| illibsuwha | Ilibsuha. | Ilibbsuha. | SG should find libbsu+ha, then contextual i- | PX composed de-gemination deletes required b and accepts an indirect initial-i variant | PY priority lock | AC | libbsu F2 IMP-2P/PERF-3P + DO 3SF; ilibbsuha is contextual surface | no/no | Generate libbsuha exactly, realize i- later; reject ilibsuha because it has no exact record | same | high |
+| maghlub | Magħlub. | same | PX shortcut Maltese letters | fuzzy alternatives | PY | AC | magħlub adjective/participle | no/no | Preserve exact dictionary-backed shortcut | test_candidate_priority.py | low |
+| ghendek | Għandek. | same | PX shortcut + vowel repair | fuzzy anchors | PY | AC | għandek recognized/generated form | no/no | Keep bounded shortcut and anchor compatibility | same | low |
+| gismu | Ġismu. | same | NP possessive correction | generic anchors | PX possessive priority lock | AC | ġisem + possessive 3SM | no/no | Preserve noun base and possessive record | test_suffix_preservation.py | medium |
+| dan id departiment | Dan id-dipartiment. | prompt says Dan id-departiment. | AR demonstrative+article | lexical correction departiment->dipartiment | CT article branch | Z | fixednouns contains dipartiment only | no/no | Keep dan distinct from dal; lexical target needs policy clarification | test_demonstrative_article_sequences.py | medium |
+| dan id dritt | Dan id-dritt. | same | AR demonstrative+article | dal/dil parser | CT article branch | Z | dan + assimilated id- + noun | no/no | Never infer dal/dil from dan/din/dawn | same | high |
+| l'ammont | L'ammont. | L-ammont. | PX article surface repair | CW _supports_l_apostrophe_tail early pass-through | CW before PX | cache can make result order-dependent | l- definite article + ammont noun; ammont is POS-ambiguous | no/no | Parse explicit article identity before POS ambiguity; eliminate cache-order difference | test_article_ambiguity_governance.py | high |
+| lil kulħadd | Lill-kulħadd. | Lil kulħadd. | FP/AR should preserve bare lil | contraction rule treats following pronoun as article noun | CT contraction | Z | lil PREP + kulħadd PRON | no/no | Require article-target noun/adjective for lill- contraction | test_article_unknown_tails.py | medium |
+| mingħajr ma ħassar xejn | unchanged | unchanged | FP negative-scope guard | automatic final-x insertion | CT negative phrase | Z | xejn already supplies negative scope | no/no | Block x addition with xejn/ħadd/qatt/ebda/imkien | test_negative_scope.py | medium |
+| m huma | M huma. | M'huma. | FP negative copula phrase | token-by-token pass-through | CT generic token route | Z | m'+huma negative copula | no/no | Add structural two-token contraction from recognized copula | test_negative_scope.py | low |
+| ħamest bozoz | Ħames bozoz. | Ħamest bozza. | NR numeral+noun agreement | early short-number map | _number_phrase_payload | Z | ATTNUM long form + singular noun | no/no | Correct noun first, then choose numeral and noun jointly | test_number_noun_agreement.py | high |
+| bixiraq | Bi xieraq. | Bix-xieraq. | PX compact bix article repair | PX generic complex split bi+xieraq | PY takes later/other winner | CT compact article comes too late | b'+ix- fused article + adjective xieraq | no/no | Structural compact candidate outranks generic split before selection | test_candidate_priority.py | high |
+| sieqha | Sieqha.; no visible alternatives | unchanged; never siqha | NP exact possessive | AC still internally generates siqha/sqieha | CW exact hit then VC filters | AC/VC | sieq + possessive 3SF | no/no | Do not generate incompatible alternatives after exact possessive lock | test_suffix_preservation.py | medium |
+
+
+4. QUOTE-BEHAVIOR MAPPING
+=========================
+
+| Input | Current local output | Expected | Desired generator | Bad generator/selector | Later overwrite | Records | C/B | Bounded fix | Test | Risk |
+|---|---|---|---|---|---|---|---|---|---|---|
+| qal 'remote working' illum | qal remote working illum. | preserve quoted bytes, including quotes | AQ | current quote branch emits inner_text | grammar can see inner tokens | protected literal span | no/no | Mark paired spans before token correction; render original span | test_quote_protection.py | high |
+| qal 'remot workng' illum | qal remot workng illum. | preserve quoted bytes | AQ | same | unknown-word logic currently bypassed inconsistently | protected literal span | no/no | Same; spelling does not matter inside quote | same | high |
+| tal 'ceo' tal 'poyc' | taċ-ceo tal-poyc. | preserve each quoted span and prevent neighboring article fusion into it | AQ | CT English/article quote branch fuses tal with inner text | AR/Z | protected spans and boundaries | no/no | Protected boundary blocks article reconstruction and model context | same | high |
+| qal 'kelma Maltija' illum | qal kelma Maltija illum. | preserve quoted bytes | AQ | current English-oriented quote path strips marks | grammar/name logic can inspect inner words | protected literal span | no/no | Language-independent span protection | same | high |
+| m'għandix | M'għandix. | same | normal Maltese tokenizer | false quote detector must not claim it | Z capitalization only | Maltese apostrophe, not a pair | no/no | Paired-span scanner with token-boundary rules | same | high |
+| ta' | Ta'. | same | normal Maltese tokenizer | false quote detector | Z | terminal apostrophe | no/no | Unmatched/terminal apostrophe is not quote start | same | high |
+| baqa' | Baqa'. | same | exact dictionary/apostrophe | false quote detector | Z | lexical terminal apostrophe | no/no | Same | same | high |
+
+
+5. CURRENT LIVE CORPUS CALL PATH
+================================
+
+Construction:
+
+  Essentials/app.py
+    -> MalteseCorpusScorer(...)
+    -> spellchecker.corpus_scorer = corpus_scorer
+
+Configuration today:
+
+  SPELLCHECK_CORPUS_SCORING=false by default
+  SPELLCHECK_CORPUS_SHADOW=false by default
+  unigram=true
+  bigram=true
+  trigram=false
+  max contribution=0.25
+
+Only production call:
+
+  _build_candidate_evidence_pool()
+    -> CandidateEvidencePool.annotate_corpus(corpus_scorer)
+    -> MalteseCorpusScorer.score_candidate(...)
+
+The call passes no prev_word, next_word, or prev_prev_word. Therefore even when
+enabled, production scoring is effectively unigram-only. The scorer can compute
+left bigram, right bigram, and trigram components, but no live caller provides
+the context.
+
+The pool is reached only from late suggestion/evidence paths after many
+correct_word and phrase-rule early returns. Instrumented required cases reached
+it zero times. Corpus evidence currently mutates generic confidence rather than
+remaining a separately diagnosable component in the final selection key.
+
+The current scorer exposes one bounded total, not a structured result containing
+unigram, left bigram, right bigram, trigram, before-cap total, after-cap total,
+availability, fallback, and mode.
+
+
+6. CURRENT LIVE BERTU CALL PATH
+===============================
+
+Construction:
+
+  Essentials/app.py
+    -> BertuReranker()
+    -> spellchecker.bertu_reranker = bertu_reranker
+
+Production selection caller:
+
+  none
+
+Only the offline evaluator and the reranker's own convenience method call
+score_candidates(). The representative live requests recorded zero calls.
+
+Current limitations:
+
+  - lazy model loading has no explicit off/shadow/active mode;
+  - sentence.split() is the default token alignment;
+  - token_index is a whitespace-token index, not a source-span mapping;
+  - only the first candidate subword is scored;
+  - multi-token candidates, apostrophes, hyphens, punctuation, emojis, and
+    contextual previous-sentence tails are not represented safely;
+  - there are no per-request call/time budgets, winner-margin policy, cache
+    diagnostics, overwrite history, or production failure status;
+  - BERTu can return scores, but no authoritative selector consumes them.
+
+
+7. SELECTORS THAT BYPASS CANDIDATEEVIDENCE
+==========================================
+
+1. correct_word early returns:
+   negative copula, unique keyboard shortcut, special l' pass-through,
+   dictionary/recognized surface, initial i-, fixed time expression, ta suffix
+   gloss, glide collapse, and exact suffix matches.
+
+2. Phase X/Phase Y:
+   _phase_x_collect_candidates sets analysis.corrected and a priority candidate;
+   _phase_y_basic_resolution returns a winner directly.
+
+3. Article/preposition phrase rules:
+   match_split_article, match_hyphenated_article_after,
+   match_preposition_article_contraction, match_compact_preposition_article,
+   match_compact_definite_article, plus special article branches embedded in
+   correct_text_rich.
+
+4. Function-phrase decisions:
+   min/minn, ma/ma'/m', ta/ta', xi/x', and other phrase-specific branches.
+
+5. Number phrases:
+   _number_phrase_payload chooses a phrase independently.
+
+6. Grammar engine:
+   GrammarFinding objects can rewrite already selected surfaces, including verb
+   chains, agreement, articles, and contractions.
+
+7. Ambiguity pipeline:
+   ambiguity_choices generates/ranks again; _finalize_ambiguity_choices and
+   _clean_visible_choices_for_token filter or reorder again.
+
+8. Quote/English branches:
+   current quote handling emits inner text and article prefixes independently.
+
+9. Final rich-text stages:
+   capitalization, punctuation, article-tail repair, preferred apostrophe
+   choices, recognition, meanings, and unrecognized state can be computed from
+   different intermediate identities.
+
+This explains why a candidate can be generated correctly, lose to another path,
+be restored by a guard, then still carry the wrong choices, meaning, or squiggle.
+
+
+8. PROPOSED IMMUTABLE SCHEMAS
+=============================
+
+CandidateRecord
+---------------
+
+  candidate_id: stable request-local id
+  source_span: (start, end)
+  source_text: exact bytes/text for that span
+  source_token_ids: tuple
+  normalized_input: string
+  surface: candidate output before final case/punctuation
+  normalized_surface: string
+  generators: tuple of source identifiers
+  reasons: tuple of structured reason codes
+  edit_operations: tuple of typed operations
+  edit_distance: numeric
+  orthographic_score: numeric
+  dictionary_records: immutable tuple
+  pos_tags: immutable set
+  verb_records: immutable tuple containing lemma/root/form/tense/person/number
+  suffix_analysis: base + DO + IDO + DO_IDO + negative marker
+  noun_analysis: gender/number/collective/paucal
+  possessive_analysis: base/person/number
+  article_analysis: typed prefix/canonical prefix/tail/assimilation/governor
+  numeral_analysis: value/short-long/required noun class
+  lexical_flags: name/place/demonym/English/protected
+  quote_protected: bool
+  apertium_analyses: immutable tuple
+  hard_guard_results: tuple of pass/fail records with reason codes
+  deterministic_rules: tuple of rule ids and priorities
+  corpus_evidence: structured component record
+  bertu_evidence: structured score record
+  selection_events: immutable tuple of accepted/rejected/overwritten events
+
+CandidateRecord must not contain a mutable "winner" flag. The selector returns a
+separate SelectionDecision.
+
+ContextRecord
+-------------
+
+  request_id
+  sentence_id
+  token_index
+  source_span
+  source_token_ids
+  previous_two_selected_lexical_tokens
+  next_conservatively_normalized_token
+  previous_sentence_tail (bounded and optional)
+  sentence_boundaries
+  protected_span_boundaries
+  punctuation_before/after
+  capitalization_context
+  preceding_governing_candidate ids
+  request ambiguity count and remaining model budgets
+
+CorpusEvidence
+--------------
+
+  mode: off/shadow/active
+  available
+  fallback_reason
+  unigram
+  left_bigram
+  right_bigram
+  trigram
+  total_before_cap
+  total_after_cap
+  cache_hit
+  elapsed_ms
+
+BertuEvidence
+-------------
+
+  mode: off/shadow/active
+  model/version/device
+  available/load_status/fallback_reason
+  complete_candidate_score
+  normalized_score
+  winner/runner_up/margin
+  tokenizer span mapping
+  candidate_subword_count
+  cache_hit
+  elapsed_ms
+
+SelectionDecision
+-----------------
+
+  selected_candidate_id
+  surviving_candidate_ids
+  rejected_candidate_ids and reasons
+  deciding_stage
+  deterministic_margin/corpus_margin/BERTu_margin
+  model_would_change_baseline flags
+  later overwrite attempts (logged and rejected)
+
+RenderedToken
+-------------
+
+  SelectionDecision is the only input for lexical identity.
+  Z may realize case, punctuation, hyphen/apostrophe surface, and permitted
+  i-/j-/u- context, but may not change the selected lemma, suffix analysis, or
+  article analysis. Correction, choices, meaning, recognition, and squiggle all
+  reference the same selected candidate id.
+
+
+9. COMMIT-BY-COMMIT IMPLEMENTATION PLAN
+=======================================
+
+1. test: capture the complete Phase 0 baseline, including known failures and
+   explicit expected targets.
+
+2. fix: protect genuinely paired quote spans byte-for-byte and exclude them
+   from token correction, grammar, models, meanings, and unknown marking.
+
+3. fix: correct the suffix contract:
+   jilbsuwha -> jilbsuha and illibsuwha -> ilibbsuha. Remove the invalid
+   ilibsuha expectation and reject any non-exact generated intermediate.
+
+4. fix: make article apostrophe alternatives depend on verified inflected
+   governing VERB ta/ħa records, not surface prefixes.
+
+5. fix: keep dan/din/dawn parsing separate from literal dal/dil and preserve
+   helper return types.
+
+6. fix: preserve exact suffix analyses through verb-chain grammar and reject
+   POS-ambiguous nonverbal heads such as basta.
+
+7. fix: normalize unknown article/preposition tails structurally and preserve
+   source case.
+
+8. fix: close deterministic priority regressions:
+   l'ammont, lilek, m'huma, bix-xieraq, lil kulħadd, and exact possessives.
+
+9. fix: choose corrected noun plus numeral form jointly for ħamest bozoz.
+
+10. refactor: extend CandidateEvidence into immutable CandidateRecord adapters
+    without deleting existing generators.
+
+11. refactor: introduce immutable ContextRecord and protected-span-aware token
+    offsets.
+
+12. refactor: route Phase X/Y/W, suffix, article, number, function phrase, and
+    grammar facts into the shared candidate collection.
+
+13. refactor: add one SelectionDecision and make later grammar/Z rewrites
+    constrained, logged surface operations rather than lexical replacements.
+
+14. refactor: make correction, suggestions, meanings, recognition, and
+    squiggles consume the same selected candidate id.
+
+15. feat: add corpus off/shadow/active mode, pass real context, expose separate
+    components, margins, budgets, caches, and diagnostics.
+
+16. test: run corpus shadow evaluation over established and long-text cases;
+    keep active mode disabled.
+
+17. feat: replace BERTu whitespace alignment with source/tokenizer offset
+    alignment and complete-candidate subword scoring.
+
+18. feat: add bounded BERTu off/shadow/active production evidence with strict
+    eligibility, margins, budgets, timeouts, caches, and failure fallback.
+
+19. test: build the complete deterministic/corpus/BERTu shadow matrix,
+    including negative tests proving models are not called for deterministic
+    cases.
+
+20. perf/docs: measure local and actual Cloud Run cold start, warm latency,
+    long-text latency, resident/peak memory, cache rate, ambiguity coverage, and
+    net model benefit before recommending activation.
+
+Each commit gets focused tests first and the wider regression suite next.
+Corpus and BERTu remain off by default until shadow evidence proves a net gain.
+
+
+10. RISKS AND UNRESOLVED POLICY QUESTIONS
+=========================================
+
+1. niehdu is genuinely dictionary-valid:
+
+     nieħdu: F1 MPERF-1P, "we take/catch/overcome"
+     niehdu: F3 IMP-2P and PERF-3P, "cause to moan"
+
+   Automatically rewriting standalone niehdu to nieħdu contradicts the prompt's
+   hard rule that exact valid morphology cannot be replaced. Recommended policy:
+   preserve standalone exact niehdu, offer nieħdu with meanings, and permit a
+   context selector to choose nieħdu only with a strong margin in contexts such
+   as "konna niehdu gost". User confirmation is required if standalone frequency
+   should override valid rare morphology.
+
+2. departiment versus dipartiment:
+
+   fixednouns.dic contains dipartiment, not departiment. The current output
+   Dan id-dipartiment is dictionary-backed, while the prompt requests
+   Dan id-departiment. The demonstrative/article structure is correct either
+   way; the canonical lemma needs confirmation.
+
+3. lil kulħadd:
+
+   The prompt expects bare lil kulħadd, while current article logic produces
+   lill-kulħadd. The bounded linguistic rule proposed here treats kulħadd as a
+   pronoun/non-article target and preserves lil. This should be confirmed as the
+   general policy for lil + pronoun.
+
+4. Quote protection is an intentional behavior migration. Existing tests and
+   current UI behavior strip quote marks. The new rule protects them exactly,
+   including misspellings, and blocks article fusion across the protected span.
+
+5. Current results can depend on request-local cache order. l'ammont reaches
+   l-ammont if Phase X populates the cache first, but a clean direct path returns
+   l'ammont through an earlier POS-based guard. The authoritative selector must
+   remove this order dependence.
+
+6. The working tree contains substantial uncommitted user/Codex work and tracked
+   generated bytecode. Implementation must preserve those edits and avoid
+   accidentally committing pyc files.
+
+7. BERTu can materially increase Cloud Run startup memory and cold latency.
+   It must remain lazy and off/shadow by default until measured on the actual
+   deployment configuration.
+
+8. Full-candidate pseudo-log-likelihood is more accurate than first-subword
+   scoring but costs multiple model passes. Strict candidate/call/time budgets
+   and caching are mandatory.
+
+9. Corpus absence must remain neutral. Rare correct morphology must not lose
+   merely because it is absent from Korpus Malti.
+
+10. The source and attached reports contain visible mojibake in some paths or
+    terminal renderings. Encoding must be audited separately from linguistic
+    behavior so repair scripts do not alter valid Maltese text.
+
+
+11. PHASE 0 CONCLUSION
+======================
+
+The immediate blocker is architectural, not model quality. The required cases
+do not reach CandidateEvidence, corpus, or BERTu. Enabling either model now would
+leave most current selectors untouched and could add a further competing winner.
+
+The safe order is:
+
+  freeze corrected tests
+  -> protect source spans
+  -> repair deterministic morphology/structure
+  -> unify candidate identity and selection
+  -> pass real context to corpus in shadow mode
+  -> add bounded, offset-aligned, complete-candidate BERTu shadow evidence
+  -> measure before activation
+
+The corrected suffix requirement is final for implementation:
+
+  jilbsuwha  -> jilbsuha
+  illibsuwha -> ilibbsuha
+
+Ilibsuha must never be accepted as the target.
