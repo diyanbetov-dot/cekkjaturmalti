@@ -100,6 +100,41 @@ def test_status_reports_missing_indexes():
         assert scorer.status_reason
 
 
+def test_status_rejects_unsplit_vertical_rows():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+        with open(dir_path / "meta.json", "w", encoding="utf-8") as f:
+            json.dump({}, f)
+        with gzip.open(dir_path / "unigrams.json.gz", "wt", encoding="utf-8") as f:
+            json.dump({"kif\tADV\tkif\tnull": 4.0}, f)
+        with gzip.open(dir_path / "bigrams.json.gz", "wt", encoding="utf-8") as f:
+            json.dump({}, f)
+
+        scorer = MalteseCorpusScorer(corpus_dir=dir_path, enabled=True)
+
+        assert not scorer.is_available()
+        assert scorer.status == "CORPUS_SCORER_MALFORMED_INDEX"
+
+
+def test_multi_token_surface_scoring_uses_internal_article_bigram():
+    with tempfile.TemporaryDirectory() as tmpdir:
+        dir_path = Path(tmpdir)
+        with open(dir_path / "meta.json", "w", encoding="utf-8") as f:
+            json.dump({}, f)
+        with gzip.open(dir_path / "unigrams.json.gz", "wt", encoding="utf-8") as f:
+            json.dump({"l-": 8.0, "iktar": 7.0, "lumi": 2.0}, f)
+        with gzip.open(dir_path / "bigrams.json.gz", "wt", encoding="utf-8") as f:
+            json.dump({"l-": {"iktar": 6.0}}, f)
+
+        scorer = MalteseCorpusScorer(corpus_dir=dir_path, enabled=True)
+        article = scorer.score_candidate_components("l-iktar")
+        unrelated = scorer.score_candidate_components("lumi")
+
+        assert article["tokens"] == ["l-", "iktar"]
+        assert article["internal_bigram"] > 0.0
+        assert article["total_before_cap"] > unrelated["total_before_cap"]
+
+
 def test_candidate_evidence_pool_annotation():
     with tempfile.TemporaryDirectory() as tmpdir:
         dir_path = Path(tmpdir)
@@ -126,6 +161,12 @@ def test_parse_vertical_row_handles_maltese_unicode_and_whitespace():
     parsed = parse_vertical_row("  ħobż | NOUN | ħobż | ħobż  ")
     assert parsed is not None
     assert parsed[0] == "ħobż"
+
+
+def test_parse_vertical_row_handles_mlrs_tab_separated_rows():
+    parsed = parse_vertical_row("kif\tADV\tkif\tnull")
+    assert parsed is not None
+    assert parsed == ("kif", "kif")
 
 
 def test_parse_vertical_row_rejects_malformed_and_noise_rows():

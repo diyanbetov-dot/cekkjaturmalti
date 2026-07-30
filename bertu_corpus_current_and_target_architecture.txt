@@ -1,0 +1,1704 @@
+BERTU AND KORPUS MALTI: CURRENT IMPLEMENTATION, INTENDED IMPLEMENTATION,
+KNOWN LIMITATIONS, EXAMPLES, AND OUTSTANDING WORK
+===============================================================================
+
+Purpose
+-------
+
+This document records the complete current understanding of the BERTu and
+Korpus Malti integrations in the Maltese spellchecker. It distinguishes:
+
+1. Code that exists in the repository.
+2. Code that is instantiated at application startup.
+3. Code that is actually called during a live correction.
+4. Code that can influence a correction or suggestion today.
+5. Code that exists only in tests or offline evaluation scripts.
+6. The intended final architecture.
+7. The exact examples already discussed and what each model should or should
+   not do for them.
+8. The fourteen previously identified outstanding changes, reviewed against
+   the current implementation.
+
+The most important finding is this:
+
+- The corpus scorer exists and has real indexes, but corpus scoring is disabled
+  by default. Even when enabled, the production call currently supplies no
+  neighboring-word context, so only unigram frequency can normally contribute.
+- A BERTu reranker object is created, but no production correction path calls
+  its score_candidates() or rerank() methods. BERTu therefore does not currently
+  affect site output.
+- The corpus and BERTu tools cannot repair a candidate that the orthographic,
+  dictionary, suffix, article, preposition, or morphological layers never
+  generate. Their intended role is to rank or validate already plausible
+  candidates, not invent arbitrary repairs.
+
+
+PART I - CURRENT KORPUS MALTI IMPLEMENTATION
+===============================================================================
+
+1. Files and configuration
+--------------------------
+
+The corpus integration is primarily implemented in:
+
+- Essentials/helpers/corpus_scorer.py
+- Essentials/helpers/candidate_evidence.py
+- Essentials/core/spellchecker.py
+- Essentials/app.py
+- Essentials/corpus/meta.json
+- Essentials/corpus/unigrams.json.gz
+- Essentials/corpus/bigrams.json.gz
+- Essentials/corpus/trigrams.json.gz
+
+The runtime configuration is defined in Essentials/core/spellchecker.py:
+
+- SPELLCHECK_CORPUS_SCORING
+  Default: false
+  Meaning: the scorer does not load or affect candidates unless explicitly
+  enabled in the environment.
+
+- SPELLCHECK_CORPUS_SHADOW
+  Default: false
+  Meaning: if corpus scoring is enabled and shadow mode is true, scores are
+  calculated and logged but score_candidate() deliberately returns 0.0.
+
+- SPELLCHECK_CORPUS_UNIGRAM
+  Default: true
+
+- SPELLCHECK_CORPUS_BIGRAM
+  Default: true
+
+- SPELLCHECK_CORPUS_TRIGRAM
+  Default: false
+
+- SPELLCHECK_CORPUS_MAX_SCORE
+  Default: 0.25
+  Meaning: all corpus evidence for a candidate is capped at a 0.25 confidence
+  contribution.
+
+- SPELLCHECK_CORPUS_BERTU_MAX
+  Default: 8
+  Current status: this value exists, but it is not presently used by a live
+  corpus-to-BERTu production selection path.
+
+At application startup, Essentials/app.py creates MalteseCorpusScorer with
+these configuration values and assigns it to spellchecker.corpus_scorer.
+
+With the default settings, its status is:
+
+    CORPUS_SCORER_DISABLED_BY_CONFIG
+
+Therefore, merely having the corpus files in the repository does not mean the
+live application is using them.
+
+
+2. Corpus data currently present
+--------------------------------
+
+The checked-in metadata describes:
+
+- Corpus: Korpus Malti
+- Source: MLRS, University of Malta
+- Corpus version: 4.2
+- Local source: an "All.zip" archive
+- Preprocessing version: 1.1.0
+- Minimum frequency: 2
+- Total tokens: 1,412,232
+- Total sentences: 64,001
+- Vocabulary size: 38,843
+- Bigram count: 138,805
+- Trigram count: 123,148
+- Valid rows: 1,412,232
+- Malformed rows skipped: 32,965
+
+The compressed indexes are approximately:
+
+- unigrams.json.gz: 346 KB
+- bigrams.json.gz: 1.07 MB
+- trigrams.json.gz: 1.27 MB
+
+These files are small compared with a transformer model and should not, by
+themselves, cause the memory behavior associated with loading BERTu.
+
+
+3. Loading and failure behavior
+-------------------------------
+
+MalteseCorpusScorer loads:
+
+- meta.json
+- unigrams.json.gz
+- bigrams.json.gz
+- trigrams.json.gz only when trigram scoring is enabled
+
+Meta, unigram, and bigram files are treated as required when the scorer is
+enabled. If they are missing or invalid:
+
+- the scorer marks itself unavailable;
+- a warning is logged;
+- score_candidate() returns 0.0;
+- the spellchecker continues without corpus evidence.
+
+This fallback behavior is correct and should be retained. Corpus availability
+must never decide whether the spellchecker itself can start.
+
+
+4. Current corpus scoring formula
+---------------------------------
+
+MalteseCorpusScorer.score_candidate() accepts:
+
+- candidate
+- prev_word
+- next_word
+- prev_prev_word
+
+Its current score is a non-negative bonus. Corpus absence is neutral and never
+a penalty.
+
+The bonus components are:
+
+1. Candidate unigram frequency:
+   Up to 40% of SPELLCHECK_CORPUS_MAX_SCORE.
+
+2. Left bigram prev_word -> candidate:
+   Up to 35% of SPELLCHECK_CORPUS_MAX_SCORE.
+
+3. Right bigram candidate -> next_word:
+   Up to 25% of SPELLCHECK_CORPUS_MAX_SCORE.
+
+4. Left trigram prev_prev_word + prev_word -> candidate:
+   Up to 20% of SPELLCHECK_CORPUS_MAX_SCORE.
+
+All components are summed and capped at SPELLCHECK_CORPUS_MAX_SCORE, currently
+0.25. The relative frequency values are normalized against the maximum unigram
+log frequency in the index.
+
+If shadow mode is active, the calculated value is logged and 0.0 is returned.
+
+Important consequences:
+
+- A corpus-attested candidate can receive a bonus.
+- A candidate absent from the corpus receives no bonus but must not be rejected.
+- A rare valid dictionary word must not lose merely because a more frequent
+  candidate exists.
+- The scorer provides evidence, not grammatical authorization.
+
+
+5. CandidateEvidence integration
+--------------------------------
+
+CandidateEvidence stores:
+
+- word
+- sources
+- candidate_types
+- reasons
+- confidence
+- Apertium availability and analyses
+- corpus_score
+
+CandidateEvidencePool can gather candidates from multiple sources. The current
+production pool can include:
+
+- SymSpell candidates
+- legacy consonant/vowel-anchor candidates
+- lexicalized-form candidates
+- Maltese shortcut-letter repairs
+- combined voicing and silent-letter repairs
+- bounded basic repairs
+- VhV/VgħV restoration
+- short guttural-vowel restoration
+- direct-object h-vowel restoration
+- missing pronominal h restoration
+- direct-object guttural restoration
+- hollow-verb ju suffix repair
+- suffix-generator corrections
+- suffix-generator suggestions
+- Apertium analyses
+- corpus evidence
+
+CandidateEvidence.add_corpus_evidence() does the following:
+
+- records the largest corpus bonus in corpus_score;
+- adds "corpus" to the candidate sources;
+- adds a corpus-frequency reason;
+- adds the corpus bonus to the candidate's existing confidence, capped at 1.0.
+
+The ranking key later subtracts a confidence-related bonus from the ordinary
+candidate score:
+
+    adjusted_score =
+        edit/scoring result
+        - min(0.12, confidence * 0.08 + source_bonus)
+
+Corpus score is not independently present in this rank key. It changes ranking
+only by increasing CandidateEvidence.confidence. With the current maximum corpus
+bonus of 0.25, its direct numerical effect on adjusted_score is at most about
+0.02 before confidence caps and interactions. That is intentionally bounded,
+but it also means the corpus cannot currently perform a strong contextual
+selection even if context were supplied.
+
+
+6. Exact live production call path
+----------------------------------
+
+The production candidate pool is built by:
+
+    UniversalMalteseSpellchecker._build_candidate_evidence_pool()
+
+Near the end of that method, the current code calls:
+
+    pool.annotate_corpus(corpus_scorer)
+
+It does not supply:
+
+- prev_word
+- next_word
+- prev_prev_word
+
+CandidateEvidencePool.annotate_corpus() supports all three parameters, but the
+production caller omits them.
+
+Therefore:
+
+- unigram evidence can contribute if corpus scoring is enabled;
+- left bigram evidence cannot contribute;
+- right bigram evidence cannot contribute;
+- trigram evidence cannot contribute;
+- the corpus cannot presently distinguish two candidates using the sentence
+  surrounding the word in the live correction path.
+
+The pool is then scored and sorted in the late suggest() path. However, suggest()
+contains several early returns:
+
+- exact suffix matches may return early;
+- a generated suffix correction may return early;
+- an already changed correction may return early;
+- a changed correction found in the dictionary may return early.
+
+The evidence pool, including corpus annotation, is reached only after these
+earlier correction and suffix paths do not finish the operation.
+
+This means corpus evidence currently affects, at most, the late fuzzy suggestion
+ranking. It is not a universal final selector for:
+
+- the main corrected word;
+- article/preposition normalization;
+- suffix winner selection;
+- sentence-level grammar rewrites;
+- capitalization;
+- punctuation;
+- the output's recognized/unrecognized state.
+
+This is a major reason why enabling the current corpus flag cannot solve the
+context problems discussed below.
+
+
+7. Current corpus tests versus production behavior
+--------------------------------------------------
+
+The corpus unit tests correctly verify:
+
+- missing indexes fail gracefully;
+- an attested unigram receives a bonus;
+- "jien" -> "mort" bigram evidence gives mort a larger bonus than mrot;
+- unattested text receives 0.0;
+- shadow mode returns 0.0;
+- CandidateEvidencePool can accept prev_word context;
+- corpus archive parsing preserves Maltese Unicode;
+- sentence boundaries do not create false cross-sentence bigrams.
+
+The integration tests also directly call score_candidate() with neighboring
+words, for example:
+
+- "jien" + mort versus mrot;
+- "mort" + il-baħar;
+- bilanċ versus bilanc.
+
+Those tests demonstrate that the scorer class is capable of contextual scoring.
+They do not prove that the live spellchecker passes context into it.
+
+The offline evaluation script Other/tools/eval_corpus_integration.py:
+
+- gets suggestions from the normal spellchecker;
+- manually extracts previous and next whitespace tokens;
+- directly calls scorer.score_candidate() with that context;
+- sorts candidates by corpus bonus.
+
+That evaluation logic is not the live application logic. It is an experiment.
+It also ranks only by corpus bonus in the evaluation loop, rather than using the
+same authoritative ranking formula as production.
+
+
+PART II - CURRENT BERTU IMPLEMENTATION
+===============================================================================
+
+8. BERTu object creation
+------------------------
+
+Essentials/app.py imports BertuReranker, constructs it, and assigns:
+
+    spellchecker.bertu_reranker = BertuReranker()
+
+The object is lazy. Constructing it does not load PyTorch, Transformers, the
+tokenizer, or the model weights.
+
+The comment in app.py says that it is from the experiment/bertu-reranker branch.
+
+There is currently no dedicated environment activation flag equivalent to:
+
+    SPELLCHECK_ENABLE_BERTU
+
+There is also no production timeout, candidate threshold, confidence-margin
+setting, or request-level BERTu budget.
+
+
+9. Model loading behavior
+-------------------------
+
+The configured model is:
+
+    MLRS/BERTu
+
+The model and tokenizer are loaded on the first call to is_available() or
+score_candidates().
+
+Loading imports:
+
+- torch
+- transformers.AutoTokenizer
+- transformers.AutoModelForMaskedLM
+
+The model is put into evaluation mode. If import, download, model loading,
+memory allocation, or another operation fails:
+
+- a warning is logged;
+- the reranker marks itself unavailable;
+- scoring returns an empty result;
+- the normal evidence ranking remains in place.
+
+This fallback concept is correct. The risk is that the first real request that
+triggers the lazy load can pay the full cold-load cost and memory spike.
+
+
+10. Current BERTu scoring algorithm
+-----------------------------------
+
+BertuReranker.score_candidates() accepts:
+
+- sentence
+- token_index
+- candidates
+- optional pre-tokenized tokens
+
+If tokens are omitted, it uses:
+
+    sentence.split()
+
+This is not the spellchecker's real tokenization. It can misalign:
+
+- punctuation;
+- apostrophes;
+- hyphens;
+- contractions;
+- emojis;
+- article/preposition forms;
+- sentence boundaries;
+- multi-token candidates.
+
+Candidates are processed in batches of eight. The sequence is truncated to a
+maximum of 512 model tokens.
+
+For a candidate position, the implementation:
+
+1. Replaces the corresponding whitespace token with the BERTu mask token.
+2. Tokenizes the masked sentence.
+3. Finds the first mask position.
+4. Runs the masked-language model once.
+5. Tokenizes each candidate separately.
+6. Scores only the candidate's first subword token at the mask position.
+
+The source code explicitly describes this as an approximation.
+
+Consequences:
+
+- A one-subword candidate may receive a useful score.
+- A multi-subword candidate or candidate containing punctuation, an apostrophe,
+  or a hyphen is not fully scored.
+- Comparing l-iktar, 'l-iktar, 'l ommi, and 'l-omm by only the first subword is
+  not reliable.
+- Candidate phrases cannot be faithfully compared.
+- The model is not evaluating the probability of the complete substituted
+  sentence.
+- A candidate whose first subword is plausible but whose rest is impossible can
+  receive an undeserved score.
+
+The rerank() method sorts candidates by these scores and falls back to the
+existing order when scoring fails.
+
+
+11. Exact live production status of BERTu
+-----------------------------------------
+
+The repository contains:
+
+- BertuReranker.score_candidates()
+- BertuReranker.rerank()
+- an offline BERTu evaluation script
+- app startup construction of the reranker
+
+There is no production caller of score_candidates() or rerank() in the
+spellchecker's correction, suggestion, phrase, article, grammar, or final
+selection flow.
+
+Therefore, today:
+
+- BERTu does not change the corrected text.
+- BERTu does not reorder suggestions.
+- BERTu does not choose kif over kief.
+- BERTu does not choose agħmel over għamel.
+- BERTu does not resolve cross-sentence alaqli.
+- BERTu does not resolve l-, 'l, and 'l- structures.
+- BERTu does not validate noun, verb, adjective, or suffix morphology.
+- BERTu does not cause current site latency unless an offline evaluation or
+  another external caller explicitly invokes it.
+
+The existence of spellchecker.bertu_reranker must not be reported as a completed
+integration.
+
+
+12. BERTu evaluation code
+-------------------------
+
+Other/tools/eval_bertu_reranker.py is an offline evaluator. It:
+
+- calls spellchecker.suggest() for candidates;
+- asks the reranker to reorder them;
+- compares the first baseline and first BERTu candidate.
+
+Its example cases include:
+
+- Werrinha -> Werriena
+- Malta preserved in "minn barra minn Malta"
+- bħali preserved rather than becoming bħall-i
+- Irriżulta
+- kopja
+- jixtri preserved
+- Mhux preserved
+- għamilna
+- jarafhom
+- kellimhom preserved
+
+This script is useful as an experiment, but it has limitations:
+
+- It tests only candidates already returned by suggest().
+- It cannot rescue an expected form absent from the candidate list.
+- It uses whitespace token indexes.
+- It uses the first-subword approximation.
+- It is not invoked by the website.
+- Its small example list is not a sufficient regression suite.
+
+
+PART III - WHAT CORPUS AND BERTU SHOULD DO
+===============================================================================
+
+13. Governing principle
+-----------------------
+
+The intended architecture is:
+
+    generate candidates
+        -> attach evidence
+        -> reject linguistically impossible candidates
+        -> apply structural Maltese rules
+        -> apply corpus evidence
+        -> apply BERTu only to bounded true ambiguities
+        -> choose once
+        -> render correction, suggestions, meanings, and recognition state
+
+Neither corpus nor BERTu should directly rewrite raw text.
+
+They should never be used to compensate for a missing deterministic repair such
+as:
+
+- għ/gh restoration;
+- Maltese diacritics;
+- a known suffix boundary;
+- -uwha -> -uha;
+- article assimilation;
+- a dictionary exact match;
+- a required punctuation rule.
+
+The desired candidate must be generated before either model can rank it.
+
+
+14. Candidate Evidence Object
+-----------------------------
+
+Every possible correction should have a single shared record containing at
+least:
+
+- surface candidate;
+- normalized candidate;
+- source or sources;
+- confidence;
+- candidate type;
+- reason;
+- edit distance and orthographic score;
+- dictionary record or records;
+- part of speech;
+- verb form, person, number, tense, root, and derived form where available;
+- direct-object and indirect-object suffix analysis;
+- noun number, gender, collectiveness, paucal status, and possessive analysis;
+- article/preposition parse;
+- name/place/demonym/English status;
+- Apertium analyses where available;
+- corpus component scores;
+- BERTu score where requested;
+- hard-guard acceptance or rejection reason;
+- final-selector decision and overwrite history.
+
+Correction and suggestion rendering must use the same records. A word should
+not be corrected by one path and then independently rediscovered or rejected by
+another path for the popover.
+
+
+15. Candidate generation must be separate from choosing
+-------------------------------------------------------
+
+Candidate generators should only propose candidates and evidence. They should
+not silently choose the final output.
+
+Generators include:
+
+- exact dictionary lookup;
+- suffix generator;
+- Maltese shortcut repair;
+- għ/h/q insertion or removal;
+- doubled/singled consonants;
+- bounded soft/hard consonant changes;
+- VhV/VgħV restoration;
+- i-/j-/u- surface candidates;
+- article/preposition parsing;
+- names and places;
+- Maltese-usage/English suggestions;
+- SymSpell;
+- legacy anchor search.
+
+One final selector should see the complete valid set. This prevents the current
+problem in which an early exact, suffix, article, grammar, or manual branch
+chooses too early and later corpus/BERTu evidence never sees the ambiguity.
+
+
+16. Hard linguistic guards before corpus or BERTu
+-------------------------------------------------
+
+Hard guards should include:
+
+- Do not rewrite an exact valid word without a strong structural or contextual
+  cue.
+- Do not accept a suffix parse unless a valid verb or noun analysis supports it.
+- Do not create a direct-object suffix on a form that disallows it.
+- Preserve consonant anchors unless a specifically licensed hard/soft change
+  applies.
+- English words are accepted only when they exactly match the approved English
+  inventory or protected phrase behavior.
+- Names and protected names follow their dedicated capitalization and
+  no-correction rules.
+- ma before a noun cannot be the negative particle; ma' or m' is needed.
+- Article or preposition alternatives blocked by syntax must not be sent to
+  BERTu as if equally grammatical.
+- Corpus frequency cannot turn a valid plural into a more frequent singular.
+- Corpus absence cannot reject a rare valid form.
+- BERTu cannot authorize a morphologically impossible candidate.
+
+
+17. Intended corpus role
+------------------------
+
+The corpus should be a lightweight evidence layer after hard validation.
+
+The live selector should pass:
+
+- the corrected previous two tokens;
+- the current candidate;
+- the next corrected or conservatively normalized token;
+- sentence-boundary information;
+- optionally a bounded previous-sentence tail for discourse continuations.
+
+Corpus diagnostics should retain separate values for:
+
+- unigram;
+- left bigram;
+- right bigram;
+- trigram;
+- total bounded bonus.
+
+The corpus should initially run in shadow mode over a fixed regression corpus.
+After measuring changes, it can be enabled with:
+
+- a low bounded maximum contribution;
+- minimum evidence thresholds;
+- a minimum margin between the best and second candidate;
+- no effect when evidence is absent;
+- no override of exact morphology or hard structural rules.
+
+The scorer should rank only already valid candidates. It should not receive a
+large fuzzy list full of morphologically impossible words, because frequency can
+otherwise reward a common but wrong word.
+
+
+18. Intended BERTu role
+-----------------------
+
+BERTu should be a final contextual tie-breaker, not a spellchecker.
+
+It should run only when:
+
+- at least two candidates survive all hard guards;
+- the candidates represent a real semantic or syntactic ambiguity;
+- deterministic rules and corpus evidence do not produce a sufficient margin;
+- the candidate count is small and bounded, normally two to four and never an
+  uncontrolled fuzzy pool;
+- the request has remaining latency and memory budget.
+
+BERTu should not run when:
+
+- there is one valid candidate;
+- an exact dictionary form is unambiguous;
+- a deterministic suffix repair resolves the word;
+- an article/preposition rule has only one grammatical output;
+- the word is protected English or a protected name;
+- the candidate difference is merely formatting or punctuation handled by Z.
+
+The final implementation should compare complete candidate sentences or bounded
+windows, not only the first subword at one mask. Suitable approaches include:
+
+- pseudo-log-likelihood over every subword of the candidate;
+- scoring the complete substituted sequence;
+- masking each candidate subword in turn;
+- a sequence-classification reranker trained for this task, if one becomes
+  available.
+
+It should use the spellchecker's tokenization and token-to-model offset mapping,
+not sentence.split().
+
+It should have:
+
+- an explicit environment enable switch;
+- a separate shadow switch;
+- maximum candidates;
+- maximum context window;
+- request timeout;
+- maximum calls per request;
+- confidence/margin threshold;
+- result cache;
+- model-load status diagnostics;
+- graceful fallback;
+- memory and latency metrics.
+
+On Cloud Run, model loading must be measured for:
+
+- container cold start;
+- model download or local model availability;
+- resident memory after load;
+- peak memory during inference;
+- first ambiguity latency;
+- repeated ambiguity latency;
+- long-text request latency.
+
+Lazy loading avoids startup cost only until the first BERTu request. It can
+instead shift a large load and memory spike onto a user request. A warm instance
+or startup model load may be preferable only if the service memory allocation
+can support it. The correct deployment choice must be benchmarked.
+
+
+19. Relationship with SymSpell, Apertium, and the context analyzer
+-----------------------------------------------------------------
+
+SymSpell:
+
+- should quickly generate nearby lexical candidates;
+- should replace expensive broad lookup where its quality is sufficient;
+- must not make the final choice;
+- candidates still require Maltese hard guards and morphology.
+
+Apertium:
+
+- should validate whether a candidate has a plausible analysis;
+- can help confirm POS and morphological structure;
+- can reject impossible noun/adjective/verb contexts;
+- can help with ta/ta'/tal-, ma/ma', noun-adjective agreement, and verb
+  agreement;
+- should not generate random replacements or override local dictionary evidence.
+
+Sentence/context analyzer:
+
+- should identify sentence structure, POS, dependencies, agreement, and
+  cross-token roles where reliable;
+- should provide structural facts to the selector;
+- should not independently rewrite the output.
+
+Corpus:
+
+- provides observed-frequency evidence.
+
+BERTu:
+
+- provides contextual plausibility among already valid candidates.
+
+These tools are complementary. None replaces the Maltese-specific morphology,
+suffix generator, article/preposition parser, or dictionary.
+
+
+PART IV - COMPLETE EXAMPLES AND EXPECTED MODEL ROLES
+===============================================================================
+
+20. jilbsuwha, illibsuwha, and suffix normalization
+---------------------------------------------------
+
+The clear input:
+
+    jilbsuwha
+
+must become:
+
+    jilbsuha
+
+This is a deterministic -uwha -> -uha suffix repair. It does not require corpus
+or BERTu.
+
+The previously supplied noisy form:
+
+    illibsuwha
+
+must reach:
+
+    ilibbsuha
+
+from:
+
+    ilibbsu + -ha
+
+The earlier expectation "ilibsuha" was a user-confirmed error. That form does
+not exist. The repair must retain the doubled bb belonging to the valid base
+ilibbsu. A generic -uwha -> -uha operation may normalize the suffix boundary,
+but it must not collapse the lexical stem.
+
+Because the noisy input itself does not cleanly contain ilibbsu, this example is
+not only a suffix rewrite. Candidate generation must reconstruct and validate
+the complete paradigm form while allowing the already licensed bounded
+combination of consonant singling/doubling and suffix repair:
+
+    illibsuwha -> ilibbsu + -ha -> ilibbsuha
+
+The full validated candidate, not an intermediate surface fragment, is what the
+selector must rank.
+
+The separate clear form remains:
+
+    jilbsuwha -> jilbsuha
+
+The important additional correction is that "jlibsuha" must not be treated as
+a valid form merely because it sounds like an i-/j- transformation.
+
+The correct pipeline is:
+
+1. Recognize the suffix boundary.
+2. Normalize -uwha to -uha only at the validated suffix boundary.
+3. Preserve the complete valid stem, including lexical doubled consonants:
+   ilibbsu + -ha -> ilibbsuha.
+4. Apply i-/j- only if the resulting form exists and the grammar permits it.
+5. Do not let corpus or BERTu authorize an invalid generated surface.
+
+
+21. mur amel
+------------
+
+Input:
+
+    mur amel
+
+Expected:
+
+    Mur agħmel.
+
+Not:
+
+    Mur għamel.
+
+Relevant analyses:
+
+- mur: imperative 2S
+- agħmel: imperative 2S
+- għamel: perfect 3SM in the discussed contrast
+
+This should be solved mostly before BERTu:
+
+1. Generate both orthographically plausible candidates.
+2. Morphology identifies the preceding verb as an imperative.
+3. Verb-chain grammar prefers or requires a following imperative in this
+   construction.
+4. Corpus evidence for "mur agħmel" can reinforce the choice.
+5. BERTu is only needed if more than one valid imperative interpretation remains.
+
+No manual phrase replacement "mur amel -> mur agħmel" should be required.
+
+
+22. Cross-sentence alaqli
+-------------------------
+
+Input:
+
+    mort ghand John ilbierah. Imma mbaghad alaqli l bieb.
+
+Expected:
+
+    Mort għand John ilbieraħ. Imma mbagħad għalaqli l-bieb.
+
+Plausible local candidates can include:
+
+- agħlaqli: imperative 2S
+- għalaqli: perfect 3SM
+
+The second sentence alone begins with a discourse continuation:
+
+    Imma mbagħad ...
+
+The preceding sentence introduces John and a past event. That discourse context
+makes the past 3SM candidate more plausible.
+
+Recommended handling:
+
+- morphology generates and validates both forms;
+- local corpus ngrams contribute where available;
+- BERTu sees a bounded window containing the end of the previous sentence and
+  the current sentence;
+- BERTu chooses only if its margin is sufficiently strong;
+- if the context remains uncertain, preserve the safest candidate and expose
+  the other as a suggestion.
+
+The current corpus call cannot solve this because it receives no context. The
+current BERTu object cannot solve it because it is not called. The present BERTu
+API could receive a 512-token string, but its whitespace token alignment and
+first-subword approximation still need correction.
+
+
+23. The l-, 'l, 'l-, and 'l-iktar paradigm
+------------------------------------------
+
+The four exact examples and intended forms are:
+
+1. Input:
+
+       Int liktar wiehed ikrah
+
+   Expected relevant form:
+
+       Int l-iktar wieħed ikrah.
+
+2. Input:
+
+       mur tieh liktar wiehed ta lil hemm
+
+   Expected relevant form:
+
+       'l-iktar
+
+   The surrounding phrase may contain unrelated errors, so the selector should
+   not overcorrect "tieh" without evidence. The point of the example is that the
+   verb-governed form is 'l-iktar rather than ordinary l-iktar.
+
+3. Input:
+
+       tkellimx lommi
+
+   Expected:
+
+       Tkellimx 'l ommi.
+
+4. Input:
+
+       cempel lomm ta wiehed mit tfal
+
+   Expected:
+
+       Ċempel 'l-omm ta' wieħed mit-tfal.
+
+The distinctions are:
+
+- l-iktar:
+  ordinary definite superlative.
+
+- 'l-iktar:
+  verb-governed object or directional superlative.
+
+- 'l ommi:
+  verb-governed possessive noun; the possessive suffix already gives the noun
+  its definiteness, so the article hyphen behavior differs.
+
+- 'l-omm:
+  verb-governed definite common noun.
+
+This cannot be reliably solved by unigram frequency. Apostrophe and hyphen
+variants may also be sparse or inconsistently tokenized in a corpus.
+
+The intended hierarchy is:
+
+1. Parse noun/adjective/superlative and possessive morphology.
+2. Determine whether the preceding verb governs an object/directional 'l.
+3. Construct only the grammatically valid surface candidates.
+4. Use corpus evidence among valid alternatives.
+5. Use BERTu as a bounded tie-breaker if syntax remains ambiguous.
+
+
+24. kif versus kief
+-------------------
+
+The corpus should know that kif is generally much more frequent than kief, but
+frequency alone is not enough because kief is a real form.
+
+Expected policy:
+
+- In an ordinary function-word context, choose kif and avoid an unnecessary
+  kief suggestion.
+- In a valid verbal context for kief, preserve or choose kief.
+- If the syntax genuinely remains ambiguous, preserve the closest input and
+  show both valid meanings.
+
+Useful corpus contexts include:
+
+- kif inti
+- kif jista'
+- ma nafx kif
+
+The unigram gives a prior. Bigrams and trigrams provide local context. BERTu can
+then compare the complete sentence when both survive morphology.
+
+Current behavior cannot obtain this result reliably because:
+
+- corpus scoring is disabled by default;
+- production corpus annotation has no neighboring words;
+- BERTu is not called;
+- the final selection still occurs in multiple paths.
+
+
+25. ta/ta', min/minn, and article/preposition ambiguity
+------------------------------------------------------
+
+The same evidence hierarchy applies to:
+
+- ta versus ta'
+- ta' versus tal-
+- min versus minn
+- ma versus ma'
+- l/il versus 'l
+- għal versus għall-
+- bħal versus bħall-
+
+Corpus and BERTu should not be shown every mechanically possible spelling.
+Structural parsing must first remove impossible candidates.
+
+Examples already established:
+
+- ta should not be selected before a noun where only ta' is grammatical.
+- ta can remain ambiguous in a context such as "ta mbagħad", where ta and
+  ta' mbagħad may represent different intended readings.
+- min must not appear before fejn. "minn fejn" is the valid structural route.
+- ma before a noun should not be suggested as the negative particle.
+- article/preposition normalization should still work when the following word is
+  unrecognized, but unknown-word status should prevent aggressive semantic
+  guessing.
+
+Corpus can rank observed valid constructions. BERTu can resolve some true
+contextual ambiguity. Neither should receive candidates that the structural
+grammar already proves impossible.
+
+
+26. Other examples from the BERTu/corpus evaluation work
+--------------------------------------------------------
+
+The repository's evaluation scripts include:
+
+- Werrinha -> Werriena
+- Malta preserved in "minn barra minn Malta"
+- bħali preserved rather than bħall-i
+- Irrizulta -> Irriżulta
+- koppja -> kopja in its intended context
+- jixtri preserved
+- Mhux preserved
+- ghamilna -> għamilna
+- jafrhom -> jarafhom
+- kellimhom preserved
+- mrot -> mort in "Jien mrot..."
+- jiktep -> jikteb
+- bilanc -> bilanċ
+- partner preserved as accepted English
+- hdejn -> ħdejn
+- hadd -> ħadd
+- Ghidtilha -> Għidtilha
+
+These remain useful regression cases, but they must be moved into an
+authoritative harness that tests:
+
+- generated candidates;
+- rejected candidates and reasons;
+- final correction;
+- displayed suggestions;
+- meanings;
+- recognized/unrecognized state;
+- corpus component scores;
+- BERTu decision and margin;
+- runtime and memory.
+
+
+PART V - WHY THE CURRENT TOOLS DO NOT YET DELIVER THE EXPECTED RESULT
+===============================================================================
+
+27. Corpus limitations today
+----------------------------
+
+1. It is disabled by default.
+2. The production call passes no sentence context.
+3. Bigram and trigram indexes therefore do not help live output.
+4. It reaches only a late suggestion pool.
+5. Several exact/generated paths return before the pool is built.
+6. It does not participate in article/preposition finalization.
+7. It does not participate in sentence grammar selection.
+8. It does not participate in cross-sentence selection.
+9. Its score affects ranking only indirectly through confidence.
+10. Diagnostics do not expose separate unigram/bigram/trigram contributions.
+11. Evaluation scripts demonstrate capability by calling the scorer directly,
+    but that is not the production path.
+12. A corpus subset can contain noisy, sparse, or inconsistent apostrophe and
+    hyphen tokenization.
+13. Frequency cannot substitute for morphological correctness.
+
+
+28. BERTu limitations today
+---------------------------
+
+1. It has no production caller.
+2. It has no explicit enable/shadow configuration.
+3. First use loads a large model on the request path.
+4. No timeout or request budget exists.
+5. It uses whitespace tokenization.
+6. Token indexes may not align with the spellchecker's tokens.
+7. It scores only the first subword of each candidate.
+8. It does not faithfully score multi-subword or punctuation-bearing candidates.
+9. It does not score complete candidate phrases.
+10. It cannot generate a missing candidate.
+11. It cannot validate suffix morphology by itself.
+12. It has no confidence-margin policy for changing output.
+13. It has no live diagnostics showing why it selected a candidate.
+14. The offline test set is too small to establish net quality.
+15. Cloud Run memory, cold-start, and latency effects have not been established
+    for live bounded use.
+
+
+29. Overlapping selector problem
+--------------------------------
+
+The broader spellchecker still contains multiple places that can choose or
+overwrite text:
+
+- exact correction paths;
+- suffix correction paths;
+- phrase/article/preposition rules;
+- grammar rewrites;
+- manual/special repairs;
+- late suggestions;
+- Z-stage surface normalization;
+- recognition and popover rendering.
+
+As long as these layers choose independently:
+
+- corpus/BERTu may never see the candidates;
+- a correct early result can be overwritten;
+- correction and suggestions can disagree;
+- a valid generated form can still receive a red squiggle;
+- bulk mode and single-word mode can behave differently;
+- adding more model evidence will not fix the root architecture.
+
+The architecture should be refined rather than abandoned:
+
+- preserve the useful X/Y/Z/W responsibilities;
+- make X/Y/W produce evidence rather than final text;
+- make Z the one surface finalizer;
+- add one authoritative selection step before Z;
+- prohibit later stages from replacing the selected lexical/morphological
+  identity except through explicit, logged structural rules.
+
+
+PART VI - REQUIRED VALIDATION AND DEPLOYMENT PROCESS
+===============================================================================
+
+30. Shadow evaluation
+---------------------
+
+Corpus and BERTu should each have independent configurations:
+
+- off
+- shadow
+- active
+
+For every ambiguous token, shadow output should record:
+
+- baseline winner;
+- all candidates after hard guards;
+- corpus component scores;
+- corpus winner and margin;
+- BERTu complete-candidate scores;
+- BERTu winner and margin;
+- expected regression answer, where available;
+- whether each tool would fix, preserve, or break the baseline;
+- elapsed milliseconds;
+- memory before and after;
+- whether fallback occurred.
+
+No model should become active merely because several hand-picked examples
+improve.
+
+
+31. Regression matrix
+---------------------
+
+The fixed tests must cover:
+
+- single words;
+- short phrases;
+- complete sentences;
+- multiple paragraphs;
+- bulk mode;
+- sentence-initial capitalization;
+- quotes;
+- names and places;
+- unknown following words after articles/prepositions;
+- generated verb suffixes;
+- direct and indirect objects;
+- i-/j-/u- forms;
+- l-/il-/'l paradigms;
+- number+noun grammar;
+- English exact acceptance;
+- suggestion meanings;
+- red-squiggle state;
+- punctuation insertion;
+- long-text runtime.
+
+Each test should verify exact output and, separately:
+
+- allowed suggestions;
+- forbidden suggestions;
+- meanings;
+- recognized words;
+- unrecognized words.
+
+
+32. Quote-policy conflict to resolve
+------------------------------------
+
+An external diagnostic recommended preserving paired quoted text byte-for-byte.
+Earlier explicit project behavior required:
+
+- stripping inverted commas used to mark English;
+- preserving or correcting the interior according to the English rules;
+- preserving a valid correction as a blue suggestion where relevant.
+
+This is a product-policy conflict, not a corpus/BERTu question. It must be
+resolved explicitly. Whichever policy is chosen, quoted spans should be marked
+before candidate generation so corpus and BERTu do not accidentally reinterpret
+protected text.
+
+
+33. Explicitly excluded user error
+----------------------------------
+
+The form:
+
+    neihdu
+
+was explicitly identified by the user as a genuine user error that should be
+left as is for the current work. It must not receive a broad special repair that
+could damage unrelated words.
+
+
+PART VII - REVIEW OF THE FOURTEEN PREVIOUSLY IDENTIFIED CHANGES
+===============================================================================
+
+The following is the full fourteen-item list previously given when asked what
+was left. Each item includes its current interpretation and status.
+
+
+1. Contextual i-/j- after generated repairs
+-------------------------------------------
+
+Previous wording:
+
+    Apply the contextual i-/j- stage after generated repairs. illibsuwha
+    was previously said to reach ilibsuha, with a later suggestion that it
+    might become jlibsuha in context.
+
+Correction to that wording:
+
+- Both "ilibsuha" and "jlibsuha" are invalid targets for this example and
+  should not be proposed.
+- The clear deterministic case is:
+
+      jilbsuwha -> jilbsuha
+
+- The corrected noisy-input target is:
+
+      illibsuwha -> ilibbsuha
+
+  because the valid base is ilibbsu and the suffix is -ha.
+
+Required general fix:
+
+- normalize the suffix structure first;
+- preserve only a valid full verb analysis;
+- apply i-/j- only when a validated form supports it;
+- never construct an unattested intermediate merely from surface intuition.
+
+Status:
+
+- General -uwha -> -uha and bounded generated repair work exists, but it
+  currently risks normalizing the suffix while losing a lexical doubled
+  consonant in the stem.
+- The authoritative ordering between suffix repair and i-/j- surface selection
+  is not fully consolidated.
+- This remains incomplete.
+
+
+2. Stop bulk mode inventing unsupported suffix alternatives
+-----------------------------------------------------------
+
+Example:
+
+    Ghadda
+
+Bulk mode previously exposed suggestions such as:
+
+- Għaddaha
+- Għaddha
+
+despite the input carrying no direct-object suffix evidence.
+
+Required general fix:
+
+- Generated suffix candidates must prove a suffix boundary from the input.
+- Bulk mode must use the same suffix hard guards as standalone mode.
+- Candidate evidence should record why the suffix exists.
+- A generated suffix with extra semantic arguments must not be suggested merely
+  because its stem is close.
+
+Status:
+
+- Not fully fixed.
+- Single-word and long-text/bulk behavior have differed.
+
+
+3. Recheck false alternatives around resolved words
+---------------------------------------------------
+
+Examples seen:
+
+- inħaraq -> nħaraq, nħarraq, inħaraq
+- l-aħjar -> l-aħjar, l'aħjar
+- Għadda -> Għaddaha, Għaddha in bulk behavior
+
+Required general fix:
+
+- If a valid exact or strongly repaired word is selected, expose alternatives
+  only when the input contains evidence for them or a real contextual ambiguity
+  remains.
+- Do not show identity-only or structurally impossible alternatives.
+- Keep the correction and suggestion selector unified.
+
+Status:
+
+- Incomplete.
+
+
+4. Repair l'ammont to l-ammont
+------------------------------
+
+Required output:
+
+    l'ammont -> l-ammont
+
+Required general fix:
+
+- The definite article before the relevant noun must use the article hyphen,
+  not an apostrophe.
+- The article/preposition parser should construct and validate the article form
+  before generic apostrophe alternatives.
+
+Status:
+
+- Historical regression test still fails.
+- Not fixed.
+
+
+5. Reconcile lil kulħadd versus lill-kulħadd
+--------------------------------------------
+
+Historical expected form:
+
+    lil kulħadd
+
+Current behavior has produced:
+
+    lill-kulħadd
+
+Required work:
+
+- Confirm the intended grammar policy for kulħadd.
+- Encode it through lexical category and preposition behavior, not a broad
+  string exception if a general rule can express it.
+- Update stale tests only after the intended policy is confirmed.
+
+Status:
+
+- Unresolved and requires policy verification.
+
+
+6. Negative clauses gaining an unwanted final x
+-----------------------------------------------
+
+Example:
+
+    mingħajr ma ħassar xejn
+
+must not become:
+
+    mingħajr ma ħassarx xejn
+
+Required general fix:
+
+- Negative-particle handling must inspect negative polarity items such as xejn,
+  ħadd, qatt, ebda, and imkien.
+- When one of those supplies the negative scope in the relevant construction,
+  do not manufacture a verb-final x.
+- Preserve the distinction between user omission repairs and already complete
+  negative clauses.
+
+Status:
+
+- Historical regression still fails.
+- Not fixed.
+
+
+7. Restore m huma to m'huma
+---------------------------
+
+Required:
+
+    m huma -> m'huma
+
+Required general fix:
+
+- Parse m as the contracted negative particle before a compatible form.
+- Keep meaning and token recognition attached to the normalized contraction.
+- Do not suggest the uncontracted erroneous phrase as an equivalent correction.
+
+Status:
+
+- Historical regression still fails.
+- Not fixed.
+
+
+8. Number phrase ħamest bozoz
+-----------------------------
+
+Required:
+
+    ħamest bozoz -> ħamest bozza
+
+The long numeral form selects a singular noun in this structure.
+
+Required general fix:
+
+- Number-form selection and noun number selection must occur in the same
+  grammar decision.
+- First correct the noun, then apply numeral+noun grammar.
+- Preserve punctuation boundaries so the rule does not cross a comma or other
+  separator incorrectly.
+
+Status:
+
+- Current output has remained "ħames bozoz" in the failing regression.
+- Not fixed.
+
+
+9. Restore bixiraq to bix-xieraq
+--------------------------------
+
+Required:
+
+    bixiraq -> bix-xieraq
+
+Current faulty output:
+
+    bi xieraq
+
+Required general fix:
+
+- Parse the fused preposition+article structure.
+- Correct the lexical tail.
+- Apply x assimilation and the correct hyphen.
+- Do not split a valid fused construction into two unrelated words.
+
+Status:
+
+- Historical regression still fails.
+- Not fixed.
+
+
+10. Restore sieqha rather than siqha
+------------------------------------
+
+Required:
+
+    sieqha
+
+not:
+
+    siqha
+
+Required general fix:
+
+- Preserve or restore the correct ie alternation in the noun/suffix family.
+- Suffix normalization must use the noun's verified paradigm and accent rule,
+  not a blanket ie -> i transformation.
+- The fix must remain distinct from verb suffix rules where ie legitimately
+  shortens under suffixation.
+
+Status:
+
+- Historical social-comment regression still fails.
+- Not fixed.
+
+
+11. Consolidate winner selection
+--------------------------------
+
+Required architecture:
+
+- X/Y/W generate candidates and evidence.
+- Hard guards remove impossible candidates.
+- Context, corpus, and optional BERTu add evidence.
+- One selector chooses the lexical/morphological winner.
+- Z performs surface realization once.
+- Suggestions, meanings, and red-squiggle state derive from the same records.
+
+Current progress:
+
+- CandidateEvidencePool exists.
+- Candidate sources and reasons are collected.
+- Hard guards exist in the late suggestion path.
+- Some overwrite paths have been guarded.
+- Recent work improved noun-possessive and article behavior.
+
+Remaining problem:
+
+- Many direct correction, suffix, phrase, article, grammar, and manual branches
+  still choose or return before the shared pool.
+
+Status:
+
+- Partially implemented, not complete.
+
+
+12. Pass real context into corpus scoring
+-----------------------------------------
+
+Required:
+
+- corrected prev_prev token;
+- corrected previous token;
+- candidate;
+- next token;
+- sentence-boundary metadata;
+- bounded previous-sentence context where appropriate.
+
+Current code:
+
+    pool.annotate_corpus(corpus_scorer)
+
+Current missing arguments:
+
+- prev_word
+- next_word
+- prev_prev_word
+
+Status:
+
+- Not done.
+- This is the main reason current live corpus scoring cannot choose contextual
+  alternatives even if enabled.
+
+
+13. Integrate BERTu as an optional bounded final tie-breaker
+-----------------------------------------------------------
+
+Required:
+
+- explicit enable and shadow flags;
+- call only after hard guards;
+- two to four real candidates, with a strict maximum;
+- complete candidate scoring rather than first-subword approximation;
+- spellchecker token offsets;
+- context window, optionally including previous sentence;
+- timeout and request budget;
+- confidence margin;
+- cache;
+- graceful fallback;
+- Cloud Run memory and latency verification.
+
+Current code:
+
+- lazy BertuReranker object exists;
+- score_candidates() and rerank() exist;
+- offline evaluator exists;
+- no production caller exists.
+
+Status:
+
+- Not done.
+
+
+14. Expand diagnostics
+----------------------
+
+Required diagnostics for every changed or ambiguous token:
+
+- every generated candidate;
+- source;
+- reason;
+- morphology;
+- suffix analysis;
+- hard-guard acceptance/rejection;
+- edit score;
+- corpus unigram score;
+- left and right bigram scores;
+- trigram score;
+- total corpus bonus;
+- BERTu score;
+- BERTu margin;
+- stage that selected the winner;
+- later overwrite attempts;
+- final correction;
+- displayed suggestions;
+- recognized/unrecognized decision.
+
+Current progress:
+
+- CandidateEvidence diagnostics exist.
+- candidate_evidence_debug() exposes sources, types, reasons, confidence, corpus
+  total, Apertium state, edit score, and hard-guard acceptance.
+- correction_trace() exists.
+
+Current omissions:
+
+- no contextual corpus components in production;
+- no BERTu scores in production;
+- no authoritative full-stage overwrite history;
+- no single trace joining correction, suggestions, meanings, and UI recognition.
+
+Status:
+
+- Partially implemented, not complete.
+
+
+PART VIII - CURRENT WORKING-TREE AND TEST CONTEXT
+===============================================================================
+
+34. Recent uncommitted work known at the time of this document
+--------------------------------------------------------------
+
+The working tree is on main and contains uncommitted source/test/dictionary
+changes. This document does not revert, commit, or push them.
+
+Recent work already present includes:
+
+- article-apostrophe alternatives limited more tightly by governing ta/ħa
+  morphology;
+- structural repair of article forms even when the following lexical tail is
+  unknown;
+- "mar l bajja" reaching "Mar l-bajja";
+- "mar r Rabat" reaching "Mar ir-Rabat";
+- analogous sun-letter handling;
+- a guard against reverse-parsing the verb mar as ma + r;
+- retaining "tat-traffiku" behavior for an unknown lexical tail;
+- gismu -> ġismu;
+- illibsuwha was reaching the invalid ilibsuha; the corrected target is
+  ilibbsuha and this remains a regression to repair;
+- paragraph-ending period insertion before blank lines;
+- focused regression tests that recently passed.
+
+These improvements do not change the corpus/BERTu findings above. They are
+deterministic and structural changes outside the current live model selection.
+
+
+35. Historical regression failures still known
+-----------------------------------------------
+
+The previously reported broader regression set still included:
+
+- l'ammont instead of l-ammont;
+- lil kulħadd versus current lill-kulħadd;
+- unwanted negative x in a phrase such as mingħajr ma ħassar xejn;
+- m huma instead of m'huma;
+- ħamest bozoz not reaching ħamest bozza;
+- bixiraq not reaching bix-xieraq;
+- siqha instead of sieqha;
+- old school article tests expecting forms such as mis-skola and għas-skola,
+  which conflict with the newer intended forms mill-iskola and għall-iskola and
+  may therefore be stale tests rather than current-code defects.
+
+The stale-school-rule conflict must be separated from true regressions before a
+pass/fail percentage is reported.
+
+
+PART IX - REQUIRED END STATE
+===============================================================================
+
+The BERTu/corpus work is complete only when all the following are true:
+
+1. Corpus and BERTu each have explicit off/shadow/active controls.
+2. The corpus receives real spellchecker context in production.
+3. Corpus scoring occurs only on morphologically valid candidates.
+4. BERTu is called only for bounded unresolved ambiguity.
+5. BERTu scores complete candidates with correct token alignment.
+6. Cross-sentence context is bounded and available for cases such as alaqli.
+7. Exact and deterministic repairs never wait for either model.
+8. Neither model can authorize an impossible suffix or article form.
+9. One authoritative selector chooses the lexical/morphological winner.
+10. Z performs final capitalization, punctuation, i-/j-/u-, article,
+    preposition, name/place, and recognition realization once.
+11. Corrections, suggestions, meanings, and red squiggles use the same candidate
+    records.
+12. Diagnostics explain every selection and overwrite attempt.
+13. The fixed examples in this document pass exactly.
+14. The wider historical regression suite does not lose previous valid behavior.
+15. Long-text quality, latency, cold-start time, and memory are measured on the
+    same Cloud Run configuration used in production.
+16. BERTu is activated only if the measured net improvement justifies its
+    operational cost.
+
+Final assessment
+----------------
+
+The current repository contains a useful corpus scorer, real compact Korpus
+Malti indexes, a candidate-evidence structure, and a functional experimental
+BERTu wrapper. These are foundations, not a completed contextual correction
+system.
+
+The corpus currently behaves as an optional, mostly unigram, late-suggestion
+bonus. BERTu currently behaves as an offline experimental utility. To deliver
+the expected improvements, both must be placed behind one shared,
+morphology-first candidate pipeline and one final selector. The principal work
+is not adding more model calls; it is ensuring that all valid candidates reach
+one selection point with enough linguistic structure and context for corpus and
+BERTu evidence to be useful without reopening old regressions.

@@ -1,0 +1,1910 @@
+INPUT:
+hemm karozza sabih hemm
+
+OUTPUT:
+Hemm karozza sabiħa hemm.
+
+===
+
+INPUT:
+dan il basket ta min hu
+
+OUTPUT:
+Dan il-basket ta' min hu?
+
+===
+
+INPUT:
+lbierah ta daqqa ta ponn lil john
+
+OUTPUT:
+Ilbieraħ ta daqqa ta' ponn lil John.
+
+===
+
+INPUT:
+guh ta hanzir
+
+OUTPUT:
+Ġuħ ta' ħanżir.
+
+===
+
+INPUT:
+ta hanzir lil john
+
+OUTPUT:
+Ta ħanżir lil John.
+
+===
+
+INPUT:
+Ma nafx xint tejd ta
+
+OUTPUT:
+Ma nafx x'int tgħid ta.
+
+===
+
+INPUT:
+Insomma ta forma ta hanzir andu
+
+OUTPUT:
+Insomma ta forma ta' ħanżir għandu.
+
+===
+
+INPUT:
+il mara marret jixtri
+
+OUTPUT:
+Il-mara marret tixtri.
+
+===
+
+INPUT:
+triq twil
+
+OUTPUT:
+Triq twila.
+
+===
+
+INPUT:
+il bieb nkiser
+
+OUTPUT:
+Il-bieb inkiser.
+
+===
+
+INPUT:
+it tieqa inkisret
+
+OUTPUT:
+It-tieqa nkisret.
+
+===
+
+INPUT:
+wara inmut
+
+OUTPUT:
+Wara mmut.
+
+===
+
+INPUT:
+Morna induru dawra mal belt
+
+OUTPUT:
+Morna nduru dawra mal-belt.
+
+===
+
+INPUT:
+Mort ndur dawra mal belt
+
+OUTPUT:
+Mort indur dawra mal-belt.
+
+===
+
+INPUT:
+erba bozza
+
+OUTPUT:
+Erba' bozoz.
+
+===
+
+INPUT:
+hamsa baqar
+
+OUTPUT:
+Ħames baqriet.
+
+===
+
+INPUT:
+hamsa baqriet
+
+OUTPUT:
+Ħames baqriet.
+
+===
+
+INPUT:
+hamsa baqra
+
+OUTPUT:
+Ħames baqriet.
+
+===
+
+INPUT:
+hdax baqra
+
+OUTPUT:
+Ħdax-il baqra.
+
+===
+
+INPUT:
+hdax il-baqra
+
+OUTPUT:
+Ħdax-il baqra.
+
+===
+
+INPUT:
+hdax baqar
+
+OUTPUT:
+Ħdax-il baqra.
+
+===
+
+INPUT:
+għoxrin baqar
+
+OUTPUT:
+Għoxrin baqra.
+
+===
+
+INPUT:
+għoxrin u wieħed baqra
+
+OUTPUT:
+Wieħed u għoxrin baqra.
+
+===
+
+INPUT:
+Il bierah marti marret jowm imma sabet hafna bram
+
+OUTPUT:
+Ilbieraħ marti marret tgħum imma sabet ħafna bram.
+
+===
+
+INPUT:
+skond ir regoli anna bzonn nuru rispett il haddiehor dejem
+
+OUTPUT:
+Skont ir-regoli għandna bżonn nuru rispett lil ħaddieħor dejjem.
+
+===
+
+INPUT:
+Isma xbin jin manafx xi trid tejd bija din imma ahjar talaqlu qabel ma nalaqulek jien
+Ajjejt ha nejdlek, igri nispicca bdil universita
+Marti marret jwelled lerba tfal lanna
+
+OUTPUT:
+Isma' xbin jien ma nafx xi trid tgħid bija din imma aħjar tagħlaqlu qabel ma nagħlaqhulek jien.
+Għajjejt ħa ngħidlek, iġri nispiċċa bdil università.
+Marti marret twelled l-erbat itfal l'għandna.
+
+===
+
+INPUT:
+Meta tixtri halib mhux skadut , pero l pakkett kien qisu minfuh (ir ragel xtrah sewwa mhux jien ) , gejt id dar u kif ftahtu kellu riha tinten kbira .
+Tal hanut qalli li mhux tort tieghu . Min ghandu jtini l flus lura ? PLUS LI WEHILT 7 EURO WOLT biex gibt il halib ghax kien ghat tifel . Fir rahal hawn il festa u ma tistax iccaqlaq il karozza PLUS li il hdax u nofs ta bil lejl
+
+OUTPUT:
+Meta tixtri ħalib mhux skadut, però l-pakkett kien qisu minfuħ (ir-raġel xtrah sewwa mhux jien), ġejt id-dar u kif ftaħtu kellu riħa tinten kbira .
+Tal-ħanut qalli li mhux tort tiegħu . Min għandu jtini l-flus lura? PLUS LI WEĦILT 7 EURO WOLT biex ġibt il-ħalib għax kien għat-tifel . Fir-raħal hawn il-festa u ma tistax iċċaqlaq il-karozza PLUS li il-ħdax u nofs ta' billejl.
+
+===
+
+INPUT:
+Bongu lil kullhadd
+Ghandi mobile 'i phone 17 pro max' u nizilt update tal beta 27.0 u ghandi bzonn inhejih ghax qed jehel u mhux jahdem sew tafu il xi hadd biex jerga jaghmiluli u jigi updated kif supost dak il hin u minajr ma hassar xej south area hekk jista' ikun grazzi
+
+OUTPUT:
+Bonġu lil kulħadd
+Għandi mobile iphone 17 pro max u niżżilt update tal-beta 27.0 u għandi bżonn inħejjih għax qed jeħel u mhux jaħdem sew tafu 'il xi ħadd biex jerġa' jagħmilhuli u jiġi updated kif suppost dak il-ħin u mingħajr ma jħassarli xejn south area hekk jista' jkun grazzi.
+
+===
+
+INPUT:
+Grazzi ghal owner tal blokk ta apartamenti li jikri 'air b n b' ahna r residenti rridu ta kuljum inhabtu wicna ma din il mandra fuq il bankini ghadni qed nistenna l pulizija ha jigu fuq il post triq il grigal marsaskala.
+
+OUTPUT:
+Grazzi għall-owner tal-blokk t'appartamenti li jikri air b n b aħna r-residenti rridu ta' kuljum inħabbtu wiċċna ma' din il-mandra fuq il-bankini għadni qed nistenna l-pulizija ħa jiġu fuq il-post triq il-grigal Marsaskala.
+
+===
+
+INPUT:
+Ghar mill-fakulta tal-ligi m’hawx.
+L-istudenti qatt ma kienu priorita.
+Mhux talli jaghmlu hajjet l istudenti mizerja matul is sena imma issa studenti tat-tlieta qeghdin nitkarbu ghal marki filwaqt li tas-snin l ohra qeghdin jircivuhom.
+Fakulta li hlief tmur dejjem ghal ghar u taqa ghan nejk ma taghmilx.
+Hasra li hemmek biss hawn ghal min jixtieq jigradwa fil ligi.
+
+OUTPUT:
+Agħar mill-fakultà tal-liġi m'hawnx.
+L-istudenti qatt ma kienu prijorità.
+Mhux talli jagħmlu ħajjet l-istudenti miżerja matul is-sena imma issa studenti tat-tlieta qegħdin nitkarrbu għall-marki filwaqt li tas-snin l-oħra qegħdin jirċivuhom.
+Fakultà li ħlief tmur dejjem għall-agħar u taqa' għan-nejk ma tagħmilx.
+Ħasra li hemmhekk biss hawn għal min jixtieq jiggradwa fil-liġi.
+
+===
+
+INPUT:
+Jien Ha nitkellem fuq esperjenza tieghi personali .
+Tal familja tieghi stess u il taparsi hbieb kissruni.
+Minn Filodu malli niftah ghajnejja hsieb wiehed kien ikolli kif Ha nehhi hajti b ideja .
+Ghajnuna hadd, anzi meta kont nipprova niftah qalbi kienu jghiduli li gejt fiex gejt ghax ridt jien .
+Dan kollu ghax kelli l kuragg u nitlaq minn żwieg mhux felici .
+Ghax tlaqt jien, mara bi tfal zghar jiena kont dik żbaljata .
+Jien kont dik li kissirt familja .
+In-nies pronti jiggudikaw u HADD MA JIGI JGHIDLEK X GHANDEK BZONN .
+IMMA L EWWEL BIEX JGHIDU FUQEK.
+iva ma nisthix nghid , ma kellix x niekol , ghejni il gvern .
+Lil uliedi dejjem tmajtom .
+Tal familja qatt ma offrew lil uliedi bicca Hobz ghax jien dik li tlaqt ir ragel . U dak il guh li qed
+naddi li tort tieghi . Haqqni it tbatija kolla li ghaddejt.
+Ziju, iva ghaziz ziju bezaqli ..
+Ghax jien kissirt żwieg.
+Qijsni jien ghal ghomri ittimbrata mara hazina ghax jien kelli l kuraġġ nitlaq .
+TIGGUDIKAWX HADD MA JAF MINN XIEX IKUN GHADDEJ BNIEDEM .
+OFFRU KELMA TA GHAJNUNA MHUX AKTAR TKISSRUH .
+
+OUTPUT:
+Jien ħa nitkellem fuq esperjenza tiegħi personali.
+Tal-familja tiegħi stess u t-taparsi ħbieb kissruni.
+Minn filgħodu malli niftaħ għajnejja ħsieb wieħed kien ikolli kif ħa nneħħi ħajti b'idea.
+Għajnuna ħadd, anzi meta kont nipprova niftaħ qalbi kienu jgħiduli li ġejt fiex ġejt għax ridt jien.
+Dan kollu għax kelli l-kuraġġ u nitlaq minn żwieġ mhux feliċi.
+Għax tlaqt jien, mara bi tfal żgħar jiena kont dik żbaljata.
+Jien kont dik li kissirt familja.
+In-nies pronti jiġġudikaw u ĦADD MA JIĠI JGĦIDLEK X'GĦANDEK BŻONN.
+IMMA L-EWWEL BIEX JGĦIDU FUQEK.
+Iva ma nistħix ngħid, ma kellix x'niekol, għinni l-gvern.
+Lill-uliedi dejjem tmajthom.
+Tal-familji qatt m'offrew lill-uliedi biċċa ħobż għax jien dik li tlaqt ir-raġel. U dak il-ġuħ li qed ngħaddi li tort tiegħi. Ħaqqni it-tbatija kollha li għaddejt.
+Ziju, iva għażiż beżaqli ..
+Għax jien kissirt żwieġ.
+Qisni jien għal għomri ttimbrata mara ħażina għax jien kelli l-kuraġġ nitlaq.
+Tiġġudikawx ħadd ma jaf minn xiex ikun għaddej bniedem.
+OFFRU KELMA TA' GĦAJNUNA MHUX AKTAR TKISSRUH.
+
+===
+
+INPUT:
+Ma smajniex hekk qabel l-elezzjoni. Ghall-gid taghna u tal-ambjent hemm bzonn inaqqas il-popolazzjoni mela jzidha !
+Qabel Mejju ma qalx hekk! Issa qed jghidilkom grazzi talli telajtuh u njorakom ta kemm gergirtu bl 'overpopulation'!!
+xi hadd nizzel karozza min Cipru....min aw jirranga 'tranport' dak x lahjar 'container' jew awn xi hadd min jgibom ?? ghax behsibni  nixtri karozza min hemm
+
+OUTPUT:
+Ma smajniex hekk qabel l-elezzjoni. Għall-ġid tagħna u tal-ambjent hemm bżonn inaqqas il-popolazzjoni mela jżidha!
+Qabel Mejju ma qalx hekk! Issa qed jgħidilkom grazzi talli tellajtuh u injorakom ta' kemm gergirtu bl-overpopulation!!
+Xi ħadd niżżel karozza minn Ċipru....Min hawn jirranġa transport dak x'l-aħjar container jew hawn xi ħadd min jġibhom ?? Għax beħsibni nixtri karozza minn hemm.
+
+===
+
+INPUT:
+Gholla minn hemm f gieh il Mulej:
+Mela waqt illi koppja kienu go dar, arwenien huta it tnejn, dahal fuqhom halliel, u f hakka ta ghajn rabat lill mara u telaqa fuq is sodda, Dar lejn ir ragel u qallu tini il deheb kollu li ghandek u il flus .Ir ragel f panic mill kbar qallu iva ha ntik kollox, imma holl il hbula ta dik, u hallija tmur.
+Il halliel skanta, qallu il khemm thobba lill mara.
+Qabez ir ragel u qallu
+Holla minn hemm f gieh il Mulej, ghax dik il habiba u il mara daqt tasal lura id dar mix xoghol.
+Gesu Kristu.
+Mela ghalliem tar religjon ta tfal tat 3 sena, ried jara, jekk it tfal jidgerfxux , habba illi Gesu Kristu jitwiled kull sena, taf int, jitwiled u jmut kull sena.
+U staqsa lit tfal fejn huwa Kristu.
+Joseph gholla subghajh. u irrisponda, Gesu Kristu qieghad il genna hdejn missieru.
+Mary qalet Gesu qieghad gewwa qalbi.
+Ġanni jaqbez u jgholli subghajh, sir, sir jien naf sir.
+It teacher li kien jaf illi Ġanni dejjem johrog b xi wahda, beza ihallieh jirrispondi, imma tant iffietah illi ma kellu ghazla .
+Ghidli Ġanni, skond int fejn huwa Gesu Kristu?
+Ġanni qam bil wieqfa, u wara li ha nifs qawwi , irrisponda. Gesu Kristu qieghad fil kamra tal banju taghna id dar.
+It teacher hass rasu iddur bieh, biex ma jaqax kellu izomm mal mejda, u stenna ftit sekondi biex jistejqer qabel staqsa lill Ġanni. Kif taf li Gesu Kristu qieghad fil kamra tal banju?
+Ghax sir, kull filghodu missieri ihabbat mal bieb u jaghjat il Kristu int ghadhekk hemm?
+
+OUTPUT:
+Għolla minn hemm f'ġieħ il-Mulej:
+Mela waqt illi koppja kienu ġo dar, għarwenin ħuta it-tnejn, daħal fuqhom ħalliel, u f'ħakka ta' għajn Rabat lill-mara u telaqha fuq is-sodda, dar lejn ir-raġel u qallu tini d-deheb kollu li għandek u l-flus. Ir-raġel f'panic mill-kbar qallu iva ħa ntik kollox, imma ħoll il-ħbula ta' dik, u ħalliha tmur.
+Il-ħalliel skanta, qallu il-kemm tħobbha lill-mara.
+Qabeż ir-raġel u qallu
+Ħollha minn hemm f'ġieħ il-Mulej, għax dik il-ħabiba u l-mara daqt tasal lura id-dar mix-xogħol.
+Ġesù Kristu.
+Mela għalliem tar-reliġjon ta' tfal tas-sena, ried jara, jekk it-tfal jitgerfxux, ħabba illi Ġesù Kristu jitwieled kull sena, taf int, jitwieled u jmut kull sena.
+U staqsa lit-tfal fejn huwa Kristu.
+Joseph għolla subajh. U rrisponda, Ġesù Kristu qiegħed il-ġenna ħdejn missieru.
+Mary qalet Ġesù qiegħed ġewwa qalbi.
+Ġanni jaqbeż u jgħolli subajh, sir, sir jien naf sir.
+It-teacher li kien jaf illi Ġanni dejjem joħroġ b'xi waħda, beża' jħallih jirrispondi, imma tant iffittah illi ma kellu għażla.
+Għidli Ġanni, skont int fejn huwa Ġesù Kristu?
+Ġanni qam bilwieqfa, u wara li ħa nifs qawwi, irrisponda.
+Ġesù Kristu qiegħed fil-kamra tal-banju tagħna id-dar.
+It-teacher ħass rasu ddur bih, biex ma jaqax kellu jżomm mal-mejda, u stenna ftit sekondi biex jistejqer qabel staqsa lil Ġanni. Kif taf li Ġesù Kristu qiegħed fil-kamra tal-banju?
+Għax sir, kull filgħodu missieri jħabbat mal-bieb u jgħajjat il-Kristu int għadek hemm?
+
+===
+
+INPUT:
+Suġġeriment għal min ma jistax jinżel jgħum minħabba problemi ta' mobbiltà. Jeżistu siġġijiet bħal dawn f'xi lokalitajiet. Jien nuża dejjem dak li hemm il-Mellieħa. Is-siġġu mid-dehra tiegħu ħsieb twaħħlu l-MTA imma jħaddmuh ir-Red Cross. Insellmilhom minn qalbi ta' kemm huma ġentili u professjonali 💗 Taqtgħux qalbkom. Jien nuża l-wheelchair imma grazzi għall-persunal tal-Malta Red Cross (u għall-għażiż żewġi) din is-sena qed ngħum kważi kuljum ♿💪 Min jixtieq iktar informazzjoni jsib numru tat-telefon fuq is-siġġu stess. U jekk tkunu tridu tikkuntattjaw lili, ibagħtuli messaġġ privat.
+
+OUTPUT:
+Suġġeriment għal min ma jistax jinżel jgħum minħabba problemi ta' mobbiltà. Jeżistu siġġijiet bħal dawn f'xi lokalitajiet. Jien nuża dejjem dak li hemm il-Mellieħa. Is-siġġu mid-dehra tiegħu ħsieb twaħħlu l-MTA imma jħaddmuh ir-Red Cross. Insellmilhom minn qalbi ta' kemm huma ġentili u professjonali 💗 Taqtgħux qalbkom. Jien nuża l-wheelchair imma grazzi għall-persunal tal-Malta Red Cross (u għall-għażiż żewġi) din is-sena qed ngħum kważi kuljum ♿💪 Min jixtieq iktar informazzjoni jsib numru tat-telefon fuq is-siġġu stess. U jekk tkunu tridu tikkuntattjaw lili, ibagħtuli messaġġ privat.
+
+===
+
+INPUT:
+mort il bahar
+
+OUTPUT:
+Mort il-baħar.
+
+===
+
+INPUT:
+ghall gost
+
+OUTPUT:
+Għall-gost.
+
+===
+
+INPUT:
+ghall skola
+
+OUTPUT:
+Għall-iskola.
+
+===
+
+INPUT:
+ghall gieh
+
+OUTPUT:
+Għall-ġieħ.
+
+===
+
+INPUT:
+ghall ghalqa
+
+OUTPUT:
+Għall-għalqa.
+
+===
+
+INPUT:
+ghall xi hadd
+
+OUTPUT:
+Għal xi ħadd.
+
+===
+
+INPUT:
+f sormok
+
+OUTPUT:
+F'sormok.
+
+===
+
+INPUT:
+f idejk
+
+OUTPUT:
+F'idejk.
+
+===
+
+INPUT:
+b idejk
+
+OUTPUT:
+B'idejk.
+
+===
+
+INPUT:
+ma membru
+
+OUTPUT:
+Ma' membru.
+
+===
+
+INPUT:
+ma' membru
+
+OUTPUT:
+Ma' membru.
+
+===
+
+INPUT:
+ma hawn
+
+OUTPUT:
+M'hawn.
+
+===
+
+INPUT:
+ma għandu
+
+OUTPUT:
+M'għandu.
+
+===
+
+INPUT:
+ma niflahx
+
+OUTPUT:
+Ma niflaħx.
+
+===
+
+INPUT:
+ta quddiem
+
+OUTPUT:
+Ta' quddiem.
+
+===
+
+INPUT:
+ta kemm
+
+OUTPUT:
+Ta' kemm.
+
+===
+
+INPUT:
+min aw
+
+OUTPUT:
+Min hawn.
+
+===
+
+INPUT:
+aw awn tranport transport
+
+OUTPUT:
+Hawn hawn transport transport.
+
+===
+
+INPUT:
+malta
+
+OUTPUT:
+Malta
+
+===
+
+INPUT:
+sperjenzajt
+
+OUTPUT:
+esperjenzajt
+
+===
+
+INPUT:
+jorukhom
+
+OUTPUT:
+jurukom
+
+===
+
+INPUT:
+importata
+
+OUTPUT:
+importata
+
+===
+
+INPUT:
+bhal l siehbi
+
+OUTPUT:
+Bħas-sieħbi.
+
+===
+
+INPUT:
+bhal- siehbi
+
+OUTPUT:
+Bħas-sieħbi.
+
+===
+
+INPUT:
+bhall sihbi
+
+OUTPUT:
+Bħal sieħbi.
+
+===
+
+INPUT:
+ghal l gid
+
+OUTPUT:
+Għall-ġid.
+
+===
+
+INPUT:
+ghadd dinja
+
+OUTPUT:
+Għad-dinja.
+
+===
+
+INPUT:
+miss-supermarket
+
+OUTPUT:
+mis-supermarket
+
+===
+
+INPUT:
+mis - supermarket
+
+OUTPUT:
+Mis-supermarket.
+
+===
+
+INPUT:
+mis s-supermarket
+
+OUTPUT:
+Mis-supermarket.
+
+===
+
+INPUT:
+ghacc cwiec
+
+OUTPUT:
+Għaċ-ċwieċ.
+
+===
+
+INPUT:
+ghatt tabib
+
+OUTPUT:
+Għat-tabib.
+
+===
+
+INPUT:
+mar il bajja
+
+OUTPUT:
+Mar il-bajja.
+
+===
+
+INPUT:
+mar l bajja
+
+OUTPUT:
+Mar il-bajja.
+
+===
+
+INPUT:
+mar r Rabat
+
+OUTPUT:
+Mar ir-Rabat.
+
+===
+
+INPUT:
+mar d dar
+
+OUTPUT:
+Mar id-dar.
+
+===
+
+INPUT:
+mar s supermarket
+
+OUTPUT:
+Mar is-supermarket.
+
+===
+
+INPUT:
+ta l kaxxiera
+
+OUTPUT:
+Tal-kaxxiera.
+
+===
+
+INPUT:
+ghogbu jikkuntattjani
+
+OUTPUT:
+Għoġbu jikkuntattjani.
+
+===
+
+INPUT:
+basta tfejqu
+
+OUTPUT:
+Basta tfejqu.
+
+===
+
+INPUT:
+tat traffiku
+
+OUTPUT:
+Tat-traffiku.
+
+===
+
+INPUT:
+mill l isptar
+
+OUTPUT:
+Mill-isptar.
+
+===
+
+INPUT:
+jaghmilha dritta
+
+OUTPUT:
+Jagħmilha dritta.
+
+===
+
+INPUT:
+qedha l bajja
+
+OUTPUT:
+Qiegħda l-bajja.
+
+===
+
+INPUT:
+baqa sfigurat
+
+OUTPUT:
+Baqa' sfigurat.
+
+===
+
+INPUT:
+kulljumm nirringrazzja
+
+OUTPUT:
+Kuljum nirringrazzja.
+
+===
+
+INPUT:
+minn fejn
+
+OUTPUT:
+Minn fejn.
+
+===
+
+INPUT:
+l Alla
+
+OUTPUT:
+L-Alla.
+
+===
+
+INPUT:
+l alla
+
+OUTPUT:
+L-alla.
+
+===
+
+INPUT:
+gismu
+
+OUTPUT:
+ġismu
+
+===
+
+INPUT:
+Ma nafx kief ghamel hekk
+
+OUTPUT:
+Ma nafx kif għamel hekk.
+
+===
+
+INPUT:
+mur amel
+
+OUTPUT:
+Mur agħmel.
+
+===
+
+INPUT:
+Int liktar wiehed ikrah
+
+OUTPUT:
+Int l-iktar wieħed ikrah.
+
+===
+
+INPUT:
+tkellimx lommi
+
+OUTPUT:
+Tkellimx 'l ommi.
+
+===
+
+INPUT:
+ghid il missieri
+
+OUTPUT:
+Għid 'il missieri.
+
+===
+
+INPUT:
+cempel lomm ta wiehed mit tfal
+
+OUTPUT:
+Ċempel 'l-omm ta' wieħed mit-tfal.
+
+===
+
+INPUT:
+l-omm marret
+
+OUTPUT:
+L-omm marret.
+
+===
+
+INPUT:
+rajt l-ohti
+
+OUTPUT:
+Rajt 'l oħti.
+
+===
+
+INPUT:
+mort ghand John ilbierah. Imma mbaghad alaqli l bieb.
+
+OUTPUT:
+Mort għand John ilbieraħ. Imma mbagħad għalaqli l-bieb.
+
+===
+
+INPUT:
+huma jistaw imorru
+
+OUTPUT:
+Huma jistgħu jmorru.
+
+===
+
+INPUT:
+kienu joqodu ixejjrula
+
+OUTPUT:
+Kienu joqogħdu jxejrulha.
+
+===
+
+INPUT:
+Striehu fis-sliem
+
+OUTPUT:
+Strieħu fis-sliem.
+
+===
+
+INPUT:
+jumejn ilu
+
+OUTPUT:
+Jumejn ilu.
+
+===
+
+INPUT:
+sentejn ilu
+
+OUTPUT:
+Sentejn ilu.
+
+===
+
+INPUT:
+nilaghbu
+
+OUTPUT:
+nilagħbu
+
+===
+
+INPUT:
+jibatu
+
+OUTPUT:
+jibagħtu
+
+===
+
+INPUT:
+joqodu
+
+OUTPUT:
+joqogħdu
+
+===
+
+INPUT:
+mhiex twila hajjitna
+
+OUTPUT:
+Mhix twila ħajjitna.
+
+===
+
+INPUT:
+kuljum ghed tiqsar
+
+OUTPUT:
+Kuljum qed tiqsar.
+
+===
+
+INPUT:
+filoghodu
+
+OUTPUT:
+filgħodu
+
+===
+
+INPUT:
+tkun tifel u tigber
+
+OUTPUT:
+Tkun tifel u tikber.
+
+===
+
+INPUT:
+malajr issir xih
+
+OUTPUT:
+Malajr issir xiħ.
+
+===
+
+INPUT:
+ghadek fl-ilma
+
+OUTPUT:
+Għadek fl-ilma.
+
+===
+
+INPUT:
+Itfa
+
+OUTPUT:
+Itfa'
+
+===
+
+INPUT:
+Itfaw hemm
+
+OUTPUT:
+Itfgħu hemm.
+
+===
+
+INPUT:
+xikun
+
+OUTPUT:
+xi jkun
+
+===
+
+INPUT:
+x'ikun
+
+OUTPUT:
+xi jkun
+
+===
+
+INPUT:
+tibblukkali
+
+OUTPUT:
+tibblokkali
+
+===
+
+INPUT:
+ifitex
+
+OUTPUT:
+ifittex
+
+===
+
+INPUT:
+nilagħab
+
+OUTPUT:
+nilgħab
+
+===
+
+INPUT:
+nifehem
+
+OUTPUT:
+nifhem
+
+===
+
+INPUT:
+fil ghodu
+
+OUTPUT:
+Filgħodu.
+
+===
+
+INPUT:
+dal-ghodu
+
+OUTPUT:
+dalgħodu
+
+===
+
+INPUT:
+fil ghaxija
+
+OUTPUT:
+Filgħaxija.
+
+===
+
+INPUT:
+nofs in-nhar
+
+OUTPUT:
+Nofsinhar.
+
+===
+
+INPUT:
+l ahwa isofrux fis silenzju illum hawn l ghajnuna naqra kuragg trid. il hajja iebsa trid tiggildila hu ma trid taqta qalbek qatt.
+
+OUTPUT:
+L-aħwa issofrux fis-silenzju llum hawn l-għajnuna naqra kuraġġ trid. Il-ħajja iebsa trid tiġġildilha u ma trid taqta' qalbek qatt.
+
+===
+
+INPUT:
+Jien biss dejjem nesperjenza laktar nies inkompetenti fissupport tal Bolt??
+
+OUTPUT:
+Jien biss dejjem nesperjenza l-aktar nies inkompetenti fis-support tal-Bolt??
+
+===
+
+INPUT:
+tac-cirku, tad-dar, tan-nies, tar-rahal, tas-sajf, tat-tuffiha, tax-xemx, taz-zimel, taz-zokor, tal-hobz
+bic-cavetta, bid-dmuh, bin-nifs, bir-rota, bis-sappun, bit-tren, bix-xarabank, biz-zmien, biz-zalza, bil-karozza
+fic-centru, fid-dinja, fin-nofs, fir-rebbiegha, fis-sema, fit-triq, fix-xitwa, fiz-zona, fiz-zuntier, fil-bahar
+mic-cpar, mid-duhhan, min-natura, mir-rih, mis-sodda, mit-tieqa, mix-xmara, miz-zghozija, miz-zokk, mill-muntanja
+goc-cella, god-dlam, gon-nasba, gor-ramel, gos-sider, got-tagen, gox-xibka, goz-zibel, goz-zalzett, gol-kamra
+bhac-cirasa, bhad-deheb, bhan-nar, bhar-rixa, bhas-soltu, bhat-tifel, bhax-xitan, bhaz-zejt, bhaz-ziju, bhall-ilma
+dac-curkett, dad-dokument, dan-neputi, dar-ragel, das-saqaf, dat-tabib, dax-xar, daz-zaghzugh, daz-zanzar, dal-ktieb
+dic-cintura, did-dajsa, din-nahla, dir-regola, dis-sena, dit-tfajla, dix-xena, diz-zrara, diz-zijja, dil-mara
+mac-ckejken, mad-dawl, man-nannnu, mar-re, mas-suq, mat-tifla, max-xol, maz-zeffien, maz-zappun, mal-habijb
+
+OUTPUT:
+Taċ-ċirku, tad-dar, tan-nies, tar-raħal, tas-sajf, tat-tuffieħa, tax-xemx, taż-żiemel, taz-zokor, tal-ħobż.
+Biċ-ċavetta, bid-dmugħ, bin-nifs, bir-rota, bis-sapun, bit-tren, bix-xarabank, biż-żmien, biz-zalza, bil-karozza.
+Fiċ-ċentru, fid-dinja, fin-nofs, fir-rebbiegħa, fis-sema, fit-triq, fix-xitwa, fiż-żona, fiz-zuntier, fil-baħar.
+Miċ-ċpar, mid-duħħan, min-natura, mir-riħ, mis-sodda, mit-tieqa, mix-xmara, miż-żgħożija, miż-żokk, mill-muntanja.
+Ġoċ-ċella, ġod-dlam, ġon-nasba, ġor-ramel, ġos-sider, ġot-taġen, ġox-xibka, ġoż-żibel, ġoz-zalzett, ġol-kamra.
+Bħaċ-ċirasa, bħad-deheb, bħan-nar, bħar-rixa, bħas-soltu, bħat-tifel, bħax-xitan, bħaż-żejt, bħaz-ziju, bħall-ilma.
+Daċ-ċurkett, dad-dokument, dan-neputi, dar-raġel, das-saqaf, dat-tabib, dax-xahar, daż-żagħżugħ, daż-żanżar, dal-ktieb.
+Diċ-ċintura, did-dgħajsa, din-naħla, dir-regola, dis-sena, dit-tfajla, dix-xena, diż-żrara, diz-zija, dil-mara.
+Maċ-ċkejken, mad-dawl, man-nannu, mar-re, mas-suq, mat-tifla, max-xogħol, maż-żeffien, maz-zappun, mal-ħabib.
+
+===
+
+INPUT:
+Jisimni amy andi 22 sena noqot San pawl
+Ett infittex xol 'sales girl','cashier' esperjenza andi kemm go hwinet tal hwejjeg kemm ukoll go 'grocery' ett infittex ximkien lejn san pawl jew mhux hafna il bodd ax ma insuqx u 'full time' imma 'part time' tajjeb ukoll nista nibda asp grazzi
+
+OUTPUT:
+Jisimni Amy għandi 22 sena noqgħod San Pawl
+Qed infittex xogħol sales girl, cashier esperjenza għandi kemm ġo ħwienet tal-ħwejjeġ kemm ukoll ġo grocery qed infittex xi mkien lejn San Pawl jew mhux ħafna l-bogħod għax ma nsuqx u full time imma part time tajjeb ukoll nista' nibda asp grazzi.
+
+===
+
+INPUT:
+Ghandi ghalqa mitluq nixtieq innaddafa biex inkun nista nuza passatemp ghat tfal. Hawn xi hadd ma jbattalekx il but biex jghamilha? Hemm pjanti u gheruq slavagg . U mhux kbira. Plot zghir.
+Grazzi
+
+OUTPUT:
+Għandi għalqa mitluqa nixtieq innaddafha biex inkun nista' nuża passatemp għat-tfal. Hawn xi ħadd ma jbattallekx il-but biex jagħmilha? Hemm pjanti u għeruq slavaġ. U mhux kbira. Plot żgħir.
+Grazzi.
+
+===
+
+INPUT:
+Soledarjeta mal Puluzija ta Malta li min habba 'high rank police' li ordna li jitiehdu biss apparat electroniku li itijhom Kieth Scembri , (il persuna li kienet investigata) il korp kollu qedd jider bhala korott . 
+Min ghamel l ordni li jitiehdu biss apparat li itijhom il persuna stess li qedd tigi investigata ghandu jitressaq b komplicita biex ma tohrog il verita.
+
+OUTPUT:
+Soledarjetà mal-Puluzija ta' Malta li minħabba 'high rank police' li ordna li jittieħdu biss apparat elettroniku li jtihom Kieth Scembri, (il-persuna li kienet investigata) il-korp kollu qed jidher bħala korrott.
+Min għamel l-ordni li jittieħdu biss apparat li jtihom il-persuna stess li qed tiġi investigata għandu jitressaq b'kompliċità biex ma toħroġx il-verità.
+
+===
+
+INPUT:
+Qed infittex bhall din. Hawn xi hadd ra ximkien bhalom pls? Kelli wahda xtrajta snin ilu mill Lidl imma qatt ma rajtilom izjed. 
+Grazzi.
+
+OUTPUT:
+Qed infittex bħal din. Hawn xi ħadd ra xi mkien bħalhom pls? Kelli waħda xtrajtha snin ilu mill-Lidl imma qatt ma rajtilhom iżjed.
+Grazzi.
+
+===
+
+INPUT:
+Din in-Nanna taghna u it-tifel taghha, il-baby miet ta 18 months,
+u xi sentejn wara dan ir-ritratt mietet kella 32 sena, marda
+'Typhoid Fever' u kienet 'quarantine', halliet tliet it-tfal, taht it-
+tnax il-sena it-tfal taghha li huma ommi ohtha iz-zija Ganna u iz-
+ziju Joe. ma kienux jistaw imorru jarawha allura kienu joqodu
+ixejjrula meta kienet tkun hdejn it-tieqa, meta noqod nahseb
+tliet tfal jitilfu l-ommom kemm kienu zghar dwejjaq jaqbadni
+Striehu fi sliem
+
+OUTPUT:
+Din in-Nanna tagħna u t-tifel tagħha, il-baby miet ta' 18 months,
+u xi sentejn wara dan ir-ritratt mietet kellha 32 sena, marda
+'Typhoid Fever' u kienet 'quarantine', ħalliet tlett itfal, taħt it-
+tnax-il sena it-tfal tagħha li huma ommi oħtha iz-zija Ganna u iz-
+ziju Joe. Ma kinux jistgħu jmorru jarawha allura kienu joqogħdu
+jxejrulha meta kienet tkun ħdejn it-tieqa, meta noqgħod naħseb
+tlett itfal jitilfu l-ommhom kemm kienu żgħar dwejjaq jaqbadni.
+Strieħu fis-sliem.
+
+===
+
+INPUT:
+Jumejn ilu kont il-bahar m'ibni u ghidtlu kemm konna niehdu
+gost meta konna l-istitut u kienu jehduna l-bahar u konna
+nilaghbu CAMA CAMA......., nghajjtu isem xi hadd u naqbzu l-
+bahar....u l-loghba tkompli hekk kulhadd irid jghajjat lil xi hadd.
+Aghar ghalik jekk tkun ghadek fl-ilma meta jghajtulek. Ma
+konnniex nitilghu mill-ilma hlief biex nieklu l-hobz. Illum lanqas
+jafu x'inhu loghob nahseb lanqas hdejh il-bahar, ghax mobile ha
+'over' X'hasra! Kemm konna ffortunati li konna niehdu gost
+bejnietna
+
+OUTPUT:
+Jumejn ilu kont il-baħar m'ibni u għedtlu kemm konna nieħdu
+gost meta konna l-istitut u kienu jeħduna l-baħar u konna
+nilagħbu CAMA CAMA......., ngħajtu isem xi ħadd u naqbżu l-
+baħar....u l-logħba tkompli hekk kulħadd irid jgħajjat lil xi ħadd.
+Agħar għalik jekk tkun għadek fl-ilma meta jgħajtulek. Ma
+konniex nitilgħu mill-ilma ħlief biex nieklu l-ħobż. Illum lanqas
+jafu x'inhu logħob naħseb lanqas ħdejh il-baħar, għax mobile ħa
+'over' X'ħasra! Kemm konna ffortunati li konna nieħdu gost
+bejnietna.
+
+===
+
+INPUT:
+"poezija"
+"biex kultant
+infakkar li ......."
+mhiex twila hajjitna
+kuljum ghed tiqsar
+hekk ghid kull
+filoghodu
+x'hin tohrog mid-dar
+u ahseb u ara l-hin kif
+ghaddej
+bil-heffa minn fuqna
+binhar u billejl
+tkun tifel u tigber
+malajr issir xih
+bhal dahna hajjitna
+li taret mar-rih !!!
+
+OUTPUT:
+"poezija"
+"biex kultant
+infakkar li ......."
+mhix twila ħajjitna
+kuljum qed tiqsar
+hekk għid kull
+filgħodu
+x'ħin toħroġ mid-dar
+u aħseb u ara l-ħin kif
+għaddej
+bil-ħeffa minn fuqna
+binhar u billejl
+tkun tifel u tikber
+malajr issir xiħ
+bħal daħna ħajjitna
+li taret mar-riħ!!!
+
+===
+
+INPUT:
+Is sid ta din id dghajsa jekk jghogbu jghamilha dritta ghax qed tahbat ma tieghi, qedha l bajja ta San Tumas fejn il bajja tal klieb, Grazzi
+
+Grazzi lis Sid li ghogbu jikkuntattjani privat u l problema ssolviet!!
+
+OUTPUT:
+Is-sid ta' din id-dgħajsa jekk jogħġbu jagħmilha dritta għax qed taħbat ma' tiegħi, qiegħda l-bajja ta' San Tumas fejn il-bajja tal-klieb, Grazzi.
+
+Grazzi lis-sid li għoġbu jikkuntattjani privat u l-problema ssolviet!!
+
+===
+
+INPUT:
+Operazjoni.
+
+ja
+ja kellhom incident ikrah tat traffiku. Wara li hargu mill l isptar , wicc ir ragel baqa sfigurat, ghax inharaq.
+
+L unika operazjoni li setghat issier kien li jiehdu gilda minn parti ohra ta gismu u jergaw illibsuwha fuq wiccu.
+
+Imma kien hemm problema, Ghax kien bniedem maghlub u ma tantx kellu minn fejn jiehdu.
+
+It tabib hares lejn il mara, u qalla, int ghendek laham minn fejn neihdu. din qaltlu hu minn fejn trid, basta tfejqu.
+
+Dahlu ghal l operazjoni, u l ahjar gilda li sabu kien mill warrani tal mara.
+
+Ftehmu mat tabib li hadd ma jghid xejn, ghax bdew jisthu.
+
+Ghadda iz zmien, u ir ragel ,li issa sar sabieh aktar milli kien, darba minnhom qal lill mara. Jien kulljumm nirringrazzja l Alla li ghandi lillek, u ghal dak kollu illi ghamilt mieghi.
+
+Qanzet hijja u qaltlu, u jien tghidx khemm niehu pjacir met aimorru ghand ommok u nara tbuslek wiccek.
+
+OUTPUT:
+Operazzjoni.
+
+Koppja kellhom inċident ikrah tat-traffiku. Wara li ħarġu mill-isptar, wiċċ ir-raġel baqa' sfigurat, għax inħaraq.
+
+L-unika operazzjoni li setgħet issir kien li jieħdu ġilda minn parti oħra ta' ġismu u jerġgħu ilibbsuha fuq wiċċu.
+
+Imma kien hemm problema, Għax kien bniedem magħlub u ma tantx kellu minn fejn jieħdu.
+
+It-tabib ħares lejn il-mara, u qalilha, int għandek laħam minn fejn neihdu. Din qaltlu hu minn fejn trid, basta tfejqu.
+
+Daħlu għall-operazzjoni, u l-aħjar ġilda li sabu kien mill-warrani tal-mara.
+
+Ftehmu mat-tabib li ħadd ma jgħid xejn, għax bdew jistħu.
+
+Għadda ż-żmien, u r-raġel, li issa sar sabiħ aktar milli kien, darba minnhom qal lill-mara. Jien kuljum nirringrazzja l-Alla li għandi lilek, u għal dak kollu illi għamilt miegħi.
+
+Qabżet hija u qaltlu, u jien tgħidx kemm nieħu pjaċir met aimorru għand ommok u nara tbuslek wiċċek.
+
+===
+
+INPUT:
+Man nies
+
+OUTPUT:
+Man-nies.
+
+===
+
+INPUT:
+mijaw
+
+OUTPUT:
+miegħu
+
+===
+
+INPUT:
+imkisra qeda
+
+OUTPUT:
+Imkissra qiegħda.
+
+===
+
+INPUT:
+jipqa
+
+OUTPUT:
+jibqa'
+
+===
+
+INPUT:
+jajdula
+
+OUTPUT:
+jgħidulha
+
+===
+
+INPUT:
+jajdulek
+
+OUTPUT:
+jgħidulek
+
+===
+
+INPUT:
+ghalmenu
+
+OUTPUT:
+almenu
+
+===
+
+INPUT:
+ghal menu
+
+OUTPUT:
+Almenu.
+
+===
+
+INPUT:
+Ha jkolli nitkellem ghax ma niflahx nissaporti forsi tasal fejn ghandha tasal.
+
+Dalghodu kmieni mal lejl kont l emergenza l isptar nistenna ma membru tal familja tieghi fil-kurutur, meta inzerta gie carer b'ragel fuq l istretcher fil-kurutur ukoll. Dan ir ragel beda jghajjat lin nurse ghal ghajnuna pero hadd ma beda jaghti kasu. Tobba, nurses, carers, security.. hafna semghuh imma HADD ma ta kasu qisu bicca oggett fil genb tal-kurutur. Is sitwazzjoni gravat izjed meta ndunajt li dan ir ragel huwa bniedem ghami, IVA SEWWA SMAJTU, ragel ghami jghajjat lin nurse li maqsum pipi u jghajjat ghal ghajnuna li ha jaghmel pipi mal art ghax ma jiflahx izjed u XORTA hadd ma beda jaghti kasu. L unika nies li hadna azzjoni konna ahna nies fil-kurutur mal qraba taghna nistennew ghax qas demmek ma jtik tara ragel f dik is sitwazzjoni ddisprata MA JARAX u jibki ghal ghajnuna ghal xi hadd biex jaghmel pipi!! Sahansitra kien hemm security infaqet tidhaq u qalet "Dan dejjem hawn, haseb li tieghu Mater Dei". Onestament hassejtni xxukkjata b dan l agir minn dawn in nies li SUPPOST tawh l ghajnuna lil dan ic citaddin Malti li qieghed hemm b mard u MHUX kapricc! Dan ir ragel kien haqqu dinjita specjalment meta jafu li hu bniedem ghami u vulnerabbli! In the meantime, zaghzagh barranin fis sakra u mdemmajn wara xi glieda dehlin u hergin jigu trattati, imma DAN li hu bniedem MALTI bhalek u bhali gie trattat bhaz zibel! Nispera li dan li ktibt ghandu jasal fejn ghandu jasal.
+
+OUTPUT:
+Ħa jkolli nitkellem għax ma niflaħx nissaporti forsi tasal fejn għandha tasal.
+
+Dalgħodu kmieni mal-lejl kont l-emerġenza l-isptar nistenna ma' membru tal-familja tiegħi fil-kuritur, meta inzerta ġie carer b'raġel fuq l-istretcher fil-kuritur ukoll. Dan ir-raġel beda jgħajjat lin-nurse għall-għajnuna però ħadd ma beda jagħti kasu. Tobba, nurses, carers, security.. ħafna semgħuh imma ĦADD ma ta kasu qisu biċċa oġġett fil-ġenb tal-kuritur. Is-sitwazzjoni ggravat iżjed meta ndunajt li dan ir-raġel huwa bniedem għami, IVA SEWWA SMAJTU, raġel għami jgħajjat lin-nurse li maqsum pipi u jgħajjat għall-għajnuna li ħa jagħmel pipi mal-art għax ma jiflaħx iżjed u XORTA ħadd ma beda jagħti kasu. L-unika nies li ħadna azzjoni konna aħna nies fil-kuritur mal-qraba tagħna nistennew għax lanqas demmek ma jtik tara raġel f'dik is-sitwazzjoni ddisprata MA JARAX u jibki għall-għajnuna għal xi ħadd biex jagħmel pipi!! Saħansitra kien hemm security infaqet tidħaq u qalet "Dan dejjem hawn, ħaseb li tiegħu Mater Dei". Onestament ħassejtni xxukkjata b'dan l-aġir minn dawn in-nies li SUPPOST tawh l-għajnuna lil dan iċ-ċittadin Malti li qiegħed hemm b'mard u MHUX kapriċċ! Dan ir-raġel kien ħaqqu dinjità speċjalment meta jafu li hu bniedem għami u vulnerabbli! In the meantime, żgħażagħ barranin fis-sakra u mdemmgħin wara xi ġlieda deħlin u ħerġin jiġu trattati, imma DAN li hu bniedem MALTI bħalek u bħali ġie trattat bħaż-żibel! Nispera li dan li ktibt għandu jasal fejn għandu jasal.
+
+===
+
+INPUT:
+nixtieq nghid kelma lill awtoritajiet please.
+
+nahseb milli gara bierah ghadna nitallmu hafna minnha. hemm bzonn li jsir hafna u hafna gharfien dwar id-depressjoni u ma narax ghalfejn din tibqaa taboo ghax il-mohh jimrad bhall kull parti tal-gisem.
+
+Ghadna bzonn niehdu hsieb is-solitudni li hafna u hafna ghadejjin minna. Ghadna bzonn li ninzlu minn fuq dak il-pedestal u nkunu aktar umani, u niehdu hsieb lil ta madwarna, mhux niehdu kollox for granted ghax kulhadd ghandu hajtu. imbad tibki xejn u tati fuq wiccek ghax stajt ghentu u bqajt bidejk fuq zaqqek u bqajt mghamilt xejn.
+
+OUTPUT:
+Nixtieq ngħid kelma lill-awtoritajiet please.
+
+Naħseb milli ġara lbieraħ għadna nitgħallmu ħafna minnha. Hemm bżonn li jsir ħafna u ħafna għarfien dwar id-depressjoni u ma narax għalfejn din tibqa' taboo għax il-moħħ jimrad bħal kull parti tal-ġisem.
+
+Għadna bżonn nieħdu ħsieb is-solitudni li ħafna u ħafna għaddejjin minna. Għadna bżonn li ninżlu minn fuq dak il-pedestal u nkunu aktar umani, u nieħdu ħsieb lil ta' madwarna, mhux nieħdu kollox for granted għax kulħadd għandu ħajtu. Imbagħad tibki xejn u tagħti fuq wiċċek għax stajt għentu u bqajt b'idejk fuq żaqqek u bqajt m'għamilt xejn.
+
+===
+
+INPUT:
+'Hi', fejn tista' ccempel ghax hawn karozza qed tibblukkali l- garaxx please u sidha qieghed paxxut jara n- nar x'imkien u jien irrid nohrog ghax- xoghol?
+
+OUTPUT:
+Hi, fejn tista' ċċempel għax hawn karozza qed tibblokkali l-garaxx please u sidha qiegħed paxxut jara n-nar xi mkien u jien irrid noħroġ għax-xogħol?
+
+===
+
+INPUT:
+xar
+
+OUTPUT:
+xahar/xagħar*
+
+===
+
+INPUT:
+ntbat
+
+OUTPUT:
+ntbagħat/ntbagħatt*
+
+===
+
+INPUT:
+ala
+
+OUTPUT:
+għala
+
+===
+
+INPUT:
+misterjuz
+
+OUTPUT:
+misterjuż
+
+===
+
+INPUT:
+misterjuza
+
+OUTPUT:
+misterjuża
+
+===
+
+INPUT:
+misterjuzi
+
+OUTPUT:
+misterjużi
+
+===
+
+INPUT:
+gustuz
+
+OUTPUT:
+gustuż
+
+===
+
+INPUT:
+gustuza
+
+OUTPUT:
+gustuża
+
+===
+
+INPUT:
+gustuzi
+
+OUTPUT:
+gustużi
+
+===
+
+INPUT:
+biex
+
+OUTPUT:
+biex
+
+===
+
+INPUT:
+jqaxarriex
+
+OUTPUT:
+jqaxxarhiex
+
+===
+
+INPUT:
+rcevejtom
+
+OUTPUT:
+rċevejthom
+
+===
+
+INPUT:
+rcivejtom
+
+OUTPUT:
+rċivejthom
+
+===
+
+INPUT:
+sgur
+
+OUTPUT:
+żgur
+
+===
+
+INPUT:
+l-ommi
+
+OUTPUT:
+l-ommi
+
+===
+
+INPUT:
+ilbiraht lura
+
+OUTPUT:
+Ilbiraħtlula.
+
+===
+
+INPUT:
+ilbirah lura
+
+OUTPUT:
+Ilbiraħtlula.
+
+===
+
+INPUT:
+mil apparenza
+
+OUTPUT:
+Mill-apparenza.
+
+===
+
+INPUT:
+program
+
+OUTPUT:
+program
+
+===
+
+INPUT:
+Jidru
+
+OUTPUT:
+Jidhru
+
+===
+
+INPUT:
+deru
+
+OUTPUT:
+dehru
+
+===
+
+INPUT:
+rajnih
+
+OUTPUT:
+rajnieh
+
+===
+
+INPUT:
+dis sena
+
+OUTPUT:
+Dis-sena.
+
+===
+
+INPUT:
+diga
+
+OUTPUT:
+diġà
+
+===
+
+INPUT:
+qalux
+
+OUTPUT:
+qalux
+
+===
+
+INPUT:
+m huma
+
+OUTPUT:
+M'huma.
+
+===
+
+INPUT:
+minn hekk
+
+OUTPUT:
+Minn hekk.
+
+===
+
+INPUT:
+apparti
+
+OUTPUT:
+apparti
+
+===
+
+INPUT:
+sew
+
+OUTPUT:
+sew
+
+===
+
+INPUT:
+Diyan
+
+OUTPUT:
+Diyan
+
+===
+
+INPUT:
+Basti
+
+OUTPUT:
+Basti
+
+===
+
+INPUT:
+verita
+
+OUTPUT:
+verità
+
+===
+
+INPUT:
+koala
+
+OUTPUT:
+koala
+
+===
+
+INPUT:
+panda
+
+OUTPUT:
+panda
+
+===
+
+INPUT:
+inteligenti
+
+OUTPUT:
+intelliġenti
+
+===
+
+INPUT:
+mhawx
+
+OUTPUT:
+m'hawnx
+
+===
+
+INPUT:
+mahrug
+
+OUTPUT:
+maħruġ
+
+===
+
+INPUT:
+laham
+
+OUTPUT:
+laħam
+
+===
+
+INPUT:
+namel
+
+OUTPUT:
+nagħmel
+
+===
+
+INPUT:
+namillek
+
+OUTPUT:
+nagħmillek
+
+===
+
+INPUT:
+wara imorru
+
+OUTPUT:
+Wara jmorru.
+
+===
+
+INPUT:
+ħajtek
+
+OUTPUT:
+ħajtek
+
+===
+
+INPUT:
+hajti
+
+OUTPUT:
+ħajti
+
+===
+
+INPUT:
+nmut
+
+OUTPUT:
+immut
+
+===
+
+INPUT:
+inmut
+
+OUTPUT:
+immut
+
+===
+
+INPUT:
+landu
+
+OUTPUT:
+l'għandu
+
+===
+
+INPUT:
+nkiser
+
+OUTPUT:
+inkiser
+
+===
+
+INPUT:
+Inkiser
+
+OUTPUT:
+Inkiser
+
+===
+
+INPUT:
+Idum itwal
+
+OUTPUT:
+Idum itwal.
+
+===
+
+INPUT:
+Idum iqsar
+
+OUTPUT:
+Idum iqsar.
+
+===
+
+INPUT:
+Jikber kiefer
+
+OUTPUT:
+Jikber kiefer.
+
+===
+
+INPUT:
+Jikber ehxen
+
+OUTPUT:
+Jikber eħxen.
+
+===
+
+INPUT:
+Jikber ikbar
+
+OUTPUT:
+Jikber ikbar.
+
+===
+
+INPUT:
+Jitwal ehxen
+
+OUTPUT:
+Jitwal u jsir eħxen.
+
+===
+
+INPUT:
+xarja hi
+
+OUTPUT:
+X'arja hi.
+
+===
+
+INPUT:
+jitfahha
+
+OUTPUT:
+jitfagħha
+
+===
+
+INPUT:
+jitfahħa
+
+OUTPUT:
+jitfagħha
+
+===
+
+INPUT:
+jaqraħħa
+
+OUTPUT:
+jaqraha
+
+===
+
+INPUT:
+il bierah
+
+OUTPUT:
+ilbieraħ
+
+===
+
+INPUT:
+il lum
+
+OUTPUT:
+illum
+
+===
+
+INPUT:
+il lejla
+
+OUTPUT:
+illejla
+
+===
+
+INPUT:
+mbierek
+
+OUTPUT:
+imbierek
+
+===
+
+INPUT:
+l mbierek
+
+OUTPUT:
+l-imbierek
+
+===
+
+INPUT:
+l imbierek
+
+OUTPUT:
+l-imbierek
+
+===
+
+INPUT:
+il mbierek
+
+OUTPUT:
+l-imbierek
+
+===
+
+INPUT:
+il imbierek
+
+OUTPUT:
+l-imbierek
+
+===
+
+INPUT:
+liskola
+
+OUTPUT:
+l-iskola
+
+===
+
+INPUT:
+is-skola
+
+OUTPUT:
+is-skola
+
+===
+
+INPUT:
+fid-centru
+
+OUTPUT:
+fiċ-ċentru
+
+===
+
+INPUT:
+fis centru
+
+OUTPUT:
+fiċ-ċentru

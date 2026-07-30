@@ -33,8 +33,9 @@ def token_for(source: str, original: str) -> dict:
 
 assert rich("iz-zija")["tokens"][0]["choices"] == []
 assert rich("it-tifel")["tokens"][0]["choices"] == []
-assert len(rich("il bahar")["tokens"][0]["choices"]) == 3
-assert len(rich("l-bahar")["tokens"][0]["choices"]) == 3
+assert rich("il bahar")["tokens"][0]["choices"] == []
+assert rich("l-bahar")["tokens"][0]["choices"] == []
+assert len(rich("ta l bahar")["tokens"][0]["choices"]) == 3
 
 ganna = token_for("iz-zija Ganna", "Ganna")
 assert ganna["corrected"] == "Ganna"
