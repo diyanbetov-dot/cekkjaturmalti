@@ -137,7 +137,8 @@ class CandidateLattice:
                                 source="KEEP",
                                 rule_id="singleton_keep",
                                 raw_score=1.0,
-                                calibrated_confidence=1.0,
+                                source_confidence=1.0,
+                                calibrated=False,
                                 deterministic=True,
                             ),
                         )
@@ -211,8 +212,12 @@ class CandidateLattice:
     def _priority(candidate: SpanCandidate) -> tuple[int, float, str]:
         confidences = [
             record.calibrated_confidence
-            if record.calibrated_confidence is not None
-            else record.raw_score
+            if record.calibrated and record.calibrated_confidence is not None
+            else (
+                record.source_confidence
+                if record.source_confidence is not None
+                else record.raw_score
+            )
             for record in candidate.evidence_records()
         ]
         confidence = max((value for value in confidences if value is not None), default=0.0)
