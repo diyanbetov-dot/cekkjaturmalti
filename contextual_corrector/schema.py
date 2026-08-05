@@ -75,7 +75,9 @@ class SourceEvidence:
     source: str
     rule_id: str | None = None
     raw_score: float | None = None
+    source_confidence: float | None = None
     calibrated_confidence: float | None = None
+    calibrated: bool = False
     rank: int | None = None
     deterministic: bool = False
     details: tuple[tuple[str, str], ...] = ()
@@ -95,7 +97,11 @@ class MorphologyAnalysis:
 @dataclass(frozen=True, slots=True)
 class DictionaryAnalysis:
     entry: str
+    normalized_surface: str | None = None
+    lemma: str | None = None
     tags: tuple[str, ...] = ()
+    part_of_speech: tuple[str, ...] = ()
+    inflectional_tags: tuple[str, ...] = ()
     dictionary: str | None = None
     exact: bool = False
     confidence: float | None = None
@@ -104,6 +110,8 @@ class DictionaryAnalysis:
 @dataclass(frozen=True, slots=True)
 class SuffixAnalysis:
     lemma: str
+    surface: str | None = None
+    root_or_stem: str | None = None
     paradigm: str | None = None
     tense_or_mood: str | None = None
     subject_person: str | None = None
@@ -111,7 +119,10 @@ class SuffixAnalysis:
     subject_gender: str | None = None
     direct_object: str | None = None
     indirect_object: str | None = None
+    has_direct_and_indirect_object: bool = False
+    negative: bool = False
     surface_valid: bool = False
+    validity_source: str | None = None
     confidence: float | None = None
     rule_id: str | None = None
 
