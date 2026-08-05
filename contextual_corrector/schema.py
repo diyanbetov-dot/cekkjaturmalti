@@ -28,6 +28,13 @@ class AlignmentOperation(StrEnum):
     MANY_TO_MANY = "many_to_many"
 
 
+class CandidateEligibility(StrEnum):
+    ELIGIBLE = "eligible"
+    SOFTLY_UNSUPPORTED = "softly_unsupported"
+    HARD_INVALID = "hard_invalid"
+    DIAGNOSTIC_ONLY = "diagnostic_only"
+
+
 @dataclass(frozen=True, slots=True)
 class TextSpan:
     char_start: int
@@ -137,6 +144,78 @@ class IntroducedFeature:
     @property
     def label(self) -> str:
         return f"{self.category}:{self.value}"
+
+
+@dataclass(frozen=True, slots=True)
+class FeatureDelta:
+    introduced: tuple[str, ...] = ()
+    removed: tuple[str, ...] = ()
+    changed: tuple[tuple[str, str, str], ...] = ()
+    preserved: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class CliticEvidence:
+    raw_has_clitic_evidence: bool = False
+    candidate_has_do: bool = False
+    candidate_has_ido: bool = False
+    introduced_do: tuple[str, ...] = ()
+    introduced_ido: tuple[str, ...] = ()
+    removed_do: tuple[str, ...] = ()
+    removed_ido: tuple[str, ...] = ()
+    clitic_surface_similarity: float = 0.0
+    antecedent_evidence: tuple[str, ...] = ()
+    unsupported_clitic_insertion: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class CandidateSupport:
+    lexical_validity: bool | None = None
+    morphological_validity: bool | None = None
+    dictionary_exact: bool = False
+    unsupported_surface: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class CandidateValidation:
+    candidate_id: str
+    eligibility: CandidateEligibility
+    violations: tuple[str, ...] = ()
+    warnings: tuple[str, ...] = ()
+    support: CandidateSupport = field(default_factory=CandidateSupport)
+    feature_delta: FeatureDelta = field(default_factory=FeatureDelta)
+    clitic_evidence: CliticEvidence = field(default_factory=CliticEvidence)
+    roundtrip_passed: tuple[str, ...] = ()
+    roundtrip_failed: tuple[str, ...] = ()
+
+    @property
+    def decodable(self) -> bool:
+        return self.eligibility in {
+            CandidateEligibility.ELIGIBLE,
+            CandidateEligibility.SOFTLY_UNSUPPORTED,
+        }
+
+
+@dataclass(frozen=True, slots=True)
+class EditCost:
+    grapheme: float = 0.0
+    boundary: float = 0.0
+    punctuation: float = 0.0
+    lexical: float = 0.0
+    morphology: float = 0.0
+    unsupported_clitic: float = 0.0
+    coherent_signatures: tuple[str, ...] = ()
+
+    @property
+    def total(self) -> float:
+        return (
+            self.grapheme
+            + self.boundary
+            + self.punctuation
+            + self.lexical
+            + self.morphology
+            + self.unsupported_clitic
+        )
 
 
 @dataclass(frozen=True, slots=True)
