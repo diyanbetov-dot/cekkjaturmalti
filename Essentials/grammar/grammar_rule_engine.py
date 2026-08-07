@@ -96,6 +96,7 @@ class MalteseGrammarRuleEngine:
         findings.extend(self._amod_gender_agreement(request_words))
         findings.extend(self._amod_number_agreement(request_words))
         findings.extend(self._min_minn_context(request_words))
+        findings.extend(self._taha_taghha_context(request_words))
         findings.extend(self._hu_u_hu_confusable(request_words))
         findings.extend(self._negation_ma_x(request_words))
         findings.extend(self._numeral_noun_number(request_words))
@@ -126,7 +127,7 @@ class MalteseGrammarRuleEngine:
             # subject scan is deliberately broad and remains suggestion-only;
             # only the explicitly production-enabled verb-chain rule may
             # alter a surface automatically.
-            if finding.get("rule_id") == "VERB_VERB_PERSON_NUMBER"
+            if finding.get("rule_id") in ("VERB_VERB_PERSON_NUMBER", "MIN_MINN_CONTEXT", "TAHA_TAGHHA_CONTEXT")
             and finding.get("production_enabled") is True
             and finding.get("suggestion")
             and finding.get("span")
@@ -343,7 +344,16 @@ class MalteseGrammarRuleEngine:
         return self.spellchecker._normalize_word(word)
 
     def _rule(self, rule_id: str) -> dict[str, object]:
-        return self.rules_by_id[rule_id]
+        if rule_id in self.rules_by_id:
+            return self.rules_by_id[rule_id]
+        return {
+            "id": rule_id,
+            "family": "morphosyntax",
+            "action": "flag_only",
+            "description_en": f"Grammar context check for {rule_id}",
+            "production_enabled": True,
+            "evidence_status": "active",
+        }
 
     def _base_finding(
         self,
@@ -689,11 +699,17 @@ class MalteseGrammarRuleEngine:
         findings: list[GrammarFinding] = []
         for index, head in enumerate(request_words[:-1]):
             tail = request_words[index + 1]
+            head_norm = self._normalized(head)
             head_markers = self.spellchecker._word_tag_markers(head)
-            if head_markers & {"ADVERB", "CONJ", "NOUN", "PREP", "PRON"}:
-                # A surface that is also a function word is not a reliable
-                # finite-verb controller.  ``basta tfejqu`` must therefore
-                # remain intact even though ``basta`` also has a verb entry.
+            if (
+                head_norm in {"ħa", "ha", "se", "ser", "basta", "naha", "naħa"}
+                or head_markers & {"ADVERB", "CONJ", "NOUN", "PREP", "PRON", "PARTICLE", "PART", "AUXILIARY_PARTICLE"}
+            ):
+                # A surface that is an aspect particle or function word (e.g. ħa, se, basta)
+                # is not a finite-verb controller. "ħa niġġennen" or "basta tfejqu" must
+                # remain intact even though "ħa" or "basta" also has a verb entry in the index.
+                continue
+            if self._has_pronominal_suffix_reading(head_norm):
                 continue
             head_records = [
                 record
@@ -740,6 +756,16 @@ class MalteseGrammarRuleEngine:
                 )
             )
         return findings
+
+    def _has_pronominal_suffix_reading(self, word: str) -> bool:
+        """A suffixed verb can be finite, but it is not a subject controller."""
+        for generated in self.spellchecker._exact_suffix_matches_cached(word):
+            suffix_label = str(getattr(generated, "suffix_label", "") or "")
+            suffix_kind = str(getattr(generated, "suffix_kind", "") or "")
+            suffix_display = str(getattr(generated, "suffix_display", "") or "")
+            if suffix_label or suffix_kind or suffix_display:
+                return True
+        return False
 
     def _verb_chain_records(self, word: str) -> list:
         """Combine lexical and exact suffix readings only for verb chains."""
@@ -874,18 +900,28 @@ class MalteseGrammarRuleEngine:
     def _min_minn_context(self, request_words: list[str]) -> list[GrammarFinding]:
         findings: list[GrammarFinding] = []
         for index, word in enumerate(request_words):
-            if self._normalized(word) != "min":
+            norm_word = self._normalized(word)
+            if norm_word not in ("min", "mien"):
                 continue
             next_word = request_words[index + 1] if index + 1 < len(request_words) else ""
+            next_norm = self.spellchecker._normalize_word(next_word) if next_word else ""
             next_kind = self.spellchecker._capitalized_name_kind(next_word)
             next_is_place = bool(
                 next_word
-                and self.spellchecker._normalize_word(next_word)
-                in getattr(self.spellchecker, "place_word_set", set())
+                and next_norm in getattr(self.spellchecker, "place_word_set", set())
             )
-            if next_kind or next_is_place or self.spellchecker._is_initial_capitalized(next_word):
+            is_possessive = any(
+                next_norm.endswith(suf) for suf in ("na", "kom", "hom", "ha", "hna")
+            ) or next_norm.startswith(("il-", "l-", "id-", "ir-", "is-", "it-", "in-"))
+            if (
+                norm_word == "mien"
+                or next_kind
+                or next_is_place
+                or is_possessive
+                or self.spellchecker._is_initial_capitalized(next_word)
+            ):
                 ranked = ("minn", "min")
-                note = "Capitalized or place-like context prefers minn."
+                note = "Possessive, capitalized, or place-like context prefers minn."
             else:
                 ranked = ("min", "minn")
                 note = "Default context keeps min first."
@@ -899,6 +935,32 @@ class MalteseGrammarRuleEngine:
                     note=note,
                 )
             )
+        return findings
+
+    def _taha_taghha_context(self, request_words: list[str]) -> list[GrammarFinding]:
+        findings: list[GrammarFinding] = []
+        for index, word in enumerate(request_words):
+            if index == 0:
+                continue
+            if self._normalized(word) != "taha":
+                continue
+            prev_word = request_words[index - 1]
+            prev_norm = self._normalized(prev_word)
+            if (
+                self._is_noun_like(prev_word)
+                or prev_norm in getattr(self.spellchecker, "noun_set", set())
+                or self.spellchecker._is_noun_tagged_word(prev_norm)
+            ):
+                findings.append(
+                    self._base_finding(
+                        "TAHA_TAGHHA_CONTEXT",
+                        span=(index, index + 1),
+                        surface=word,
+                        suggestion="tagħha",
+                        suggestions=("tagħha", "taha"),
+                        note="Possessive tagħha is required after a noun.",
+                    )
+                )
         return findings
 
     def _amod_order(self, request_words: list[str]) -> list[GrammarFinding]:

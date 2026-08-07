@@ -56,7 +56,30 @@ class MalteseFusedPrepositionRules:
             ):
                 self.add_unique(candidates, candidate)
 
+        manual_repair = self.spellchecker.MANUAL_WORD_REPAIRS.get(normalized)
+        if manual_repair:
+            add_if_dictionary(manual_repair)
+
+        # Preserve an already canonical remainder before trying reversible
+        # substitutions. A known manual repair remains first, so qet -> qed,
+        # while an already correct qed cannot drift back to qet.
         add_if_dictionary(normalized)
+
+        # Re-run the bounded Phase-Y substitutions on the parsed remainder
+        # before accepting its raw surface.  This lets compositional forms
+        # such as xqet resolve as x' + qet -> x'qed without invoking fuzzy
+        # search or teaching the contraction as a lexical exception.
+        if orthographic is not None:
+            priority_helpers = [
+                getattr(orthographic, "dictionary_d_t_variants", None),
+                getattr(orthographic, "dictionary_b_p_variants", None),
+                getattr(orthographic, "dictionary_g_k_cluster_variants", None),
+            ]
+            for helper in priority_helpers:
+                if helper is None:
+                    continue
+                for candidate in helper(normalized):
+                    add_if_dictionary(candidate)
 
         for candidate in self.spellchecker._strict_lookup_variants(normalized):
             add_if_dictionary(candidate)

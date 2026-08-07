@@ -12,6 +12,7 @@
   "learning_rate": 0.0015,
   "weight_decay": 0.0001,
   "synthetic_variants_per_example": 3,
+  "use_synthetic_training": false,
   "inference_action_threshold": 0.85,
   "use_bertu": false,
   "use_corpus": false,

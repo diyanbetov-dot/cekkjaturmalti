@@ -1,0 +1,74 @@
+{
+  "artifacts": {
+    "merge_report_sha256": "8983ec5f3a4406ed34dfff4bae30c2f88e5670420ff6d85b6daa70eb1f586b77",
+    "pairs_sha256": "c33ab72e18b34de236b7583a337da54252667ea768a0166a9c86066f3fa75cc2",
+    "parse_report_sha256": "4b919f0d73a4552380df6f467c224b0d720b38ab8d4e01422a62c363681b524c",
+    "splits_sha256": "c353d253528c48d64ade6264eeaea68eb6d5c54e400895623b27d090d68bfe98"
+  },
+  "checks": {
+    "all_examples_assigned_once": true,
+    "changed_test_sets_contain_no_identity_examples": true,
+    "no_conflicting_normalized_inputs": true,
+    "no_exact_duplicate_pairs": true,
+    "no_exact_signature_partition_leakage": true,
+    "no_group_partition_leakage": true,
+    "test_clean_contains_only_identity_examples": true,
+    "train_has_identity_examples": true,
+    "validation_has_identity_examples": true
+  },
+  "dataset": {
+    "changed_examples": 1142,
+    "conflicting_normalized_inputs": [],
+    "exact_duplicate_pairs": 0,
+    "examples": 1363,
+    "identity_examples": 221,
+    "suspicious_examples": 4
+  },
+  "leakage": {
+    "duplicate_assignments": [],
+    "exact_signature_partition_leaks": [],
+    "group_partition_leaks": [],
+    "missing_ids": [],
+    "unknown_ids": []
+  },
+  "merge": {
+    "incoming_examples_recovered": 656,
+    "new_noisy_clean_examples": 656,
+    "selected_identity_examples": 200,
+    "structural_repairs": {
+      "missing_input_colons": 1,
+      "missing_separators": 4,
+      "noncanonical_separators": 1
+    }
+  },
+  "split_algorithm": "normalized-noisy-clean-near-duplicate-groups-v2",
+  "split_counts": {
+    "test_challenge": {
+      "changed": 90,
+      "examples": 90,
+      "identity": 0
+    },
+    "test_clean": {
+      "changed": 0,
+      "examples": 43,
+      "identity": 43
+    },
+    "test_real": {
+      "changed": 116,
+      "examples": 116,
+      "identity": 0
+    },
+    "train": {
+      "changed": 826,
+      "examples": 976,
+      "identity": 150
+    },
+    "validation": {
+      "changed": 110,
+      "examples": 138,
+      "identity": 28
+    }
+  },
+  "split_manifest_sha256": "d8acd894e4723eeeaf6c875917a1a2685ec239a7488f3c6a99ea05f9ff0d9243",
+  "status": "passed"
+}

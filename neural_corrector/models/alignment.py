@@ -82,3 +82,60 @@ def chunk_aligned(
         for start in range(0, len(source), max_length)
     ]
 
+
+def _find_safe_cut(source: str, start: int, max_length: int) -> int:
+    """Return the latest space boundary at or before start+max_length."""
+    end = min(start + max_length, len(source))
+    if end >= len(source):
+        return end
+    # Walk back to nearest space
+    cut = end
+    while cut > start + 1 and source[cut - 1] not in (" ", "\n", "\t"):
+        cut -= 1
+    return cut if cut > start else end  # fallback: hard cut
+
+
+def chunk_aligned_sentences(
+    source: str, actions: list[str], max_length: int
+) -> list[tuple[str, list[str]]]:
+    """Sentence-aware, edit-safe chunking.
+
+    Splits first on sentence-ending punctuation or newlines so that training
+    examples are complete sentences wherever possible.  When a single sentence
+    exceeds *max_length* it is further split at the nearest space boundary.
+    Always guarantees ``len(chunk) <= max_length``.
+    """
+    if len(source) != len(actions):
+        raise ValueError("Source and action lengths differ")
+    if not source:
+        return []
+
+    # Find sentence boundary positions (end-inclusive index of the boundary char)
+    import re as _re
+    _SENT_END = _re.compile(r"[.!?\n]")
+    boundaries: list[int] = []
+    for match in _SENT_END.finditer(source):
+        pos = match.end()  # character after the boundary marker
+        boundaries.append(pos)
+    if not boundaries or boundaries[-1] < len(source):
+        boundaries.append(len(source))
+
+    chunks: list[tuple[str, list[str]]] = []
+    cursor = 0
+    for boundary in boundaries:
+        segment_end = boundary
+        while cursor < segment_end:
+            available = segment_end - cursor
+            if available <= max_length:
+                chunks.append((source[cursor:segment_end], actions[cursor:segment_end]))
+                cursor = segment_end
+            else:
+                # Sentence too long — cut at word boundary
+                cut = _find_safe_cut(source, cursor, max_length)
+                chunks.append((source[cursor:cut], actions[cursor:cut]))
+                cursor = cut
+
+    # Sanity check: reconstructed source must equal original
+    assert "".join(s for s, _ in chunks) == source, "Sentence chunking broke source"
+    return chunks
+

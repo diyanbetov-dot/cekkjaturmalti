@@ -1,0 +1,9 @@
+{
+  "action_threshold": 0.9,
+  "calibration_status": "provisional_suffix_comparison",
+  "use_dictionary_validation": true,
+  "use_suffix_validation": true,
+  "dictionary_rescue_min_confidence": 0.85,
+  "dictionary_index": "neural_corrector/data/indexes/maltese_dictionary.sqlite3",
+  "suffix_index": "neural_corrector/data/indexes/maltese_suffix_forms.bloom"
+}

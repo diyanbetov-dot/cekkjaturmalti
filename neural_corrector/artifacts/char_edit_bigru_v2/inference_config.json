@@ -1,0 +1,12 @@
+{
+  "action_threshold": 0.9,
+  "calibration_report": "neural_corrector\\experiments\\expanded_v2_threshold_calibration.json",
+  "partition": "validation",
+  "use_dictionary_validation": true,
+  "use_suffix_validation": true,
+  "dictionary_rescue_min_confidence": 0.85,
+  "suffix_specialist_min_margin": 0.05,
+  "dictionary_index": "neural_corrector/data/indexes/maltese_dictionary.sqlite3",
+  "suffix_index": "neural_corrector/data/indexes/maltese_suffix_forms.bloom",
+  "suffix_specialist_artifact": "neural_corrector/artifacts/char_edit_bigru_v3"
+}

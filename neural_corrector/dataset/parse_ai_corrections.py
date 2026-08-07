@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import re
+import sys
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -161,6 +162,8 @@ def parse_file(source: Path, output_root: Path) -> ParseResult:
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser()
     parser.add_argument("--source", type=Path, default=Path("AI corrections.txt"))
     parser.add_argument(
@@ -175,4 +178,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

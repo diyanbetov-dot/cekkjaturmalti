@@ -13,7 +13,7 @@ from neural_corrector.inference.corrector import NeuralCorrector
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 UI_PATH = PROJECT_ROOT / "Essentials" / "index.html"
 DEVTOY_PATH = PROJECT_ROOT / "Essentials" / "devtoy.js"
-DEFAULT_ARTIFACT = PROJECT_ROOT / "neural_corrector" / "artifacts" / "char_edit_bigru_v1"
+DEFAULT_ARTIFACT = PROJECT_ROOT / "neural_corrector" / "artifacts" / "char_edit_bigru_v5"
 
 
 BARE_WORD_PATTERN = re.compile(r"^[^\W\d_]+(?:['’][^\W\d_]+)?$", re.UNICODE)
@@ -40,7 +40,7 @@ def tokens_from_result(result: dict) -> list[dict]:
                 "choices": [
                     {
                         "word": alternative,
-                        "meaning": "Neural whole-word alternative",
+                        "meaning": "",
                         "source": "neural",
                         "confidence": confidence,
                         "category": "spelling",
@@ -67,7 +67,7 @@ def tokens_from_result(result: dict) -> list[dict]:
                     choices.append(
                         {
                             "word": alternative,
-                            "meaning": edit["explanation"],
+                            "meaning": "",   # suppress technical neural labels
                             "source": "neural",
                             "confidence": edit["confidence"],
                             "category": edit["type"],
@@ -116,6 +116,9 @@ def create_app(artifact_dir: Path = DEFAULT_ARTIFACT) -> Flask:
                 "system": "neural-first-experiment",
                 "model_version": corrector.model_version,
                 "action_threshold": corrector.threshold,
+                "dictionary_validation": (
+                    corrector.dictionary_validation_enabled
+                ),
             }
         )
 

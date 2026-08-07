@@ -18,7 +18,8 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 
 from neural_corrector.dataset.analyze_pairs import read_jsonl
-from neural_corrector.models.alignment import COPY_ACTION, chunk_aligned, derive_actions
+from neural_corrector.dataset.context_augmentation import augment_for_training
+from neural_corrector.models.alignment import COPY_ACTION, chunk_aligned_sentences, derive_actions
 from neural_corrector.models.char_edit_tagger import CharEditTagger
 from neural_corrector.models.vocab import (
     PAD_ACTION,
@@ -96,7 +97,7 @@ def make_examples(
             continue
         actions = derive_actions(source, target)
         for chunk_index, (source_chunk, action_chunk) in enumerate(
-            chunk_aligned(source, actions, max_length)
+            chunk_aligned_sentences(source, actions, max_length)
         ):
             result.append(
                 SequenceExample(
@@ -170,13 +171,32 @@ def train(
     artifact_dir: Path,
 ) -> dict:
     config = json.loads(config_path.read_text(encoding="utf-8"))
+    model_version = config.get("model_version", "char-edit-bigru-0.1.0")
     set_seed(config["seed"])
     rows = read_jsonl(pairs_path)
-    synthetic = read_jsonl(synthetic_path) if synthetic_path.exists() else []
-    splits = json.loads(split_path.read_text(encoding="utf-8"))["splits"]
-    train_examples = make_examples(
-        rows, set(splits["train"]), config["max_sequence_length"]
+    use_synthetic = config.get("use_synthetic_training", False)
+    synthetic = (
+        read_jsonl(synthetic_path)
+        if use_synthetic and synthetic_path.exists()
+        else []
     )
+    splits = json.loads(split_path.read_text(encoding="utf-8"))["splits"]
+    train_ids = set(splits["train"])
+    train_rows = [r for r in rows if r["id"] in train_ids]
+    train_examples = make_examples(
+        rows, train_ids, config["max_sequence_length"]
+    )
+    # Context augmentation (training only — never applied to validation/test)
+    if config.get("use_context_augmentation", False):
+        views_per_pair = config.get("context_views_per_pair", 2)
+        augmented_rows = augment_for_training(
+            train_rows,
+            views_per_pair=views_per_pair,
+            seed=config["seed"],
+        )
+        train_examples.extend(
+            make_examples(augmented_rows, None, config["max_sequence_length"])
+        )
     train_examples.extend(
         make_examples(synthetic, None, config["max_sequence_length"])
     )
@@ -249,7 +269,7 @@ def train(
                 {
                     "state_dict": model.state_dict(),
                     "config": config,
-                    "model_version": "char-edit-bigru-0.1.0",
+                    "model_version": model_version,
                     "best_validation_loss": best_loss,
                 },
                 artifact_dir / "model.pt",
@@ -272,7 +292,7 @@ def train(
     elapsed = time.perf_counter() - started
     model_path = artifact_dir / "model.pt"
     report = {
-        "model_version": "char-edit-bigru-0.1.0",
+        "model_version": model_version,
         "architecture": "bidirectional GRU character edit tagger",
         "custom_trainable_parameters": sum(
             parameter.numel() for parameter in model.parameters()
@@ -282,12 +302,16 @@ def train(
         "torch": torch.__version__,
         "training_seconds": round(elapsed, 3),
         "training_examples": len(train_examples),
+        "synthetic_training_enabled": use_synthetic,
+        "synthetic_rows_loaded": len(synthetic),
         "validation_examples": len(validation_examples),
         "character_vocab": len(vocab.characters),
         "action_vocab": len(vocab.actions),
         "best_validation_loss": best_loss,
         "model_bytes": model_path.stat().st_size,
         "model_sha256": hashlib.sha256(model_path.read_bytes()).hexdigest(),
+        "pairs_sha256": hashlib.sha256(pairs_path.read_bytes()).hexdigest(),
+        "splits_sha256": hashlib.sha256(split_path.read_bytes()).hexdigest(),
         "config": config,
         "history": history,
     }

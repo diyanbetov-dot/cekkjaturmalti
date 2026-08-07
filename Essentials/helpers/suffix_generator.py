@@ -186,6 +186,7 @@ class MalteseSuffixGenerator:
                 self._add_unique_word(guesses, candidate)
         if len(g) >= 2 and g[-2] == "i" and g[-1].isalpha():
             self._add_unique_word(guesses, self._from_graphemes(g[:-2] + ["e", g[-1]]))
+            self._add_unique_word(guesses, self._from_graphemes(g[:-2] + ["o", g[-1]]))
         if len(g) >= 2 and g[-2:] == ["i", "e"]:
             self._add_unique_word(guesses, self._from_graphemes(g[:-2] + ["a"]))
             if len(g) >= 3:
@@ -343,8 +344,9 @@ class MalteseSuffixGenerator:
                     )
                 )
             )
+            direct_record = record.word in direct_record_words
             if not (
-                record.word in direct_record_words
+                direct_record
                 or allow_1p_record
                 or (record.is_perf and record.person in {"3SM", "3P"})
                 or (record.is_imp and record.person in {"2S", "2P"})

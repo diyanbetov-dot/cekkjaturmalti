@@ -237,8 +237,12 @@ class CorpusContextSelector:
         token: dict,
         spellchecker,
         *,
-        next_surface: Optional[str],
+        previous_surface: Optional[str] = None,
+        next_surface: Optional[str] = None,
     ) -> bool:
+        if previous_surface is None or spellchecker._normalize_word(previous_surface) in {"u", "u'"}:
+            return False
+
         details = self._family_l_details(token, spellchecker)
         if details is None:
             return False
@@ -251,7 +255,15 @@ class CorpusContextSelector:
         if explicitly_hyphenated and is_base_form and not followed_by_ta:
             return False
 
-        directional_prefix = "'il" if source_prefix == "il" else "'l"
+        previous_norm = spellchecker._normalize_word(previous_surface or "")
+        previous_ends_vowelish = bool(
+            previous_norm and previous_norm[-1] in "aeiouàèìòùáéíóúâêîôû'"
+        )
+        directional_prefix = (
+            "'l"
+            if source_prefix == "l" or previous_ends_vowelish
+            else "'il"
+        )
         article_surface = f"{source_prefix}-{tail}"
         spaced_surface = f"{directional_prefix} {tail}"
         hyphenated_surface = f"{directional_prefix}-{tail}"
@@ -302,6 +314,7 @@ class CorpusContextSelector:
         candidates: Sequence[str],
         *,
         previous_surface: Optional[str],
+        next_surface: Optional[str] = None,
         spellchecker,
     ) -> Tuple[List[str], Optional[str], str]:
         filtered = [
@@ -311,6 +324,18 @@ class CorpusContextSelector:
         ]
         if not filtered:
             filtered = list(candidates)
+
+        next_norm = spellchecker._normalize_word(next_surface or "")
+        is_next_article = (
+            next_norm.startswith(("il-", "l-", "iċ-", "id-", "in-", "ir-", "is-", "it-", "ix-", "iż-", "iz-"))
+            or (next_norm and "-" in next_norm)
+        )
+        if is_next_article:
+            without_kull = [
+                c for c in filtered if spellchecker._normalize_word(c) != "kull"
+            ]
+            if without_kull:
+                filtered = without_kull
 
         previous_features = self._verb_features(previous_surface or "", spellchecker)
         previous_is_mur_imperative = (
@@ -410,6 +435,7 @@ class CorpusContextSelector:
                 if self._apply_family_l_rule(
                     token,
                     spellchecker,
+                    previous_surface=previous_surface,
                     next_surface=next_surface,
                 ):
                     selected_surfaces[token_index] = str(token.get("corrected", ""))
@@ -424,6 +450,7 @@ class CorpusContextSelector:
                 candidates, forced_winner, hard_reason = self._filter_candidates(
                     candidates,
                     previous_surface=previous_surface,
+                    next_surface=next_surface,
                     spellchecker=spellchecker,
                 )
                 if not candidates:

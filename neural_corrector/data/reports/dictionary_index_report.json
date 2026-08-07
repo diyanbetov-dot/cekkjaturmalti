@@ -1,0 +1,134 @@
+{
+  "dictionary_directory": "C:\\Users\\diyan\\OneDrive\\New folder\\Desktop\\Ċekkjatur tal-Kitba\\Essentials\\finaldics",
+  "format_version": 2,
+  "index_bytes": 17448960,
+  "index_path": "C:\\Users\\diyan\\OneDrive\\New folder\\Desktop\\Ċekkjatur tal-Kitba\\neural_corrector\\data\\indexes\\maltese_dictionary.sqlite3",
+  "index_sha256": "db2640ce313085ba4d1c0bfe01f3420e76957fed3b6980dab2892f7155916ef6",
+  "parsed_rows": 304307,
+  "sources": [
+    {
+      "name": "dev_extra.dic",
+      "rows": 327,
+      "sha256": "f1d86f79eab2bb07e2df07e16144e09439b09e5fbe3a4cf36f1e26af4541bd41",
+      "source_bit": 1,
+      "tag": "other"
+    },
+    {
+      "name": "eu_countries.dic",
+      "rows": 1100,
+      "sha256": "5cb32c0c76f7949553dbbde42733312916f994be228a463dbda8e9224d75a5e8",
+      "source_bit": 2,
+      "tag": "place"
+    },
+    {
+      "name": "fixednouns.dic",
+      "rows": 11651,
+      "sha256": "e5b67b43d7ca29e09aae7f14d143262d964b8da7a663a4c6f3a8c5cb73d3d2b1",
+      "source_bit": 4,
+      "tag": "noun"
+    },
+    {
+      "name": "maltese_adjectives.dic",
+      "rows": 3832,
+      "sha256": "3febc3515f2a4b695889f05024269535fb8223f97644fd0c46a2986927b95bb2",
+      "source_bit": 8,
+      "tag": "adjective"
+    },
+    {
+      "name": "maltese_adverbs.dic",
+      "rows": 421,
+      "sha256": "e0bcc4e07f193bfa49d614433ce0e5629c6f3169354088e935407aa295c0ff8c",
+      "source_bit": 16,
+      "tag": "adverb"
+    },
+    {
+      "name": "maltese_articles.dic",
+      "rows": 2,
+      "sha256": "63535bc3aa4ab4b6c914b6eaf8279d50c3982bb950a83f70dc107b8c9bd6730f",
+      "source_bit": 32,
+      "tag": "article"
+    },
+    {
+      "name": "maltese_pronouns.dic",
+      "rows": 56,
+      "sha256": "11073967f17d5ee2603f48be7b5318299a1f4b02b774e6e38b4ecf58b8609086",
+      "source_bit": 64,
+      "tag": "pronoun"
+    },
+    {
+      "name": "Maltese_usage.dic",
+      "rows": 84,
+      "sha256": "367afefeb1b1fcad0d38406be332d86982baec812f6e2fc0af0a87852121cf0d",
+      "source_bit": 128,
+      "tag": "usage"
+    },
+    {
+      "name": "names.dic",
+      "rows": 41450,
+      "sha256": "c19919d020c24c307aefa92327d34d25f931bc4bd49c3d61b8309b27ef0bea99",
+      "source_bit": 256,
+      "tag": "name"
+    },
+    {
+      "name": "nopossessionnouns.dic",
+      "rows": 3,
+      "sha256": "43c1d24c4856f43ea26fdc9be70d2e9a1dd4c788fd1058f4555411aedae8c20c",
+      "source_bit": 512,
+      "tag": "noun"
+    },
+    {
+      "name": "participles.dic",
+      "rows": 1300,
+      "sha256": "0fda6c5e49ec39e0b138c51a7deac0f98dac7f7556d47956db21de1322fe1f93",
+      "source_bit": 1024,
+      "tag": "participle"
+    },
+    {
+      "name": "places.dic",
+      "rows": 39738,
+      "sha256": "bcee88bf2090eb1566176b0794c799efd4b89a86cc30d7826694b55f77a01a10",
+      "source_bit": 2048,
+      "tag": "place"
+    },
+    {
+      "name": "prepositions.dic",
+      "rows": 361,
+      "sha256": "68e4584eae3e46152e0d2f9edb8ada9af5d16d1cc86eb7509be5072bb3eacd0b",
+      "source_bit": 4096,
+      "tag": "preposition"
+    },
+    {
+      "name": "verbmt_nonsemitic.dic",
+      "rows": 73224,
+      "sha256": "ec1ad4e52061e624bffdd5c24a877c1d0bb16dc7a5168d6d155751273d562b89",
+      "source_bit": 8192,
+      "tag": "verb"
+    },
+    {
+      "name": "verbmt_semitic.dic",
+      "rows": 130758,
+      "sha256": "6381e8f7a7bfc94252bccbed573c60a3efff359e0720cb89724cec7d83855460",
+      "source_bit": 16384,
+      "tag": "verb"
+    }
+  ],
+  "tag_bits": {
+    "adjective": 4,
+    "adverb": 8,
+    "article": 32,
+    "cardinal_number": 8192,
+    "long_attributive_number": 32768,
+    "name": 256,
+    "noun": 1,
+    "other": 2048,
+    "participle": 128,
+    "place": 512,
+    "plural_noun": 4096,
+    "preposition": 64,
+    "pronoun": 16,
+    "short_attributive_number": 16384,
+    "usage": 1024,
+    "verb": 2
+  },
+  "unique_words": 206069
+}

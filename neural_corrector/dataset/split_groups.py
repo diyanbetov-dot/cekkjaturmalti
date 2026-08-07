@@ -5,8 +5,8 @@ import hashlib
 import json
 import random
 import re
+import sys
 import unicodedata
-from collections import defaultdict
 from difflib import SequenceMatcher
 from pathlib import Path
 
@@ -23,26 +23,47 @@ def signature(text: str) -> str:
 
 
 def build_groups(rows: list[dict], threshold: float = 0.9) -> list[list[dict]]:
-    groups: list[list[dict]] = []
-    signatures: list[str] = []
-    for row in rows:
-        sig = signature(row["noisy"])
-        chosen = None
-        for index, representative in enumerate(signatures):
-            if sig == representative:
-                chosen = index
+    parents = list(range(len(rows)))
+
+    def find(index: int) -> int:
+        while parents[index] != index:
+            parents[index] = parents[parents[index]]
+            index = parents[index]
+        return index
+
+    def union(left: int, right: int) -> None:
+        left_root, right_root = find(left), find(right)
+        if left_root != right_root:
+            parents[right_root] = left_root
+
+    row_signatures = [
+        {signature(row["noisy"]), signature(row["clean"])} - {""} for row in rows
+    ]
+    exact_owner: dict[str, int] = {}
+    for index, signatures in enumerate(row_signatures):
+        for value in signatures:
+            if value in exact_owner:
+                union(index, exact_owner[value])
+            else:
+                exact_owner[value] = index
+
+    representatives: list[tuple[int, str]] = []
+    for index, signatures in enumerate(row_signatures):
+        primary = min(signatures, key=len, default="")
+        if not primary:
+            continue
+        for other_index, other in representatives:
+            if max(len(primary), len(other)) <= 280 and SequenceMatcher(
+                None, primary, other, autojunk=False
+            ).ratio() >= threshold:
+                union(index, other_index)
                 break
-            if max(len(sig), len(representative)) <= 280:
-                ratio = SequenceMatcher(None, sig, representative, autojunk=False).ratio()
-                if ratio >= threshold:
-                    chosen = index
-                    break
-        if chosen is None:
-            signatures.append(sig)
-            groups.append([row])
-        else:
-            groups[chosen].append(row)
-    return groups
+        representatives.append((index, primary))
+
+    grouped: dict[int, list[dict]] = {}
+    for index, row in enumerate(rows):
+        grouped.setdefault(find(index), []).append(row)
+    return list(grouped.values())
 
 
 def _group_score(group: list[dict]) -> int:
@@ -54,12 +75,10 @@ def _group_score(group: list[dict]) -> int:
 def create_splits(rows: list[dict], seed: int = 1701) -> dict[str, list[str]]:
     rng = random.Random(seed)
     groups = build_groups(rows)
-    clean_groups = [group for group in groups if all(row["is_unchanged"] for row in group)]
-    remaining = [group for group in groups if group not in clean_groups]
-    challenge_groups = sorted(remaining, key=_group_score, reverse=True)[
+    challenge_groups = sorted(groups, key=_group_score, reverse=True)[
         : max(1, round(len(groups) * 0.08))
     ]
-    remaining = [group for group in remaining if group not in challenge_groups]
+    remaining = [group for group in groups if group not in challenge_groups]
     rng.shuffle(remaining)
 
     validation_count = max(1, round(len(groups) * 0.1))
@@ -68,26 +87,40 @@ def create_splits(rows: list[dict], seed: int = 1701) -> dict[str, list[str]]:
     test_real_groups = remaining[validation_count : validation_count + test_real_count]
     train_groups = remaining[validation_count + test_real_count :]
 
-    if not clean_groups:
-        clean_groups = train_groups[-1:]
-        train_groups = train_groups[:-1]
-
-    split_groups = {
-        "train": train_groups,
-        "validation": validation_groups,
-        "test_real": test_real_groups,
-        "test_clean": clean_groups,
-        "test_challenge": challenge_groups,
+    result: dict[str, list[str]] = {
+        "train": sorted(
+            row["id"] for group in train_groups for row in group
+        ),
+        "validation": sorted(
+            row["id"] for group in validation_groups for row in group
+        ),
+        "test_real": sorted(
+            row["id"]
+            for group in test_real_groups
+            for row in group
+            if not row["is_unchanged"]
+        ),
+        "test_clean": sorted(
+            row["id"]
+            for group in test_real_groups + challenge_groups
+            for row in group
+            if row["is_unchanged"]
+        ),
+        "test_challenge": sorted(
+            row["id"]
+            for group in challenge_groups
+            for row in group
+            if not row["is_unchanged"]
+        ),
     }
-    result: dict[str, list[str]] = {}
+    if not result["test_clean"]:
+        raise ValueError("No clean identity examples reached the locked test partition.")
     seen: set[str] = set()
-    for split_name, grouped in split_groups.items():
-        ids = [row["id"] for group in grouped for row in group]
+    for split_name, ids in result.items():
         overlap = seen.intersection(ids)
         if overlap:
             raise ValueError(f"Split leakage detected in {split_name}: {sorted(overlap)}")
         seen.update(ids)
-        result[split_name] = sorted(ids)
     if seen != {row["id"] for row in rows}:
         missing = {row["id"] for row in rows} - seen
         raise ValueError(f"Examples missing from splits: {sorted(missing)}")
@@ -110,7 +143,7 @@ def write_splits(
     payload = {
         "locked": True,
         "seed": seed,
-        "algorithm": "normalized-near-duplicate-groups-v1",
+        "algorithm": "normalized-noisy-clean-near-duplicate-groups-v2",
         "splits": splits,
         "manifest_sha256": hashlib.sha256(
             json.dumps(splits, sort_keys=True).encode("utf-8")
@@ -121,6 +154,8 @@ def write_splits(
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--pairs",
@@ -143,4 +178,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

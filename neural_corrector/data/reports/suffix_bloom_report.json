@@ -1,0 +1,22 @@
+{
+  "format_version": 1,
+  "index_path": "C:\\Users\\diyan\\OneDrive\\New folder\\Desktop\\Ċekkjatur tal-Kitba\\neural_corrector\\data\\indexes\\maltese_suffix_forms.bloom",
+  "index_sha256": "4dbf538d084291cbb6c63eb7f1e81e1861655641dc1ed4dc89e896daae2d1231",
+  "index_bytes": 33554460,
+  "bit_count": 268435456,
+  "hash_count": 7,
+  "generated_insertions": 11066118,
+  "verb_records": 203982,
+  "suffix_specs": 40,
+  "build_seconds": 259.988,
+  "sources": [
+    {
+      "path": "C:\\Users\\diyan\\OneDrive\\New folder\\Desktop\\Ċekkjatur tal-Kitba\\Essentials\\finaldics\\verbmt_semitic.dic",
+      "sha256": "6381e8f7a7bfc94252bccbed573c60a3efff359e0720cb89724cec7d83855460"
+    },
+    {
+      "path": "C:\\Users\\diyan\\OneDrive\\New folder\\Desktop\\Ċekkjatur tal-Kitba\\Essentials\\finaldics\\verbmt_nonsemitic.dic",
+      "sha256": "ec1ad4e52061e624bffdd5c24a877c1d0bb16dc7a5168d6d155751273d562b89"
+    }
+  ]
+}

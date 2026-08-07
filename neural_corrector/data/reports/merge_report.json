@@ -1,0 +1,21 @@
+{
+  "current_examples": 212,
+  "incoming_markers": {
+    "input": 656,
+    "output": 656
+  },
+  "incoming_examples_recovered": 656,
+  "incoming_structural_repairs": {
+    "missing_input_colons": 1,
+    "noncanonical_separators": 1,
+    "missing_separators": 4
+  },
+  "exact_duplicates_excluded": 0,
+  "conflicting_inputs_excluded": 0,
+  "new_noisy_clean_examples": 656,
+  "selected_identity_examples": 200,
+  "final_examples": 1068,
+  "duplicates": [],
+  "conflicts": [],
+  "incoming_sha256": "15793785428e58cf30a3fe7ce4cd962b02014bcc7f57f39badae2687ccd5179a"
+}

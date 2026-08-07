@@ -1,0 +1,172 @@
+MAIN-PIPELINE EXAMPLES RERUN AGAINST CURRENT EXPERIMENTAL BRANCH
+================================================================
+
+Target: hybrid-first experimental service at http://127.0.0.1:5002
+Baseline: corrected output and annotations in columns 2 and 3 of the supplied screenshot
+Cases: 22
+
+CASE 01
+INPUT: Kulma tridu tagħmlu hu li titfollowjaw il-paġna tagħna.
+CURRENT OUTPUT: Kulma tridu tagħmlu hu li titfollowjaw il-paġna tagħna.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: Removed the old "hu - suggestions: hu, ħu, u" ambiguity. "titfollowjaw" remains unrecognized.
+-good
+
+CASE 02
+INPUT: Dawn jistidnuk tieqaf, tafda l-istint tiegħek, u tħares lil hinn mill-ewwel impressjoni.
+CURRENT OUTPUT: Dawn jistidnuk tieqaf, tafda l-it-tond tiegħek, u tħares lill-ħinn mill-ewwel impressjoni.
+OUTPUT CHANGE: Regression. The previously preserved "l-istint tiegħek" became "l-it-tond tiegħek", and "lil hinn" became "lill-ħinn".
+ANNOTATION CHANGE: The old unrecognized flags for "jistidnuk" and "l-istint" disappeared, but this is not a true improvement because one phrase was wrongly corrected.
+-fix l- + nouns beginning with s structure (error might be due to is- rule)
+-inspect why lil hinn, though fully correct, did not preserve this form. 
+
+CASE 03
+INPUT: fl-Imġarr
+CURRENT OUTPUT: Fl-Imġarr.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: None; "Fl-Imġarr" remains unrecognized.
+-Imġarr is in dictionary, it should be recognized. inspect why not the case.
+
+CASE 04
+INPUT: Il-Ħabta seħħet fir-Rabat, Malta.
+CURRENT OUTPUT: Il-Ħabta seħħet fir-Rabat, Malta.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: New ambiguity: "seħħet - suggestions: seħħet, sseħħet". The old result had no annotation.
+-good
+
+CASE 05
+INPUT: għalkemm mhux dejjem se naqbel ma dak li jsir, għandi nagħmel sagrifiċċju sabiex nkun ta' servizz għal ħaddieħor.
+CURRENT OUTPUT: Għalkemm mhux dejjem se naqbel ma' dak li jsir, għandi nagħmel sagrifiċċju sabiex inkun ta' servizz għall-ħaddieħor.
+OUTPUT CHANGE: The primary form changed from "għal ħaddieħor" to "għall-ħaddieħor".
+ANNOTATION CHANGE: "inkun - suggestions: inkun, nkun" remains. The old "għal" ambiguity is now represented more accurately as the phrase choices "għall-ħaddieħor, għal ħaddieħor".
+-għal ħaddieħor was grammatically correct. why did it still provide għall-, even so changing it?.
+-inkun / nkun is a big flaw. these i- path words should NEVER produce suggestions as they are purely and non-contradictorily gramatical.
+
+CASE 06
+INPUT: għalkemm mhux dejjem se naqbel ma dak li jsir, għandi nagħmel sagrifiċċju sabiex nkun ta' servizz għall-Ħaddieħor.
+CURRENT OUTPUT: Għalkemm mhux dejjem se naqbel ma' dak li jsir, għandi nagħmel sagrifiċċju sabiex inkun ta' servizz għall-Ħaddieħor.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: None; "inkun - suggestions: inkun, nkun" remains the only annotation.
+
+CASE 07
+INPUT: għalkemm mhux dejjem se naqbel ma dak li jsir, għandi nagħmel sagrifiċċju sabiex nkun ta' servizz għall-ħaddieħor.
+CURRENT OUTPUT: Għalkemm mhux dejjem se naqbel ma' dak li jsir, għandi nagħmel sagrifiċċju sabiex inkun ta' servizz għall-ħaddieħor.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: None; "inkun - suggestions: inkun, nkun" remains the only annotation.
+
+CASE 08
+INPUT: bongu jien jisimni kurt għandi hames snin
+CURRENT OUTPUT: Bonġu jien jisimni kkura għandi ħamest isnin.
+OUTPUT CHANGE: Regression. The previously preserved but unrecognized name "kurt" became "kkura".
+ANNOTATION CHANGE: The old "Unrecognized words: kurt" flag disappeared. New correction choices are exposed for "kkura", "ħamest", and "isnin"; the name correction is invalid.
+-add Kurt to names.
+-new rule needs to be added: words beginning with s and ż do not go through the -t number path, hence should be ħames snin, ħames żbub, etc.
+-inspect issue with kkura. 
+
+CASE 09
+INPUT: nehoda
+CURRENT OUTPUT: Nehedha.
+OUTPUT CHANGE: Regression. The old output "Neħedha" lost the letter "ħ".
+ANNOTATION CHANGE: None in either result.
+-should be neħodha. this was already touched on. provide the exact reason why neħodha was not found.
+
+CASE 10
+INPUT: nieħu
+CURRENT OUTPUT: Nieħu.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: None.
+-good.
+
+CASE 11
+INPUT: hattomla
+CURRENT OUTPUT: ħattimna.
+OUTPUT CHANGE: The old unchanged output "Hattomla" became "ħattimna". This is a speculative correction and changes multiple letters.
+ANNOTATION CHANGE: The old unrecognized flag was replaced by the single correction choice "ħattimna".
+-should be ħadthomlha, a suffixed phrase which should be reachable by the code. inspect why it isnt, is it because of the exception with ħa whereby a d is added? 
+
+CASE 12
+INPUT: hadtomla
+CURRENT OUTPUT: Hadtomla.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: None; "Hadtomla" remains unrecognized.
+
+CASE 13
+INPUT: ta seba u oxrin sena mort ngħix lolanda
+CURRENT OUTPUT: Ta' siba u għoxrin sena mort ngħix landa.
+OUTPUT CHANGE: Major regression. The old "Ta' sebgħa u għoxrin sena mort ngħix Iolanda" became "Ta' siba u għoxrin sena mort ngħix landa".
+ANNOTATION CHANGE: The old "ngħix - suggestions: ngħix, ngħex" and unrecognized "Iolanda" annotations disappeared. New single correction choices are shown for "siba", "għoxrin", and "landa"; "siba" and "landa" are wrong in context.
+-lolanda should be l-Olanda, inspect why this was not the case, along with seba (as e to i is not a typo.  
+
+CASE 14
+INPUT: xqed jiġri?
+CURRENT OUTPUT: X'qed jiġri?
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: Improvement. The old false unrecognized flag for "jiġri" was removed.
+
+CASE 15
+INPUT: xqijed tamel?
+CURRENT OUTPUT: Xqijed tagħmel?
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: None; "Xqijed" remains unrecognized.
+-qijed is qiegħed. in fact, any ...KijeK.. structure should provide ...KiegħeK... such as mijek -> miegħek
+
+CASE 16
+INPUT: qijed tamel?
+CURRENT OUTPUT: Qijed tagħmel?
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: None; "Qijed" remains unrecognized.
+
+CASE 17
+INPUT: qijed tamel il homework?
+CURRENT OUTPUT: Qijed tagħmel il-homework?
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: None; "Qijed" remains unrecognized.
+
+CASE 18
+INPUT: ingorr il-ġebel
+CURRENT OUTPUT: Ingorr il-ġebel.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: Improvement. Removed the old unnecessary article alternatives for the already-correct "il-ġebel".
+-improvement good, but contextually should result to inġorr. would retraining help? inspect.
+
+CASE 19
+INPUT: imxejt il quddiem
+CURRENT OUTPUT: Imxejt il-quddiem.
+OUTPUT CHANGE: Improvement. The separated "il quddiem" is now joined as "il-quddiem".
+ANNOTATION CHANGE: Improvement. The old false unrecognized flag for "il" was removed.
+-not exactly improved. quddiem is a direction, needing lil or 'il in this case, such as 'l isfel, 'l bogħod, and 'l fuq. inspect why not the case. would adding to txt and retraining help?
+
+CASE 20
+INPUT: smajt leħnek mis sema, u sejjaħtli mulej
+CURRENT OUTPUT: Smajt leħnek mis-sema, u sejjaħtli mulej.
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: The old speculative suggestion set on "leħnek" and the old unrecognized flag on "mulej" were both removed.
+-good, but Mulej is a name. inspect if this is a dic presence problem.
+
+CASE 21
+INPUT: xhen hu?
+CURRENT OUTPUT: Xħin hu?
+OUTPUT CHANGE: Changed from the old "Xgħen hu?" to "Xħin hu?". This is a better spelling candidate for the intended question structure.
+ANNOTATION CHANGE: Removed the old "hu - suggestions: hu, ħu, u" ambiguity. No current annotations remain.
+-good, but contextually requires x'ħin, as x'ħin means what time, while xħin means as soon as. is this an AI problem or lack of data problem?
+-this specific word xhen or xħen should be allowed to resolve to x'ħin, in fact, it only ever resolves to x'ħin, not xħin (this is to help the prioir needed restraint on e to i.
+
+CASE 22
+INPUT: xhin hu?
+CURRENT OUTPUT: Xħin hu?
+OUTPUT CHANGE: None.
+ANNOTATION CHANGE: The "Xħin - suggestions: Xħin, X'ħin" ambiguity remains, while the old "hu - suggestions: hu, ħu, u" ambiguity was removed.
+-same problem as previous case.
+
+SUMMARY
+=======
+
+Clear output improvements: cases 19 and 21.
+Clear annotation improvements without changing the correct output: cases 01, 14, 18, and 20.
+Clear regressions: cases 02, 08, 09, and 13.
+Questionable new speculative correction: case 11.
+New unnecessary ambiguity: case 04.
+Unchanged unresolved cases: 03, 12, 15, 16, and 17.
+Mostly unchanged or structurally refined: 05, 06, 07, 10, and 22.
+
+The most serious current failures are the confident contextual rewrites "l-istint -> l-it-tond", "kurt -> kkura", "seba -> siba", and "lolanda -> landa". They remove unrecognized markers by selecting invalid replacements, so annotation-count reductions alone would overstate the current branch's quality.
