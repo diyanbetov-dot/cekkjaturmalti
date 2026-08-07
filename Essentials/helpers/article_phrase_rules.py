@@ -71,6 +71,13 @@ def split_dictionary_line(line: str) -> tuple[str, str]:
     return surface.strip(), payload.strip()
 
 
+def first_maltese_grapheme(word: str) -> str:
+    normalized = normalize_word(word)
+    if normalized.startswith("għ"):
+        return "għ"
+    return normalized[:1]
+
+
 def load_noun_words(paths: list[Path]) -> set[str]:
     nouns: set[str] = set()
     for path in paths:
@@ -199,7 +206,7 @@ class MalteseArticlePhraseRules:
         normalized_noun = self.normalize(noun)
         if not normalized_noun:
             return article
-        first = normalized_noun[0]
+        first = first_maltese_grapheme(normalized_noun)
         if first in SUN_LETTERS:
             if self.previous_ends_vowelish(previous):
                 return f"{first}-"
@@ -221,7 +228,12 @@ class MalteseArticlePhraseRules:
             if spellchecker is not None
             else None
         )
-        surface_noun = place_display or noun
+        corrected_surface = (
+            spellchecker.correct_word(noun)
+            if spellchecker is not None
+            else noun
+        )
+        surface_noun = place_display or corrected_surface
         if spellchecker is not None:
             epenthetic_place = spellchecker._epenthetic_place_surface(
                 noun,
@@ -552,7 +564,12 @@ class MalteseArticlePhraseRules:
                 if prefix == "bi":
                     return f"b'{place_display}" if self._starts_vowel_gh_or_h(noun) else f"bi {place_display}"
 
-        surface_noun = place_display or noun
+        corrected_surface = (
+            spellchecker.correct_word(noun)
+            if spellchecker is not None
+            else noun
+        )
+        surface_noun = place_display or corrected_surface
         if self._requires_article_epenthetic_i(noun):
             surface_noun = f"i{surface_noun}"
 
@@ -925,7 +942,9 @@ class MalteseArticlePhraseRules:
 
         sun_stems = {
             "tal": "ta", "mal": "ma", "bħall": "bħa", "bil": "bi", "fil": "fi",
-            "mill": "mi", "għall": "għa", "sal": "sa", "lill": "li",
+            "mill": "mi", "għall": "għa", "sal": "sa", "lil": "li", "lill": "li",
+            "lir": "li", "lit": "li", "lid": "li", "lin": "li", "liċ": "li",
+            "lic": "li", "lis": "li", "liż": "li", "liz": "li", "lix": "li",
         }
         if corrected_noun[0] in SUN_LETTERS:
             for canonical, stem in sun_stems.items():
@@ -1147,6 +1166,10 @@ class MalteseArticlePhraseRules:
                 )
                 if corrected_place:
                     corrected_noun = self.normalize(corrected_place)
+                else:
+                    cand = self.normalize(spellchecker.correct_word(noun))
+                    if cand and self._is_article_target(cand):
+                        corrected_noun = cand
         noun = corrected_noun or noun
 
         corrected = self.preposition_article_form(canonical_prefix, noun)

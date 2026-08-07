@@ -16,7 +16,7 @@ def main() -> None:
     parser.add_argument(
         "--artifact-dir",
         type=Path,
-        default=Path("neural_corrector/artifacts/char_edit_bigru_v1"),
+        default=Path("neural_corrector/artifacts/char_edit_bigru_v2"),
     )
     parser.add_argument("--threshold", type=float)
     parser.add_argument("--json", action="store_true")

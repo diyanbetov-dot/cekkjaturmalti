@@ -1,60 +1,130 @@
 {
   "character_edit_distance": {
-    "count": 212,
+    "count": 1364,
     "max": 166,
-    "mean": 8.623,
-    "median": 3.0,
+    "mean": 7.974,
+    "median": 6.0,
     "min": 0,
-    "p90": 16
+    "p90": 19
   },
-  "duplicate_input_groups": 1,
+  "duplicate_input_groups": 2,
   "error_category_distribution": {
-    "apostrophe": 43,
-    "c_ċ": 18,
+    "apostrophe": 317,
+    "c_ċ": 146,
     "capitalization": 1,
-    "consonant_doubling": 19,
-    "english_maltese_mixed": 11,
-    "g_ġ": 27,
-    "għ_restoration": 64,
+    "consonant_doubling": 61,
+    "english_maltese_mixed": 22,
+    "g_ġ": 335,
+    "għ_restoration": 642,
     "h_ħ_confusion": 4,
-    "hyphenation": 63,
+    "hyphenation": 716,
     "missing_maltese_diacritics": 12,
-    "multiple_character_edit": 50,
-    "multiple_simultaneous_errors": 147,
-    "name_or_place_handling": 134,
+    "multiple_character_edit": 427,
+    "multiple_simultaneous_errors": 1015,
+    "name_or_place_handling": 1080,
     "numbers": 5,
     "punctuation": 4,
-    "spacing": 2,
-    "spelling_or_morphology": 109,
-    "suffix_or_inflection": 108,
-    "unchanged_clean_text": 15,
-    "word_merge": 75,
-    "word_split": 8,
-    "z_ż": 23
+    "spacing": 26,
+    "spelling_or_morphology": 351,
+    "suffix_or_inflection": 863,
+    "unchanged_clean_text": 221,
+    "word_merge": 765,
+    "word_split": 22,
+    "z_ż": 204
   },
   "input_character_lengths": {
-    "count": 212,
+    "count": 1364,
     "max": 1471,
-    "mean": 64.981,
-    "median": 10.0,
+    "mean": 68.965,
+    "median": 39.0,
     "min": 3,
-    "p90": 136
+    "p90": 154
+  },
+  "length_distribution": {
+    "long": {
+      "count": 246,
+      "error_tag_distribution": {
+        "apostrophe": 111,
+        "c_ċ": 73,
+        "consonant_doubling": 1,
+        "english_maltese_mixed": 14,
+        "g_ġ": 132,
+        "għ_restoration": 179,
+        "hyphenation": 178,
+        "multiple_character_edit": 136,
+        "multiple_simultaneous_errors": 191,
+        "name_or_place_handling": 190,
+        "numbers": 5,
+        "spelling_or_morphology": 11,
+        "suffix_or_inflection": 161,
+        "unchanged_clean_text": 55,
+        "word_merge": 179,
+        "word_split": 1,
+        "z_ż": 97
+      },
+      "label": ">120 chars"
+    },
+    "medium": {
+      "count": 414,
+      "error_tag_distribution": {
+        "apostrophe": 96,
+        "c_ċ": 36,
+        "consonant_doubling": 15,
+        "english_maltese_mixed": 4,
+        "g_ġ": 100,
+        "għ_restoration": 240,
+        "hyphenation": 250,
+        "multiple_character_edit": 153,
+        "multiple_simultaneous_errors": 309,
+        "name_or_place_handling": 316,
+        "spacing": 4,
+        "spelling_or_morphology": 53,
+        "suffix_or_inflection": 241,
+        "unchanged_clean_text": 98,
+        "word_merge": 260,
+        "word_split": 3,
+        "z_ż": 73
+      },
+      "label": "41-120 chars"
+    },
+    "short": {
+      "count": 704,
+      "error_tag_distribution": {
+        "apostrophe": 110,
+        "c_ċ": 37,
+        "capitalization": 1,
+        "consonant_doubling": 45,
+        "english_maltese_mixed": 4,
+        "g_ġ": 103,
+        "għ_restoration": 223,
+        "h_ħ_confusion": 4,
+        "hyphenation": 288,
+        "missing_maltese_diacritics": 12,
+        "multiple_character_edit": 138,
+        "multiple_simultaneous_errors": 515,
+        "name_or_place_handling": 574,
+        "punctuation": 4,
+        "spacing": 22,
+        "spelling_or_morphology": 287,
+        "suffix_or_inflection": 461,
+        "unchanged_clean_text": 68,
+        "word_merge": 326,
+        "word_split": 18,
+        "z_ż": 34
+      },
+      "label": "≤40 chars"
+    }
   },
   "multiline_examples": 19,
   "output_character_lengths": {
-    "count": 212,
+    "count": 1364,
     "max": 1480,
-    "mean": 66.231,
-    "median": 11.0,
+    "mean": 70.374,
+    "median": 41.0,
     "min": 3,
-    "p90": 138
+    "p90": 157
   },
   "rare_characters": [
-    {
-      "character": "Ż",
-      "codepoint": "U+017B",
-      "count": 1
-    },
     {
       "character": "’",
       "codepoint": "U+2019",
@@ -81,23 +151,13 @@
       "count": 2
     },
     {
-      "character": ":",
-      "codepoint": "U+003A",
-      "count": 2
-    },
-    {
       "character": "V",
       "codepoint": "U+0056",
       "count": 2
     },
     {
-      "character": "ò",
-      "codepoint": "U+00F2",
-      "count": 2
-    },
-    {
-      "character": "Ċ",
-      "codepoint": "U+010A",
+      "character": "]",
+      "codepoint": "U+005D",
       "count": 2
     },
     {
@@ -116,15 +176,15 @@
       "count": 2
     }
   ],
-  "single_line_examples": 193,
-  "total_examples": 212,
-  "unchanged_examples": 15,
+  "single_line_examples": 1345,
+  "total_examples": 1364,
+  "unchanged_examples": 221,
   "word_edit_distance": {
-    "count": 212,
+    "count": 1364,
     "max": 151,
-    "mean": 6.401,
-    "median": 2.0,
+    "mean": 5.974,
+    "median": 4.0,
     "min": 0,
-    "p90": 11
+    "p90": 15
   }
 }

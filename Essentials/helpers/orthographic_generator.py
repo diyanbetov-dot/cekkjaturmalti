@@ -1,6 +1,6 @@
 from functools import lru_cache
 from typing import Iterable
-from itertools import combinations
+from itertools import combinations, product
 
 class MalteseOrthographicGenerator:
     """
@@ -93,16 +93,30 @@ class MalteseOrthographicGenerator:
             if index in gh_positions:
                 continue
 
+            repls: list[str] = []
             if letter in self.SHORTCUT_TO_MALTESE:
-                changeable_positions.append((index, [self.SHORTCUT_TO_MALTESE[letter]]))
-            elif letter in {"s", "z", "ż"} and self._is_sz_environment(graphemes, index):
-                replacements = [r for r in ["ż", "z", "s"] if r != letter]
-                changeable_positions.append((index, replacements))
+                malt = self.SHORTCUT_TO_MALTESE[letter]
+                repls.extend([malt, malt + malt, letter + letter])
+            elif letter in {"w", "z", "ż", "s", "r", "l", "m", "n", "p", "t", "d", "k", "b", "f"}:
+                if letter == "z":
+                    repls.extend(["ż", "żż", "zz"])
+                elif letter == "ż":
+                    repls.extend(["żż", "z"])
+                else:
+                    repls.append(letter + letter)
+
+            if letter in {"s", "z", "ż"} and self._is_sz_environment(graphemes, index):
+                for r in ["ż", "z", "s"]:
+                    if r != letter and r not in repls:
+                        repls.append(r)
+
+            if repls:
+                changeable_positions.append((index, repls))
 
         variants: list[str] = []
 
-        # Generate single-position changes first, then combinations
-        for pos_idx, (position, replacements) in enumerate(changeable_positions):
+        # Generate single-position changes first
+        for position, replacements in changeable_positions:
             for r in replacements:
                 changed = graphemes[:]
                 changed[position] = r
@@ -115,15 +129,15 @@ class MalteseOrthographicGenerator:
         if max_changes > 1 and len(changeable_positions) > 1:
             for num_changes in range(2, min(max_changes, len(changeable_positions)) + 1):
                 for chosen_indices in combinations(range(len(changeable_positions)), num_changes):
-                    # For simplicity, pick the first replacement for each chosen position
-                    changed = graphemes[:]
-                    for c_idx in chosen_indices:
-                        pos, reps = changeable_positions[c_idx]
-                        changed[pos] = reps[0]
-                    candidate = self._from_graphemes(changed)
-                    self._add_unique(variants, candidate)
-                    if len(variants) >= max_variants:
-                        return variants
+                    pos_repl_lists = [changeable_positions[idx][1] for idx in chosen_indices]
+                    for combo in product(*pos_repl_lists):
+                        changed = graphemes[:]
+                        for idx, r in zip(chosen_indices, combo):
+                            changed[changeable_positions[idx][0]] = r
+                        candidate = self._from_graphemes(changed)
+                        self._add_unique(variants, candidate)
+                        if len(variants) >= max_variants:
+                            return variants
 
         return variants
 
@@ -435,14 +449,40 @@ class MalteseOrthographicGenerator:
             for candidate in group:
                 normalized_candidate = self._normalize(candidate)
 
+                # A consonant-i-consonant surface cannot acquire a new
+                # għ immediately before that existing i.  This keeps jin
+                # eligible for jien while excluding the mechanically closer
+                # but structurally impossible jgħin path.  Forms recovered
+                # from aj/ej (for example jejn -> jgħin) are unaffected.
+                if self._inserts_gh_before_medial_i(word, normalized_candidate):
+                    continue
+
                 if self._is_dictionary_word(normalized_candidate):
                     self._add_unique(matches, normalized_candidate)
 
                 for lookup in self.strict_lookup_variants(normalized_candidate):
+                    if self._inserts_gh_before_medial_i(word, lookup):
+                        continue
                     if self._is_dictionary_word(lookup):
                         self._add_unique(matches, lookup)
 
         return matches
+
+    def _inserts_gh_before_medial_i(self, source: str, candidate: str) -> bool:
+        source_g = self._graphemes(self._normalize(source))
+        candidate_g = self._graphemes(self._normalize(candidate))
+        if len(candidate_g) != len(source_g) + 1:
+            return False
+
+        for index in range(1, len(source_g) - 1):
+            if source_g[index] != "i":
+                continue
+            if source_g[index - 1] in self.VOWELS or source_g[index + 1] in self.VOWELS:
+                continue
+            expected = source_g[:index] + ["għ"] + source_g[index:]
+            if candidate_g == expected:
+                return True
+        return False
 
     def correct_gh_priority(self, word: str) -> str | None:
         """
@@ -786,6 +826,40 @@ class MalteseOrthographicGenerator:
             changed[index] = "k" if letter == "g" else "g"
             self._add_unique(variants, self._from_graphemes(changed))
 
+        return variants
+
+    def substitute_stop_pairs_in_cluster(self, word: str) -> list[str]:
+        """Swap one voiced/unvoiced stop only next to another consonant.
+
+        This models spelling by phonetic assimilation (pkejt -> bkejt,
+        gbir -> kbir) without enabling unrestricted consonant replacement.
+        """
+        normalized = self._normalize(word)
+        graphemes = self._graphemes(normalized)
+        pairs = {
+            "g": "k", "k": "g",
+            "b": "p", "p": "b",
+            "d": "t", "t": "d",
+            "ż": "s", "s": "ż",
+            "z": "s",
+        }
+        variants: list[str] = []
+        for index, letter in enumerate(graphemes):
+            replacement = pairs.get(letter)
+            if replacement is None:
+                continue
+            previous_is_consonant = (
+                index > 0 and graphemes[index - 1] not in self.VOWELS
+            )
+            next_is_consonant = (
+                index + 1 < len(graphemes)
+                and graphemes[index + 1] not in self.VOWELS
+            )
+            if not (previous_is_consonant or next_is_consonant):
+                continue
+            changed = list(graphemes)
+            changed[index] = replacement
+            self._add_unique(variants, self._from_graphemes(changed))
         return variants
 
     def dictionary_g_k_cluster_variants(self, word: str) -> list[str]:

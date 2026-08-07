@@ -5,6 +5,7 @@ import json
 import math
 import re
 import statistics
+import sys
 from collections import Counter
 from difflib import SequenceMatcher
 from pathlib import Path
@@ -42,6 +43,37 @@ def summarize(values: list[int]) -> dict[str, float | int]:
     }
 
 
+def length_bucket(char_length: int) -> str:
+    if char_length <= 40:
+        return "short"
+    elif char_length <= 120:
+        return "medium"
+    return "long"
+
+
+def length_distribution(rows: list[dict]) -> dict:
+    """Break down example counts and error tags by input length bucket."""
+    buckets: dict[str, dict] = {
+        "short": {"label": "≤40 chars", "count": 0, "tags": Counter()},
+        "medium": {"label": "41-120 chars", "count": 0, "tags": Counter()},
+        "long": {"label": ">120 chars", "count": 0, "tags": Counter()},
+    }
+    for row in rows:
+        bucket = length_bucket(len(row["noisy"]))
+        buckets[bucket]["count"] += 1
+        for tag in row.get("error_tags", []):
+            buckets[bucket]["tags"][tag] += 1
+    # Convert Counters to plain dicts for JSON serialisation
+    return {
+        name: {
+            "label": data["label"],
+            "count": data["count"],
+            "error_tag_distribution": dict(sorted(data["tags"].items())),
+        }
+        for name, data in buckets.items()
+    }
+
+
 def analyze(rows: list[dict]) -> dict:
     tag_counts = Counter(tag for row in rows for tag in row["error_tags"])
     char_distances = [
@@ -73,10 +105,13 @@ def analyze(rows: list[dict]) -> dict:
         "character_edit_distance": summarize(char_distances),
         "word_edit_distance": summarize(word_distances),
         "rare_characters": rare_chars,
+        "length_distribution": length_distribution(rows),
     }
 
 
 def main() -> None:
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--pairs",
@@ -100,4 +135,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

@@ -8,9 +8,11 @@ import sys
 import time
 from pathlib import Path
 
-from neural_corrector.dataset.analyze_pairs import read_jsonl
+from neural_corrector.dataset.analyze_pairs import length_bucket, read_jsonl
 from neural_corrector.evaluation.metrics import correction_counts, edit_distance
 from neural_corrector.inference.corrector import NeuralCorrector
+
+_LENGTH_BUCKETS = ["short", "medium", "long"]
 
 
 def peak_working_set_bytes() -> int | None:
@@ -113,6 +115,58 @@ def evaluate_rows(corrector: NeuralCorrector, rows: list[dict]) -> dict:
     }
 
 
+def evaluate_by_length(corrector: NeuralCorrector, rows: list[dict]) -> dict:
+    """Run evaluation separately for short, medium, and long inputs."""
+    buckets: dict[str, list[dict]] = {b: [] for b in _LENGTH_BUCKETS}
+    for row in rows:
+        buckets[length_bucket(len(row["noisy"]))].append(row)
+    return {
+        bucket: evaluate_rows(corrector, bucket_rows) if bucket_rows else {"examples": 0}
+        for bucket, bucket_rows in buckets.items()
+    }
+
+
+def _isolate_suffix_word(row: dict) -> dict | None:
+    """Return a stripped version of a row with only the suffix word.
+
+    For a row like noisy='jien mort jafrhom' / clean='jien mort jarafhom',
+    extracts the word that changed and returns a synthetic row with just that
+    word as input and corrected form as output.  Returns None if the changed
+    word cannot be isolated cleanly.
+    """
+    noisy_words = row["noisy"].split()
+    clean_words = row["clean"].split()
+    if len(noisy_words) != len(clean_words):
+        return None  # insertion/deletion — can't safely isolate
+    changed = [
+        (n, c)
+        for n, c in zip(noisy_words, clean_words)
+        if n.casefold() != c.casefold()
+    ]
+    if len(changed) != 1:
+        return None  # multiple words changed — ambiguous
+    noisy_word, clean_word = changed[0]
+    return {
+        **row,
+        "id": f"{row['id']}:isolated",
+        "noisy": noisy_word,
+        "clean": clean_word,
+        "is_unchanged": noisy_word == clean_word,
+    }
+
+
+def evaluate_suffix_isolation(corrector: NeuralCorrector, rows: list[dict]) -> dict:
+    """Evaluate suffix-tagged pairs both in-context and in isolation."""
+    suffix_rows = [r for r in rows if "suffix" in r.get("error_tags", [])]
+    isolated_rows = [iso for r in suffix_rows if (iso := _isolate_suffix_word(r))]
+    return {
+        "suffix_in_context": evaluate_rows(corrector, suffix_rows) if suffix_rows else {"examples": 0},
+        "suffix_isolated": evaluate_rows(corrector, isolated_rows) if isolated_rows else {"examples": 0},
+        "total_suffix_pairs": len(suffix_rows),
+        "isolatable_pairs": len(isolated_rows),
+    }
+
+
 def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
@@ -138,11 +192,22 @@ def main() -> None:
         default=Path("neural_corrector/experiments/baseline_evaluation.json"),
     )
     parser.add_argument("--quiet", action="store_true")
+    parser.add_argument(
+        "--stratify-length",
+        action="store_true",
+        help="Report accuracy separately for short/medium/long inputs.",
+    )
+    parser.add_argument(
+        "--suffix-isolation",
+        action="store_true",
+        help="Evaluate suffix-tagged pairs both in-context and as isolated words.",
+    )
     args = parser.parse_args()
     rows = read_jsonl(args.pairs)
     by_id = {row["id"]: row for row in rows}
     splits = json.loads(args.splits.read_text(encoding="utf-8"))["splits"]
     corrector = NeuralCorrector(args.artifact_dir)
+    all_eval_rows = {split: [by_id[item] for item in ids] for split, ids in splits.items() if split != "train"}
     report = {
         "model_version": corrector.model_version,
         "action_threshold": corrector.threshold,
@@ -151,16 +216,23 @@ def main() -> None:
             "custom_model": True,
             "bertu": False,
             "corpus": False,
-            "dictionary_validation": False,
+            "dictionary_validation": corrector.dictionary_validation_enabled,
             "morphology": False,
             "suffix_runtime": False,
         },
         "splits": {
-            split: evaluate_rows(corrector, [by_id[item] for item in ids])
-            for split, ids in splits.items()
-            if split != "train"
+            split: evaluate_rows(corrector, rows)
+            for split, rows in all_eval_rows.items()
         },
     }
+    if args.stratify_length:
+        report["splits_by_length"] = {
+            split: evaluate_by_length(corrector, rows)
+            for split, rows in all_eval_rows.items()
+        }
+    if args.suffix_isolation:
+        combined = [row for rows in all_eval_rows.values() for row in rows]
+        report["suffix_isolation"] = evaluate_suffix_isolation(corrector, combined)
     report["peak_process_working_set_bytes"] = peak_working_set_bytes()
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(
