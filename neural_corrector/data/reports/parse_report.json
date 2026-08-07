@@ -1,0 +1,16 @@
+{
+  "conflicting_duplicate_inputs": [],
+  "exact_duplicate_pairs": 0,
+  "malformed_blocks": 0,
+  "multiline_examples": 19,
+  "parsed_examples": 212,
+  "processed_path": "C:\\Users\\diyan\\OneDrive\\New folder\\Desktop\\Ċekkjatur tal-Kitba\\neural_corrector\\data\\processed\\all_pairs.jsonl",
+  "source": "AI corrections.txt",
+  "source_path": "C:\\Users\\diyan\\OneDrive\\New folder\\Desktop\\Ċekkjatur tal-Kitba\\AI corrections.txt",
+  "source_sha256": "47e89d3d7d49bb9cc9ed1a340ae09ab631be8b128ac09fa2568ff7535858c575",
+  "suspicious_examples": 4,
+  "total_blocks": 212,
+  "unchanged_examples": 15,
+  "unique_inputs": 211,
+  "unique_outputs": 194
+}

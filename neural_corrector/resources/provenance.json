@@ -1,0 +1,25 @@
+{
+  "AI corrections.txt": {
+    "role": "primary supervised noisy-to-clean pairs",
+    "mode": "read through configurable path",
+    "origin": "manually maintained project file"
+  },
+  "Essentials/finaldics": {
+    "role": "future optional validation, coverage, and synthetic-data resource",
+    "mode": "disabled in baseline inference"
+  },
+  "Essentials/corpus": {
+    "role": "future optional clean-text and contextual evidence",
+    "mode": "disabled in baseline inference",
+    "origin": "Korpus Malti v4.2, MLRS local archive subset"
+  },
+  "Essentials/helpers/bertu_reranker.py": {
+    "role": "future controlled contextual ablation",
+    "mode": "disabled in baseline"
+  },
+  "Essentials/helpers/suffix_generator.py": {
+    "role": "future synthetic morphology and validation ablation",
+    "mode": "disabled in baseline inference"
+  }
+}
+

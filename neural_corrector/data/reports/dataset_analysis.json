@@ -1,0 +1,130 @@
+{
+  "character_edit_distance": {
+    "count": 212,
+    "max": 166,
+    "mean": 8.623,
+    "median": 3.0,
+    "min": 0,
+    "p90": 16
+  },
+  "duplicate_input_groups": 1,
+  "error_category_distribution": {
+    "apostrophe": 43,
+    "c_ċ": 18,
+    "capitalization": 1,
+    "consonant_doubling": 19,
+    "english_maltese_mixed": 11,
+    "g_ġ": 27,
+    "għ_restoration": 64,
+    "h_ħ_confusion": 4,
+    "hyphenation": 63,
+    "missing_maltese_diacritics": 12,
+    "multiple_character_edit": 50,
+    "multiple_simultaneous_errors": 147,
+    "name_or_place_handling": 134,
+    "numbers": 5,
+    "punctuation": 4,
+    "spacing": 2,
+    "spelling_or_morphology": 109,
+    "suffix_or_inflection": 108,
+    "unchanged_clean_text": 15,
+    "word_merge": 75,
+    "word_split": 8,
+    "z_ż": 23
+  },
+  "input_character_lengths": {
+    "count": 212,
+    "max": 1471,
+    "mean": 64.981,
+    "median": 10.0,
+    "min": 3,
+    "p90": 136
+  },
+  "multiline_examples": 19,
+  "output_character_lengths": {
+    "count": 212,
+    "max": 1480,
+    "mean": 66.231,
+    "median": 11.0,
+    "min": 3,
+    "p90": 138
+  },
+  "rare_characters": [
+    {
+      "character": "Ż",
+      "codepoint": "U+017B",
+      "count": 1
+    },
+    {
+      "character": "’",
+      "codepoint": "U+2019",
+      "count": 1
+    },
+    {
+      "character": "*",
+      "codepoint": "U+002A",
+      "count": 2
+    },
+    {
+      "character": "/",
+      "codepoint": "U+002F",
+      "count": 2
+    },
+    {
+      "character": "0",
+      "codepoint": "U+0030",
+      "count": 2
+    },
+    {
+      "character": "8",
+      "codepoint": "U+0038",
+      "count": 2
+    },
+    {
+      "character": ":",
+      "codepoint": "U+003A",
+      "count": 2
+    },
+    {
+      "character": "V",
+      "codepoint": "U+0056",
+      "count": 2
+    },
+    {
+      "character": "ò",
+      "codepoint": "U+00F2",
+      "count": 2
+    },
+    {
+      "character": "Ċ",
+      "codepoint": "U+010A",
+      "count": 2
+    },
+    {
+      "character": "♿",
+      "codepoint": "U+267F",
+      "count": 2
+    },
+    {
+      "character": "💗",
+      "codepoint": "U+1F497",
+      "count": 2
+    },
+    {
+      "character": "💪",
+      "codepoint": "U+1F4AA",
+      "count": 2
+    }
+  ],
+  "single_line_examples": 193,
+  "total_examples": 212,
+  "unchanged_examples": 15,
+  "word_edit_distance": {
+    "count": 212,
+    "max": 151,
+    "mean": 6.401,
+    "median": 2.0,
+    "min": 0,
+    "p90": 11
+  }
+}
