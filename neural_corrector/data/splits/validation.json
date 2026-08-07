@@ -1,0 +1,25 @@
+{
+  "split": "validation",
+  "ids": [
+    "ai-corrections-000006",
+    "ai-corrections-000008",
+    "ai-corrections-000009",
+    "ai-corrections-000015",
+    "ai-corrections-000019",
+    "ai-corrections-000021",
+    "ai-corrections-000029",
+    "ai-corrections-000036",
+    "ai-corrections-000038",
+    "ai-corrections-000040",
+    "ai-corrections-000046",
+    "ai-corrections-000049",
+    "ai-corrections-000088",
+    "ai-corrections-000089",
+    "ai-corrections-000093",
+    "ai-corrections-000102",
+    "ai-corrections-000113",
+    "ai-corrections-000120",
+    "ai-corrections-000162",
+    "ai-corrections-000203"
+  ]
+}

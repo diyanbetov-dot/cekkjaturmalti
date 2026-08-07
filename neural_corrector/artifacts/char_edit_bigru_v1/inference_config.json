@@ -1,0 +1,5 @@
+{
+  "action_threshold": 0.85,
+  "calibration_report": "neural_corrector\\experiments\\threshold_calibration.json",
+  "partition": "validation"
+}
