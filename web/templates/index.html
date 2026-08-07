@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="mt">
+<head>
+    <meta charset="UTF-8">
+    <title>Ċekkjatur tal-Kitba - Rebuild v1</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Ċekkjatur tal-Kitba (Rebuild v1)</h1>
+        <div class="editor-section">
+            <textarea id="inputText" placeholder="Daħħal it-test bil-Malti jew bl-Ingliż hawn..."></textarea>
+            <div class="controls">
+                <button id="checkBtn">Iċċekkja</button>
+                <button id="clearBtn">Ħassar</button>
+            </div>
+        </div>
+        <div class="output-section">
+            <h3>Test Korrett:</h3>
+            <div id="outputText" class="output-box"></div>
+            <button id="copyBtn">Ikkopja</button>
+            <div id="latency">Latency: 0 ms</div>
+        </div>
+    </div>
+    <script src="/static/app.js"></script>
+</body>
+</html>

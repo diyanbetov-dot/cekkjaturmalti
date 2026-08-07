@@ -1,0 +1,137 @@
+{"input": "dawn il karti huma ghall xahad partikolari", "output": "Dawn il-karti huma għal xi ħadd partikolari?"}
+{"input": "il kamra mimlija b arja shuna", "output": "Il-kamra mimlija b'arja sħuna."}
+{"input": "xandek taghmel il lejla", "output": "X'għandek tagħmel illejla?"}
+{"input": "dan il ktieb landu john mhux maria", "output": "Dan il-ktieb l'għandu John, mhux Maria."}
+{"input": "il formola ibatilu illum", "output": "Il-formola ibgħathielu llum."}
+{"input": "id dokument ibatulu qabel nofs inhar", "output": "Id-dokument ibgħathulu qabel nofsinhar."}
+{"input": "ir receipts ibatomli fuq whatsapp", "output": "Ir-receipts ibgħathomli fuq WhatsApp."}
+{"input": "dan il favor amilulu ghada", "output": "Dan il-favur agħmilhulu għada."}
+{"input": "il foto uri eli lil ommok", "output": "Il-foto urihielha lil ommok."}
+{"input": "ic cwievet atijomli issa", "output": "Iċ-ċwievet agħtihomli issa."}
+{"input": "meta tohrog alaqli l bieb", "output": "Meta toħroġ, ag]laqli l-bieb."}
+{"input": "ir ritratti rajtom il bierah", "output": "Ir-ritratti rajthom ilbieraħ."}
+{"input": "il messagg ma qrajtu'x", "output": "Il-messaġġ ma qrajtux."}
+{"input": "dejjem jajdula biex tistenna", "output": "Dejjem jgħidulha biex tistenna."}
+{"input": "hamsa kotba tieghi intilfu", "output": "Ħames kotba tiegħi ntilfu."}
+{"input": "din hi it tlieta darba tieghi hawn", "output": "Din hija t-tielet darba tiegħi hawn."}
+{"input": "hdax il student baghtu l assignment", "output": "Ħdax-il student bagħtu l-assignment."}
+{"input": "ommi u missieri gew ma zewg huti", "output": "Ommi u missieri ġew maż-żewġ ħuti."}
+{"input": "l investigsturi sabu evidenza gdida", "output": "L-investigaturi sabu evidenza ġdida."}
+{"input": "il presodent tal kumitat wasal tard", "output": "Il-president tal-kumitat wasal tard."}
+{"input": "il pulizija bdiet tfottxija fil bini", "output": "Il-pulizija bdiet tfittxija fil-bini."}
+{"input": "bongu tafu xi hadd li jirranga washing machines south area ghax il washing machine tieghi beda jaghmel hoss stramb u ma rridx inbiddlu qabel ma jarah xi hadd grazzi", "output": "Bonġu, tafu xi ħadd li jirranġa washing machines, south area? Għax il-washing machine tiegħi beda jagħmel ħoss stramb u ma rridx nibdlu qabel ma jarah xi ħadd. Grazzi."}
+{"input": "il bierah mort il bank biex nistaqsi fuq transazzjoni li ma gharafthiex il mara tal counter qaltli li riedet tara il formola allura baghtielha fuq email imma qaltli li ma rcevithiex u kelli nibaghtielha darbtejn ohra sakemm fl ahhar sabitha", "output": "Ilbieraħ mort il-bank biex nistaqsi fuq tranżazzjoni li ma għarafthiex. Il-mara tal-counter qaltli li riedet tara l-formola, allura bgħatthielha fuq email, imma qaltli li ma rċevithiex u kelli nibagħthielha darbtejn oħra sakemm fl-aħħar sabitha."}
+{"input": "tkellem daqs li kieku kien jaf xgara", "output": "Tkellem daqslikieku kien jaf x'ġara."}
+{"input": "hares lejja daqs kieku ritt inwegghu", "output": "Ħares lejja daqskieku ridt inweġġgħu."}
+{"input": "il vjagg ma damx daqs kemm bassarna", "output": "Il-vjaġġ ma damx daqskemm bassarna."}
+{"input": "ma stennejtx li il'kamra kienet daqs hekk kbira", "output": "Ma stennejtx li l-kamra kienet daqshekk kbira."}
+{"input": "oqghod daqs xejn iehor sa kemm nigi", "output": "Oqgħod daqsxejn ieħor sakemm niġi."}
+{"input": "kien qed jidhaq bhal li kieku ma gara xejn", "output": "Kien qed jidħaq bħallikieku ma ġara xejn."}
+{"input": "wiegeb bhal kieku kien cert minn kollox", "output": "Wieġeb bħalkieku kien ċert minn kollox."}
+{"input": "kull ma ridt kien risposta cara", "output": "Kulma ridt kien risposta ċara."}
+{"input": "fittixt kull imkien anki taht is sodda", "output": "Fittixt kullimkien, anki taħt is-sodda."}
+{"input": "kull fejn immur niltaqa ma xi hadd li naf", "output": "Kull fejn immur niltaqa' ma' xi ħadd li naf."}
+{"input": "kull meta iccempel inkun qed nahdem", "output": "Kull meta ċċempel inkun qed naħdem."}
+{"input": "kull darba li nohrog ninsa ic cwievet", "output": "Kull darba li noħroġ ninsa ċ-ċwievet."}
+{"input": "fil-ghodu it toroq ikunu kwieti", "output": "Filgħodu t-toroq ikunu kwieti."}
+{"input": "dal-ghodu qomt aktar kmieni mis soltu", "output": "Dalgħodu qomt aktar kmieni mis-soltu."}
+{"input": "wara nofs inhar se niltaqghu il belt", "output": "Waranofsinhar se niltaqgħu l-Belt."}
+{"input": "niltaqghu nofs in nhar quddiem il banka", "output": "Niltaqgħu nofsinhar quddiem il-bank."}
+{"input": "baqa jahdem bil lejl biex ilesti", "output": "Baqa' jaħdem billejl biex ilesti."}
+{"input": "bin nhar ikun shun imma bil lejl jiksaħ", "output": "Binhar ikun sħun imma billejl jiksaħ."}
+{"input": "malli sema il bieb mar jiftah minufih", "output": "Malli sema' l-bieb mar jiftaħ minnufih."}
+{"input": "ma qbiltx mieghu madan kollu bqajt nisma", "output": "Ma qbiltx miegħu; madankollu, bqajt nisma'."}
+{"input": "ghal daqstant irridu nibdlu il pjan", "output": "Għaldaqstant irridu nibdlu l-pjan."}
+{"input": "per ezempju tista tibda b sentenza qasira", "output": "Pereżempju, tista' tibda b'sentenza qasira."}
+{"input": "min habba ix xita wasalna tard", "output": "Minħabba x-xita wasalna tard."}
+{"input": "xi hadd hallieli messagg fuq il mobile", "output": "Xi ħadd ħallieli messaġġ fuq il-mobile."}
+{"input": "rajtu xi mkien imma ma niftakarx fejn", "output": "Rajtu xi mkien imma ma niftakarx fejn."}
+{"input": "maria qaltli li se tasal fid disa'", "output": "Maria qaltli li se tasal fid-disgħa."}
+{"input": "kellimt lil joseph u lil marija il bierah", "output": "Kellimt lil Joseph u lil Marija lbieraħ."}
+{"input": "jien nikol u gorg morna il bahar", "output": "Jien, Nikol u Ġorġ morna l-baħar."}
+{"input": "illum nikol ftit aġin qabel nohrog", "output": "Illum niekol ftit għaġin qabel noħroġ."}
+{"input": "ghada nikol se jibda xoghol gdid", "output": "Għada Nikol se jibda xogħol ġdid."}
+{"input": "mark qalli biex inkellmu wara il laqgha", "output": "Mark qalli biex inkellmu wara l-laqgħa."}
+{"input": "il bierah mort ma karen u stefan il belt", "output": "Ilbieraħ mort ma' Karen u Stefan il-Belt."}
+{"input": "alla jaf kemm ilna nistennew", "output": "Alla jaf kemm ilna nistennew."}
+{"input": "alla ma wegibtx meta cempillek", "output": "Għala ma weġibtx meta ċempillek?"}
+{"input": "alla hares tinsa il passaport", "output": "Allaħares tinsa l-passaport."}
+{"input": "karmena tghix ir rabat imma tahdem il mosta", "output": "Karmena tgħix ir-Rabat, imma taħdem il-Mosta."}
+{"input": "gorg scerri baghat il formola illum", "output": "Ġorġ Scerri bagħat il-formola llum."}
+{"input": "iltqajt ma amy quddiem mater dei", "output": "Iltqajt ma' Amy quddiem Mater Dei."}
+{"input": "diyan u basti kienu qed jistennew barra", "output": "Diyan u Basti kienu qed jistennew barra."}
+{"input": "il professur borg se jaghti il lecture ghada", "output": "Il-Professur Borg se jagħti l-lecture għada."}
+{"input": "morna san pawl il bahar ma natalie", "output": "Morna San Pawl il-Baħar ma' Natalie."}
+{"input": "il festa tal birgu kienet mimlija nies", "output": "Il-festa tal-Birgu kienet mimlija nies."}
+{"input": "se niltaqghu quddiem il knisja tal mosta", "output": "Se niltaqgħu quddiem il-knisja tal-Mosta."}
+{"input": "john mar ghawdex u sarah baqghet malta", "output": "John mar Għawdex u Sarah baqgħet Malta."}
+{"input": "john mar ghawdex u sarah baqghet f malta", "output": "John mar Għawdex u Sarah baqgħet f'Malta."}
+{"input": "qatt ma mort fl'italja fix xitwa", "output": "Qatt ma mort fl-Italja fix-xitwa."}
+{"input": "il vapur wasal mill'italja tard", "output": "Il-vapur wasal mill-Italja tard."}
+{"input": "din il merkanzija sejra ghall'italja", "output": "Din il-merkanzija sejra għall-Italja."}
+{"input": "tkellimna fuq il ligi tal'ewropa", "output": "Tkellimna fuq il-liġi tal-Ewropa."}
+{"input": "se nqattghu gimgha fl'ewropa centrali", "output": "Se nqattgħu ġimgħa fl-Ewropa Ċentrali."}
+{"input": "morna f'gawdex ghal tmiem il gimgha", "output": "Morna f'Għawdex għal tmiem il-ġimgħa."}
+{"input": "huwa gej min ghawdex illum", "output": "Huwa ġej minn Għawdex illum."}
+{"input": "dan il gobon huwa ta ghawdex", "output": "Dan il-ġobon huwa ta' Għawdex."}
+{"input": "toqghod f'malta jew barra", "output": "Toqgħod f'Malta jew barra?"}
+{"input": "il pakkett intbaghat min malta il bierah", "output": "Il-pakkett intbagħat minn Malta lbieraħ."}
+{"input": "morna fl imdina wara nofs inhar", "output": "Morna fl-Imdina waranofsinhar."}
+{"input": "il laqgha saret fir rabat", "output": "Il-laqgħa saret fir-Rabat."}
+{"input": "ghaddejna mill imsida biex naslu il belt", "output": "Għaddejna mill-Imsida biex naslu l-Belt."}
+{"input": "qed infittex xoghol f marsaskala", "output": "Qed infittex xogħol f'Marsaskala."}
+{"input": "iltqajna ma membru tal kumitat", "output": "Iltqajna ma' membru tal-kumitat."}
+{"input": "ma ghandix hin biex nerga nibda", "output": "M'għandix ħin biex nerġa' nibda."}
+{"input": "din il karta hija ta min", "output": "Din il-karta hija ta' min?"}
+{"input": "ghal xi hadd din tista tkun opportunita tajba", "output": "Għal xi ħadd din tista' tkun opportunità tajba."}
+{"input": "b idejk tista tiftaħ il ghatu", "output": "B'idejk tista' tiftaħ l-għatu."}
+{"input": "f arja friska inhossni ahjar", "output": "F'arja friska nħossni aħjar."}
+{"input": "il formola baghatiela lil paul", "output": "Il-formola bagħathielha lil Paul."}
+{"input": "id dokument bagatulu lil manager", "output": "Id-dokument bagħathulu lill-manager."}
+{"input": "ir ritratti bagathomla fuq messenger", "output": "Ir-ritratti bagħathomlha fuq Messenger."}
+{"input": "il fattura ibatieli illum", "output": "Il-fattura ibgħathieli llum."}
+{"input": "il kuntratt ibatulu qabel il laqgha", "output": "Il-kuntratt ibgħathulu qabel il-laqgħa."}
+{"input": "ic cwievet ibathomli ma john", "output": "Iċ-ċwievet ibgħathomli ma' John."}
+{"input": "il foto urijilu lil missierek", "output": "Il-foto urihielu lil missierek."}
+{"input": "il video uriulu lil gorg", "output": "Il-video urihulu lil Ġorġ."}
+{"input": "ir receipts urijomla lil accountant", "output": "Ir-receipts urihomlha lill-accountant."}
+{"input": "din il bicca xoghol amilieli jekk joghgbok", "output": "Din il-biċċa xogħol agħmilhieli jekk jogħġbok."}
+{"input": "dan il favor amiluli illum", "output": "Dan il-favur agħmilhuli llum."}
+{"input": "il logo amilielu ikbar", "output": "Il-logo agħmilhielu ikbar."}
+{"input": "il logo amilulu ikbar", "output": "Il-logo agħmilhulu ikbar."}
+{"input": "il bieb alaqhulu meta tohrog", "output": "Il-bieb agħlaqhulu meta toħroġ."}
+{"input": "il bieb alaqli qabel titlaq", "output": "Il-bieb agħlaqli qabel titlaq."}
+{"input": "il ktieb aqrahuli bil mod", "output": "Il-ktieb aqrahuli bil-mod."}
+{"input": "l ittra aqrahieli ghax ma narax sew", "output": "L-ittra aqrahieli għax ma narax sew."}
+{"input": "il messaggi aqrahomli meta jkollok hin", "output": "Il-messaġġi aqrahomli meta jkollok ħin."}
+{"input": "il mobile gibulu lil missierek", "output": "Il-mobile ġibhulu lil missierek."}
+{"input": "il basket gibulha lil ommok", "output": "Il-basket ġibhulha lil ommok."}
+{"input": "il borsa gibielu lil paul", "output": "Il-borża ġibhielu lil Paul."}
+{"input": "ic cwievet gibhomli qabel tohrog", "output": "Iċ-ċwievet ġibhomli qabel toħroġ."}
+{"input": "il flus atihomlu illum", "output": "Il-flus agħtihomlu llum."}
+{"input": "il karta atiha lil maria", "output": "Il-karta agħtiha lil Maria."}
+{"input": "il pakkett atihuli qabel nitlaq", "output": "Il-pakkett agħtihuli qabel nitlaq."}
+{"input": "ir ritratti hallihomla fuq il mejda", "output": "Ir-ritratti ħallihomlha fuq il-mejda."}
+{"input": "il mobile hallihuli hawn", "output": "Il-mobile ħallihuli hawn."}
+{"input": "il formola imlieli qabel id disgha", "output": "Il-formola imlihieli qabel id-disgħa."}
+{"input": "il bierah rajtom quddiem il hanut", "output": "Ilbieraħ rajthom quddiem il-ħanut."}
+{"input": "il borsa ma rajtiex imkien", "output": "Il-borża ma rajthiex imkien."}
+{"input": "il messagg ma qrajtux sa issa", "output": "Il-messaġġ ma qrajtux s'issa."}
+{"input": "ir receipts ma baghthomlix ghadu", "output": "Ir-receipts ma bagħathomlix għadu."}
+{"input": "qalilhom biex jistenewh barra", "output": "Qalilhom biex jistennewh barra."}
+{"input": "dejjem jajdli biex ma ninkwetax", "output": "Dejjem jgħidli biex ma ninkwetax."}
+{"input": "spjegatilna il problema imma ma fhemtiex", "output": "Spjegatilna l-problema, imma ma fhimthiex."}
+{"input": "xtrajt tlieta kotba u zewg pitazzi", "output": "Xtrajt tliet kotba u żewġ pitazzi."}
+{"input": "erba tfal kienu qed jilabu barra", "output": "Erbat itfal kienu qed jilagħbu barra."}
+{"input": "is siggijiet kienu sitta b kollox", "output": "Is-siġġijiet kienu sitta b'kollox."}
+{"input": "tmienja persuni wiegbu il kwestjonarju", "output": "Tmien persuni wieġbu l-kwestjonarju."}
+{"input": "hdax student baghat il assignment", "output": "Ħdax-il student bagħat l-assignment."}
+{"input": "tnax pagna kienu nieqsa mil rapport", "output": "Tnax-il paġna kienu neqsin mir-rapport."}
+{"input": "tlettax sena ilu morna noqghodu hemm", "output": "Tlettax-il sena ilu morna noqogħdu hemm."}
+{"input": "wiehed u ghoxrin ktieb inbiegh f siegha", "output": "Wieħed u għoxrin ktieb inbiegħ f'siegħa."}
+{"input": "din hija il tnejn darba li qed icempel", "output": "Din hija t-tieni darba li qed iċempel."}
+{"input": "it tlieta kapitlu kien l aktar difficli", "output": "It-tielet kapitlu kien l-iktar diffiċli."}
+{"input": "wasalna fir raba post", "output": "Wasalna fir-raba' post."}
+{"input": "il hames mistoqsija ma fhimthiex", "output": "Il-ħames mistoqsija ma fhimthiex."}
+{"input": "ommi u missieri baqaw id dar", "output": "Ommi u missieri baqgħu d-dar."}
+{"input": "it tlett uliedhom imorru l istess skola", "output": "It-tliet uliedhom imorru l-istess skola."}
