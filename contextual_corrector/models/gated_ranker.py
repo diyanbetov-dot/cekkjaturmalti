@@ -39,7 +39,7 @@ class CandidateFeatureExtractor:
         repl_len = len(repl)
 
         # 1. Edit distance (normalized)
-        edit_dist = candidate.edit_operations.total_edits if candidate.edit_operations else abs(len(orig) - len(repl))
+        edit_dist = len(candidate.edit_operations) if candidate.edit_operations else abs(len(orig) - len(repl))
         norm_edit_dist = float(edit_dist) / max(orig_len, repl_len)
 
         # 2. Is KEEP
@@ -59,14 +59,14 @@ class CandidateFeatureExtractor:
         # 5. Dictionary validity
         dict_valid = (
             1.0
-            if (candidate.dictionary_evidence and candidate.dictionary_evidence.is_valid)
+            if (candidate.dictionary_evidence and any(d.exact for d in candidate.dictionary_evidence))
             else 0.0
         )
 
         # 6. Suffix validity
         suffix_valid = (
             1.0
-            if (candidate.suffix_evidence and candidate.suffix_evidence.is_valid_suffix)
+            if (candidate.suffix_evidence and any(s.surface_valid for s in candidate.suffix_evidence))
             else 0.0
         )
 
@@ -188,9 +188,9 @@ class GatedCandidateRanker(nn.Module):
         raw_span = candidate.raw_span
         s1_char_start = raw_span.char_start
         s1_char_end = raw_span.char_end
-        if candidate.s1_alignment is not None and candidate.s1_alignment.s1_span is not None:
-            s1_char_start = candidate.s1_alignment.s1_span.char_start
-            s1_char_end = candidate.s1_alignment.s1_span.char_end
+        if candidate.s1_alignment is not None and candidate.s1_alignment.s1_spans:
+            s1_char_start = candidate.s1_alignment.s1_spans[0].char_start
+            s1_char_end = candidate.s1_alignment.s1_spans[-1].char_end
 
         raw_emb = dual_output.get_raw_span_embedding(raw_span.char_start, raw_span.char_end)
         s1_emb = dual_output.get_s1_span_embedding(s1_char_start, s1_char_end)
