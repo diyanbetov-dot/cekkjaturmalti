@@ -1,0 +1,21 @@
+{
+  "feature_names": [
+    "hard_valid",
+    "replacement_len",
+    "original_len",
+    "is_keep",
+    "is_error_memory",
+    "is_initial_i",
+    "is_article_span",
+    "is_numeral_span",
+    "is_valid_word",
+    "is_english_word",
+    "is_entity_word",
+    "detector_prob",
+    "rank_score",
+    "keep_score",
+    "is_high_risk",
+    "calibrated_conf"
+  ],
+  "feature_dim": 16
+}

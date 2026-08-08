@@ -19,19 +19,31 @@ class SpellcheckerPipeline:
         self.candidate_generator = CandidateGenerator(
             self.lexicon, self.english_lexicon, self.entity_lexicon
         )
+        self.neural_runtime = NeuralRuntime()
         self.decoder = GlobalDecoder()
         self.renderer = PureRenderer()
-        self.neural_runtime = NeuralRuntime()
 
     def check(self, text: str) -> Dict[str, Any]:
         t0 = time.perf_counter()
-        tokens = tokenize_text(text)
-        candidates = self.candidate_generator.generate_candidates(tokens)
-        selected_edits = self.decoder.decode(candidates)
-        corrected_text, edit_dicts = self.renderer.render(text, selected_edits)
-        t1 = time.perf_counter()
 
+        # 1. Immutable Tokenization
+        tokens = tokenize_text(text)
+
+        # 2. Universal Candidate Generation & Hard Validation
+        candidates = self.candidate_generator.generate_candidates(tokens)
+
+        # 3. Neural BERTu Detector & Candidate Ranker Scoring
+        scored_candidates = self.neural_runtime.score_candidates(text, candidates)
+
+        # 4. Global Decoder (Calibrated KEEP / Change Gate)
+        selected_edits = self.decoder.decode(scored_candidates)
+
+        # 5. Pure Renderer
+        corrected_text, edit_dicts = self.renderer.render(text, selected_edits)
+
+        t1 = time.perf_counter()
         latency_ms = round((t1 - t0) * 1000, 2)
+
         return {
             "input_text": text,
             "corrected_text": corrected_text,
