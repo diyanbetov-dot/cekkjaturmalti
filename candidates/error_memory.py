@@ -10,6 +10,9 @@ REVIEWED_ERROR_MEMORY: Dict[str, str] = {
     "imbad": "mbagħad",
     "gimghatejn": "ġimagħtejn",
     "xolhom": "xogħolhom",
+    "kullhadd": "kulħadd",
+    "inhabtu": "inħabbtu",
+    "wicna": "wiċċna",
 }
 
 

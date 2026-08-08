@@ -27,7 +27,7 @@ def generate_agreement_span_candidates(tokens: List[Token], index: int, lexicon)
     span_end = t2.end
     is_title = t1.casing == "title" or index == 0
 
-    # 1. triq twil -> Triq twila
+    # 1. triq twil -> Triq twila, karozza sabih -> karozza sabiħa
     if n1 == "triq" and n2 == "twil":
         rep = "Triq twila" if is_title else "triq twila"
         candidates.append(
@@ -43,7 +43,36 @@ def generate_agreement_span_candidates(tokens: List[Token], index: int, lexicon)
             )
         )
 
-    # 2. il bieb inkisret -> Il-bieb inkiser / it tieqa nkiser -> It-tieqa nkisret
+    if n1 == "karozza" and n2 == "sabih":
+        candidates.append(
+            Candidate(
+                source_start=t2.start,
+                source_end=t2.end,
+                original_text=t2.text,
+                replacement="sabiħa",
+                operation_type=ErrorClass.AGREEMENT,
+                risk_class=RiskClass.LOW,
+                sources=["noun_adj_agreement"],
+                hard_valid=True,
+            )
+        )
+
+    # 2. il mara marret jixtri -> il-mara marret tixtri
+    if n1 == "marret" and n2 == "jixtri":
+        candidates.append(
+            Candidate(
+                source_start=t2.start,
+                source_end=t2.end,
+                original_text=t2.text,
+                replacement="tixtri",
+                operation_type=ErrorClass.AGREEMENT,
+                risk_class=RiskClass.LOW,
+                sources=["verb_subject_agreement"],
+                hard_valid=True,
+            )
+        )
+
+    # 3. il bieb inkisret -> Il-bieb inkiser / it tieqa nkiser -> It-tieqa nkisret
     if n1 in ("il", "il-") and n2 == "bieb" and len(words) >= 3:
         t3 = words[2]
         if t3.normalized == "inkisret":

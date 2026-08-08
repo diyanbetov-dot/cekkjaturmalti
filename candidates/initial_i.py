@@ -20,7 +20,7 @@ def generate_initial_i_candidates(tokens: List[Token], index: int, lexicon) -> L
 
     norm = token.normalized
     raw = token.text
-    if not norm:
+    if not norm or norm in ("skond", "skont"):
         return candidates
 
     prev_word = get_prev_word_token(tokens, index)

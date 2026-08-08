@@ -36,8 +36,8 @@ class CandidateGenerator:
             )
             all_candidates.append(keep_cand)
 
-            # Check if token is protected English or Entity
-            if self.english_lexicon.is_english(token.normalized) or self.entity_lexicon.is_entity(token.normalized):
+            # Check entity title-casing
+            if self.entity_lexicon.is_entity(token.normalized):
                 casing_target = self.entity_lexicon.get_casing_candidate(token.text)
                 if casing_target != token.text:
                     all_candidates.append(
@@ -52,21 +52,12 @@ class CandidateGenerator:
                             hard_valid=True,
                         )
                     )
-                continue
 
-            # 2. Orthographic Candidates
-            orth_cands = generate_orthographic_candidates(token, self.lexicon)
-            all_candidates.extend(orth_cands)
-
-            # 3. Initial-i Candidates
-            init_i_cands = generate_initial_i_candidates(tokens, i, self.lexicon)
-            all_candidates.extend(init_i_cands)
-
-            # 4. Error Memory Candidates
+            # 2. Error Memory Candidates (High precedence)
             mem_cands = generate_error_memory_candidates(token)
             all_candidates.extend(mem_cands)
 
-            # 5. Span Candidates (Articles / Prepositions / Numerals / Agreement)
+            # 3. Span Candidates (Articles / Prepositions / Numerals / Agreement)
             art_span_cands = generate_article_span_candidates(tokens, i, self.lexicon)
             all_candidates.extend(art_span_cands)
 
@@ -75,6 +66,14 @@ class CandidateGenerator:
 
             agreed_cands = generate_agreement_span_candidates(tokens, i, self.lexicon)
             all_candidates.extend(agreed_cands)
+
+            # 4. Initial-i Candidates
+            init_i_cands = generate_initial_i_candidates(tokens, i, self.lexicon)
+            all_candidates.extend(init_i_cands)
+
+            # 5. Orthographic Candidates
+            orth_cands = generate_orthographic_candidates(token, self.lexicon)
+            all_candidates.extend(orth_cands)
 
         # Deduplicate and cap
         return deduplicate_candidates(all_candidates)

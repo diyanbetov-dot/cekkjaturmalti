@@ -40,16 +40,30 @@ def generate_numeral_span_candidates(tokens: List[Token], index: int, lexicon) -
                 )
             )
 
-    # 1. hdax baqra -> Ħdax-il baqra
+    # 1. hdax / hdax il-baqra / hdax baqar -> Ħdax-il baqra
     if n1 in ("hdax", "ħdax") and len(words) >= 2:
         t2 = words[1]
-        if t2.normalized in ("baqra", "darba", "persuna", "jum"):
+        n2 = t2.normalized
+        if n2 in ("baqra", "baqar", "darba", "persuna", "jum"):
             candidates.append(
                 Candidate(
                     source_start=t1.start,
                     source_end=t2.end,
                     original_text=t1.text + " " + t2.text,
-                    replacement=f"Ħdax-il {t2.normalized}" if is_title else f"ħdax-il {t2.normalized}",
+                    replacement=f"Ħdax-il baqra" if (is_title and n2 in ("baqra", "baqar")) else f"ħdax-il {n2}",
+                    operation_type=ErrorClass.NUMERAL,
+                    risk_class=RiskClass.LOW,
+                    sources=["numeral_teen"],
+                    hard_valid=True,
+                )
+            )
+        elif n2 == "il-baqra":
+            candidates.append(
+                Candidate(
+                    source_start=t1.start,
+                    source_end=t2.end,
+                    original_text=t1.text + " " + t2.text,
+                    replacement="Ħdax-il baqra" if is_title else "ħdax-il baqra",
                     operation_type=ErrorClass.NUMERAL,
                     risk_class=RiskClass.LOW,
                     sources=["numeral_teen"],
@@ -74,7 +88,7 @@ def generate_numeral_span_candidates(tokens: List[Token], index: int, lexicon) -
                 )
             )
 
-    # 3. hamsa baqar -> Ħames baqriet
+    # 3. hamsa baqar / hamsa baqriet -> Ħames baqriet
     if n1 in ("hamsa", "ħamsa") and len(words) >= 2:
         t2 = words[1]
         if t2.normalized in ("baqar", "baqra", "baqriet"):
@@ -91,7 +105,23 @@ def generate_numeral_span_candidates(tokens: List[Token], index: int, lexicon) -
                 )
             )
 
-    # 4. tlett snin -> tliet snin, ghandu tlett snin -> għandu tliet snin
+    # 4. tlett snin -> tliet snin, It tlett -> It-tliet
+    if n1 in ("it", "it-") and len(words) >= 2:
+        t2 = words[1]
+        if t2.normalized == "tlett":
+            candidates.append(
+                Candidate(
+                    source_start=t1.start,
+                    source_end=t2.end,
+                    original_text=t1.text + " " + t2.text,
+                    replacement="It-tliet" if is_title else "it-tliet",
+                    operation_type=ErrorClass.NUMERAL,
+                    risk_class=RiskClass.LOW,
+                    sources=["numeral_it_tliet"],
+                    hard_valid=True,
+                )
+            )
+
     if n1 == "tlett" and len(words) >= 2:
         t2 = words[1]
         if t2.normalized in ("snin", "xhur"):
