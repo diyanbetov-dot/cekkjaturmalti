@@ -1,0 +1,901 @@
+from __future__ import annotations
+
+from collections import OrderedDict
+from functools import lru_cache
+from pathlib import Path
+
+try:
+    from .suffix_rules import (
+        ALL_SUFFIXES,
+        GeneratedSuffixCandidate,
+        MalteseSuffixRules,
+        ParsedSuffix,
+    )
+    from .verb_form_index import MalteseVerbFormIndex, VerbFormRecord
+except ImportError:  # pragma: no cover
+    from suffix_rules import ALL_SUFFIXES, GeneratedSuffixCandidate, MalteseSuffixRules, ParsedSuffix
+    from verb_form_index import MalteseVerbFormIndex, VerbFormRecord
+
+
+class MalteseSuffixGenerator:
+    def __init__(self, *, spellchecker, verbs_file: Path | list[Path]) -> None:
+        self.spellchecker = spellchecker
+        if isinstance(verbs_file, (list, tuple)):
+            self.verbs_files = [Path(path) for path in verbs_file]
+        else:
+            self.verbs_files = [Path(verbs_file)]
+        self.verbs_file = self.verbs_files[0]
+        self.verb_index = MalteseVerbFormIndex(
+            verbs_file=self.verbs_files,
+            grapheme_splitter=spellchecker._graphemes,
+            normalizer=spellchecker._normalize_word,
+        )
+        self.rules = MalteseSuffixRules(spellchecker=spellchecker, verb_index=self.verb_index)
+        self._record_cache: OrderedDict[tuple[str, str, str, int], tuple[VerbFormRecord, ...]] = OrderedDict()
+        self._candidate_cache: OrderedDict[tuple[str, str, str, int], tuple[GeneratedSuffixCandidate, ...]] = OrderedDict()
+        self._typed_suffix_endings = tuple(
+            sorted(
+                {
+                    ending
+                    for spec in ALL_SUFFIXES
+                    for ending in (*spec.typed_endings, *spec.canonical_surfaces)
+                    if ending
+                },
+                key=len,
+                reverse=True,
+            )
+        )
+        self._cache_limit = 2048
+        self.generated_lhom_forms: dict[str, str] = {}
+        self.generated_suffix_forms: dict[str, list[GeneratedSuffixCandidate]] = {}
+
+    def _normalize(self, word: str) -> str:
+        return self.spellchecker._normalize_word(word)
+
+    def _graphemes(self, word: str) -> list[str]:
+        return self.spellchecker._graphemes(word)
+
+    def _from_graphemes(self, graphemes) -> str:
+        return self.spellchecker._from_graphemes(graphemes)
+
+    def _cache_get(self, cache: OrderedDict, key):
+        if key not in cache:
+            return None
+        value = cache.pop(key)
+        cache[key] = value
+        return value
+
+    def _cache_set(self, cache: OrderedDict, key, value) -> None:
+        cache[key] = value
+        if len(cache) > self._cache_limit:
+            cache.popitem(last=False)
+
+    def might_have_suffix(self, word: str) -> bool:
+        normalized = self._normalize(word)
+        if normalized.endswith("x") and len(normalized) > 1:
+            normalized = normalized[:-1]
+        if len(normalized) < 4 or normalized.endswith("gh"):
+            return False
+        return any(normalized.endswith(ending) for ending in self._typed_suffix_endings)
+
+    def parse_possible_suffixes(self, word: str) -> list[ParsedSuffix]:
+        return self.rules.parse_suffixes(self._normalize(word))
+
+    def has_suffix_parse(self, word: str) -> bool:
+        normalized = self._normalize(word)
+        if normalized.endswith("x") and len(normalized) > 1:
+            normalized = normalized[:-1]
+        if normalized.endswith("gh"):
+            return False
+        return bool(self.parse_possible_suffixes(normalized))
+
+    @lru_cache(maxsize=2048)
+    def exact_suffix_matches(self, word: str) -> list[GeneratedSuffixCandidate]:
+        normalized = self._normalize(word)
+        if not normalized:
+            return []
+        if not self.might_have_suffix(normalized):
+            return []
+
+        has_negative_x = normalized.endswith("x") and len(normalized) > 1
+        suffix_body = normalized[:-1] if has_negative_x else normalized
+
+        if suffix_body.endswith("gh"):
+            return []
+
+        matches: list[GeneratedSuffixCandidate] = []
+        seen: set[tuple[str, str, str]] = set()
+
+        for parsed in self.parse_possible_suffixes(suffix_body):
+            for candidate in self._generated_candidates_for_parse(parsed):
+                if candidate.surface != suffix_body:
+                    continue
+
+                key = (candidate.surface, candidate.base, candidate.raw_tag)
+                if key in seen:
+                    continue
+
+                matches.append(candidate)
+                seen.add(key)
+
+        return matches
+
+    def _looks_suffix_like(self, word: str) -> bool:
+        return self.has_suffix_parse(word)
+
+    def _add_unique_word(self, words: list[str], word: str | None) -> None:
+        if not word:
+            return
+        word = self._normalize(word)
+        if word and word not in words:
+            words.append(word)
+
+    def _insert_vowel_before_final_consonant(self, word: str) -> list[str]:
+        g = self._graphemes(word)
+        if len(g) < 2 or not g[-1].isalpha() or g[-1] in self.spellchecker.VOWELS:
+            return []
+        out: list[str] = []
+        for vowel in ("e", "a", "i", "o", "u"):
+            self._add_unique_word(out, self._from_graphemes(g[:-1] + [vowel, g[-1]]))
+        return out
+
+    def _inverse_base_guesses(self, typed_stem: str) -> list[str]:
+        stem = self._normalize(typed_stem)
+        return list(self._inverse_base_guesses_cached(stem))
+
+    @lru_cache(maxsize=2048)
+    def _inverse_base_guesses_cached(self, stem: str) -> tuple[str, ...]:
+        guesses: list[str] = []
+        self._add_unique_word(guesses, stem)
+        # The host spellchecker owns strict input normalization. Apply it
+        # unconditionally before inverse morphology so ASCII Maltese digraphs
+        # such as ``gh`` reach verb records written with the grapheme ``għ``.
+        variant_provider = getattr(
+            self.spellchecker,
+            "suffix_stem_variants",
+            self.spellchecker._strict_lookup_variants,
+        )
+        for variant in variant_provider(stem):
+            self._add_unique_word(guesses, variant)
+        g = self._graphemes(stem)
+        orthographic = getattr(self.spellchecker, "orthographic_generator", None)
+        doubled = getattr(self.spellchecker, "doubled_letter_generator", None)
+
+        if orthographic is not None:
+            for variant in orthographic.strict_lookup_variants(stem):
+                self._add_unique_word(guesses, variant)
+            for variant in orthographic.insert_token_next_to_vowels(stem, "għ"):
+                self._add_unique_word(guesses, variant)
+            for variant in orthographic.dictionary_shortcut_variants(stem):
+                self._add_unique_word(guesses, variant)
+            for variant in orthographic.shortcut_letter_variants(stem, max_changes=2, max_variants=24):
+                self._add_unique_word(guesses, variant)
+
+        for candidate in self._insert_vowel_before_final_consonant(stem):
+            self._add_unique_word(guesses, candidate)
+
+        if g and g[-1] == "j":
+            self._add_unique_word(guesses, self._from_graphemes(g[:-1] + ["i"]))
+        if g and g[-1] == "w":
+            self._add_unique_word(guesses, self._from_graphemes(g[:-1]))
+        if len(g) >= 2 and g[-2:] == ["a", "w"]:
+            self._add_unique_word(guesses, self._from_graphemes(g[:-2] + ["għ", "u"]))
+
+        if "għ" not in stem:
+            if g and g[0] in self.spellchecker.VOWELS:
+                self._add_unique_word(guesses, "għ" + stem)
+            if len(g) >= 2 and g[0].isalpha() and g[1] in self.spellchecker.VOWELS:
+                self._add_unique_word(guesses, self._from_graphemes(g[:2] + ["għ"] + g[2:]))
+            if g and g[0].isalpha():
+                self._add_unique_word(guesses, self._from_graphemes(g[:1] + ["għ"] + g[1:]))
+
+        if g and g[-1] == "i":
+            without_i = self._from_graphemes(g[:-1])
+            self._add_unique_word(guesses, without_i)
+            for candidate in self._insert_vowel_before_final_consonant(without_i):
+                self._add_unique_word(guesses, candidate)
+        if len(g) >= 2 and g[-2] == "i" and g[-1].isalpha():
+            self._add_unique_word(guesses, self._from_graphemes(g[:-2] + ["e", g[-1]]))
+        if len(g) >= 2 and g[-2:] == ["i", "e"]:
+            self._add_unique_word(guesses, self._from_graphemes(g[:-2] + ["a"]))
+            if len(g) >= 3:
+                self._add_unique_word(guesses, self._from_graphemes(g[:-3] + ["e", g[-3], "a"]))
+        if g and g[-1] == "a":
+            self._add_unique_word(guesses, stem + "'")
+        if stem.endswith("għ"):
+            self._add_unique_word(guesses, stem[:-2] + "'")
+        if stem.endswith("għa"):
+            self._add_unique_word(guesses, stem[:-3] + "'")
+
+        for guess in list(guesses):
+            if orthographic is not None:
+                for variant in orthographic.strict_lookup_variants(guess):
+                    self._add_unique_word(guesses, variant)
+                for variant in orthographic.insert_token_next_to_vowels(guess, "għ"):
+                    self._add_unique_word(guesses, variant)
+                for variant in orthographic.shortcut_letter_variants(guess, max_changes=2, max_variants=24):
+                    self._add_unique_word(guesses, variant)
+            for variant in self._insert_vowel_before_final_consonant(guess):
+                self._add_unique_word(guesses, variant)
+            if doubled is not None:
+                for variant in doubled.missing_double_variants(guess):
+                    self._add_unique_word(guesses, variant)
+            gg = self._graphemes(guess)
+            if len(gg) >= 2 and gg[-2] == "i" and gg[-1].isalpha():
+                self._add_unique_word(guesses, self._from_graphemes(gg[:-2] + ["e", gg[-1]]))
+            if len(gg) >= 3 and gg[:3] == ["w", "e", "ġ"]:
+                self._add_unique_word(guesses, self._from_graphemes(["w", "i", "e", *gg[2:]]))
+
+        return tuple(guesses)
+
+    def _parse_specific_guesses(self, parsed: ParsedSuffix) -> list[str]:
+        guesses = self._inverse_base_guesses(parsed.typed_stem)
+
+        # Users may retain the first vowel of an un-suffixed final-weak F1
+        # form after the finite stem has contracted (nesietu -> nsiet + u).
+        # Only retain removals that resolve to an actual indexed F1
+        # final-weak verb record.
+        typed_graphemes = self._graphemes(parsed.typed_stem)
+        for index in range(1, len(typed_graphemes) - 1):
+            if typed_graphemes[index] not in self.spellchecker.VOWELS:
+                continue
+            contracted = self._from_graphemes(
+                typed_graphemes[:index] + typed_graphemes[index + 1 :]
+            )
+            records = self.verb_index.word_records(contracted)
+            if any(
+                record.is_f1 and self.verb_index.is_final_weak(record)
+                for record in records
+            ):
+                self._add_unique_word(guesses, contracted)
+
+        if parsed.typed_stem == "had":
+            guesses.insert(0, "\u0127a")
+
+        if parsed.typed_stem == "ħad":
+            guesses.insert(0, "ħa")
+
+        # DO suffixes contract a base "ie" to "i".  Undo that contraction
+        # while finding the dictionary base, but keep it strictly bounded to
+        # real verb entries so this cannot become a general vowel insertion.
+        if parsed.spec.kind in {"DO", "DO_IDO"}:
+            stem_graphemes = self._graphemes(parsed.typed_stem)
+            if len(stem_graphemes) >= 3 and stem_graphemes[1] == "e":
+                expanded_initial_ie = self._from_graphemes(
+                    [stem_graphemes[0], "i", "e", *stem_graphemes[2:]]
+                )
+                if self.verb_index.word_records(expanded_initial_ie):
+                    self._add_unique_word(guesses, expanded_initial_ie)
+            for guess in tuple(guesses):
+                graphemes = self._graphemes(guess)
+                for index, grapheme in enumerate(graphemes[:-1]):
+                    next_grapheme = graphemes[index + 1]
+                    if (
+                        grapheme != "i"
+                        or not next_grapheme.isalpha()
+                        or next_grapheme in self.spellchecker.VOWELS
+                    ):
+                        continue
+                    expanded = self._from_graphemes(
+                        graphemes[: index + 1]
+                        + ["e"]
+                        + graphemes[index + 1 :]
+                    )
+                    if self.verb_index.word_records(expanded):
+                        self._add_unique_word(guesses, expanded)
+
+        typed_stem_tokens = self.spellchecker._letter_tokens(parsed.typed_stem)
+        typed_stem_starts_cc = (
+            len(typed_stem_tokens) >= 2
+            and typed_stem_tokens[0] not in self.spellchecker.VOWELS
+            and typed_stem_tokens[1] not in self.spellchecker.VOWELS
+        )
+        if (
+            parsed.spec.label.startswith("COMBINED_1P_")
+            and (
+                parsed.spec.label != "COMBINED_1P_DO3P"
+                or typed_stem_starts_cc
+            )
+        ):
+            self._add_unique_word(guesses, parsed.typed_stem + "na")
+            for guess in self._inverse_base_guesses(parsed.typed_stem + "na"):
+                self._add_unique_word(guesses, guess)
+        if parsed.spec.label.startswith("COMBINED_3P_") and parsed.typed_stem.endswith("j"):
+            self._add_unique_word(guesses, parsed.typed_stem[:-1])
+            for guess in self._inverse_base_guesses(parsed.typed_stem[:-1] + "i"):
+                self._add_unique_word(guesses, guess)
+        return guesses
+
+    def _deduplicate_records(self, records: list[VerbFormRecord]) -> list[VerbFormRecord]:
+        out: list[VerbFormRecord] = []
+        seen: set[tuple[str, str]] = set()
+        for record in records:
+            key = (record.word, record.raw_tag)
+            if key not in seen:
+                seen.add(key)
+                out.append(record)
+        return out
+    
+    def _candidate_records_for_parse(self, parsed: ParsedSuffix, *, max_records: int = 90) -> list[VerbFormRecord]:
+        cache_key = (parsed.spec.label, parsed.typed_ending, parsed.typed_stem, max_records)
+        cached = self._cache_get(self._record_cache, cache_key)
+        if cached is not None:
+            return list(cached)
+        records: list[VerbFormRecord] = []
+        guesses = self._parse_specific_guesses(parsed)
+        for guess in guesses:
+            records.extend(self.verb_index.word_records(guess))
+        anchors: list[str] = []
+
+        def add_anchor(word: str) -> None:
+            anchor = self.verb_index.consonant_anchor(word)
+            if anchor and anchor not in anchors:
+                anchors.append(anchor)
+
+        add_anchor(parsed.typed_stem)
+        for guess in guesses:
+            add_anchor(guess)
+        for anchor in anchors:
+            records.extend(self.verb_index.by_anchor.get(anchor, []))
+            if len(records) >= max_records:
+                break
+        if not records and anchors:
+            records.extend(self.verb_index.near_anchor_records(anchors[0], max_distance=1, max_records=max_records))
+        result = self._deduplicate_records(records)[:max_records]
+        self._cache_set(self._record_cache, cache_key, tuple(result))
+        return result
+
+    def _generated_candidates_for_parse(self, parsed: ParsedSuffix, *, max_candidates: int = 250) -> list[GeneratedSuffixCandidate]:
+        cache_key = (parsed.spec.label, parsed.typed_ending, parsed.typed_stem, max_candidates)
+        cached = self._cache_get(self._candidate_cache, cache_key)
+        if cached is not None:
+            return list(cached)
+        candidates: list[GeneratedSuffixCandidate] = []
+        seen: set[tuple[str, str, str]] = set()
+        direct_record_words = set(self._parse_specific_guesses(parsed))
+        for record in self._candidate_records_for_parse(parsed):
+            allow_1p_record = (
+                parsed.spec.label.startswith("COMBINED_1P_")
+                and record.is_perf
+                and record.person == "1P"
+                and (
+                    parsed.spec.label != "COMBINED_1P_DO3P"
+                    or self.verb_index.root_class(record).startswith("F1_")
+                )
+                and (
+                    parsed.spec.label != "COMBINED_1P_DO3P"
+                    or (
+                        len(self.spellchecker._letter_tokens(parsed.typed_stem)) >= 2
+                        and self.spellchecker._letter_tokens(parsed.typed_stem)[0] not in self.spellchecker.VOWELS
+                        and self.spellchecker._letter_tokens(parsed.typed_stem)[1] not in self.spellchecker.VOWELS
+                    )
+                )
+            )
+            if not (
+                record.word in direct_record_words
+                or allow_1p_record
+                or (record.is_perf and record.person in {"3SM", "3P"})
+                or (record.is_imp and record.person in {"2S", "2P"})
+            ):
+                continue
+            for candidate in self.rules.generate_for_record_and_spec(record, parsed.spec):
+                key = (candidate.surface, candidate.raw_tag, candidate.rule_id)
+                if key in seen:
+                    continue
+                seen.add(key)
+                candidates.append(candidate)
+                if len(candidates) >= max_candidates:
+                    self._cache_set(self._candidate_cache, cache_key, tuple(candidates))
+                    return candidates
+        self._cache_set(self._candidate_cache, cache_key, tuple(candidates))
+        return candidates
+    
+    def _score_candidate(self, typo: str, candidate: str, stage: str):
+        return self._score_candidate_cached(typo, candidate, stage)
+
+    @lru_cache(maxsize=4096)
+    def _score_candidate_cached(self, typo: str, candidate: str, stage: str):
+        return self.spellchecker._candidate_score(typo, candidate, stage)
+
+    def _suggestion_adds_untyped_final_h(self, candidate: GeneratedSuffixCandidate, parsed: ParsedSuffix) -> bool:
+        """Avoid suggestions like gie-k -> ġieħ-ek when the typed stem has no h/ħ evidence."""
+        typed = self._normalize(parsed.typed_stem)
+        base = self._normalize(candidate.base)
+        if not base.endswith("ħ"):
+            return False
+        if typed.endswith(("h", "ħ")) or typed.endswith("gh") or typed.endswith("għ"):
+            return False
+        return base[:-1] == typed or base[:-1] in self.spellchecker._strict_lookup_variants(typed)
+
+    def _allows_weak_suffix_recovery(
+        self,
+        candidate: GeneratedSuffixCandidate,
+        parsed: ParsedSuffix,
+    ) -> bool:
+        """Keep short/bare suffix parses from inventing unrelated verb stems.
+
+        Endings such as -a, -ja, -k and -u are valid suffix spellings, but
+        they are also extremely common word endings.  They may recover a
+        suffix form only when the typed stem is already the same verb stem
+        or one very small Maltese orthographic step away from it.
+        """
+        weak_endings = {"a", "ja", "wa", "k", "u", "h", "ek", "ok"}
+        if parsed.typed_ending not in weak_endings:
+            return True
+        typed_stem = self._normalize(parsed.typed_stem)
+        base = self._normalize(candidate.base)
+        if not typed_stem or not base:
+            return False
+        if base in self.spellchecker._strict_lookup_variants(typed_stem):
+            return True
+        return self.spellchecker._word_distance(typed_stem, base) <= 1
+
+    def _allows_literal_hha_recovery(
+        self,
+        word: str,
+        candidate: GeneratedSuffixCandidate,
+    ) -> bool:
+        normalized = self._normalize(word)
+        if not normalized.endswith("hha"):
+            return True
+        typed_stem = normalized[:-3]
+        surface = self._normalize(candidate.surface)
+        if not surface.startswith(typed_stem):
+            return False
+        return surface.endswith(("għha", "ħha", "'ha", "ha"))
+
+    def _direct_guess_rank(self, candidate: GeneratedSuffixCandidate, parsed: ParsedSuffix) -> int | None:
+        for index, guess in enumerate(self._parse_specific_guesses(parsed)):
+            if candidate.base == guess:
+                return index
+        return None
+
+    def _person_penalty(self, candidate: GeneratedSuffixCandidate) -> float:
+        label = candidate.suffix_label
+
+        if label.startswith(("COMBINED_3SM_", "COMBINED_3SF_")):
+            if candidate.tense == "IMP":
+                return 0.10
+
+        if label.startswith("COMBINED_1P_"):
+            if candidate.person == "3P":
+                return 0.20
+            if candidate.tense == "IMP":
+                return 0.08
+
+        return 0.0
+
+    def _ranking_penalty(self, candidate: GeneratedSuffixCandidate, parsed: ParsedSuffix) -> float:
+        penalty = 0.0
+        penalty += self._person_penalty(candidate)
+        direct_rank = self._direct_guess_rank(candidate, parsed)
+        typed_surface = parsed.typed_stem + parsed.typed_ending
+        exact_typed_match = candidate.surface in self.spellchecker._strict_lookup_variants(typed_surface)
+        if parsed.spec.kind == "IDO" and len(self.spellchecker._letter_tokens(parsed.typed_stem)) < 4:
+            penalty += 0.20
+        if (
+            parsed.spec.kind == "IDO"
+            and candidate.tense == "IMP"
+            and candidate.rule_id == "DEFAULT_ADD"
+        ):
+            penalty += 0.18
+        if direct_rank is not None:
+            penalty += direct_rank * 0.003
+        else:
+            # Prefer analyses grounded in an inverse stem hypothesis without
+            # granting those hypotheses a negative bonus. Unrelated indexed
+            # bases pay only for their actual graphemic distance.
+            penalty += min(
+                3,
+                self.spellchecker._word_distance(parsed.typed_stem, candidate.base),
+            ) * 0.08
+        if (
+            parsed.typed_stem
+            and candidate.base != parsed.typed_stem
+            and self.spellchecker._word_distance(parsed.typed_stem, candidate.base) <= 2
+            and any(
+                a == b
+                for a, b in zip(
+                    self.spellchecker._graphemes(candidate.base),
+                    self.spellchecker._graphemes(candidate.base)[1:],
+                )
+                if a not in self.spellchecker.VOWELS
+            )
+            and not any(
+                a == b
+                for a, b in zip(
+                    self.spellchecker._graphemes(parsed.typed_stem),
+                    self.spellchecker._graphemes(parsed.typed_stem)[1:],
+                )
+                if a not in self.spellchecker.VOWELS
+            )
+        ):
+            penalty += 0.18
+        if candidate.tense == "IMP" and direct_rank is None:
+            penalty += 0.12
+        if (
+            parsed.spec.kind == "DO_IDO"
+            and candidate.person == "3P"
+            and candidate.base not in self._parse_specific_guesses(parsed)
+        ):
+            penalty += 0.22
+        if (
+            parsed.spec.label == "IDO_3P"
+            and parsed.typed_ending in {"ilhom", "ilom"}
+            and parsed.typed_stem.endswith("il")
+        ):
+            penalty += 0.22
+        if (
+            parsed.spec.label == "DO_3P"
+            and parsed.typed_ending in {"hom", "om", "wom"}
+            and parsed.typed_stem.endswith(("ul", "hul"))
+        ):
+            penalty += 0.32
+        if (
+            parsed.spec.label == "DO_3P"
+            and not exact_typed_match
+            and (
+                (
+                    parsed.typed_ending == "hom"
+                    and parsed.typed_stem.endswith("il")
+                )
+                or (
+                    parsed.typed_ending in {"om", "wom"}
+                    and parsed.typed_stem.endswith("ilh")
+                )
+            )
+        ):
+            penalty += 0.72
+        if (
+            parsed.spec.label == "IDO_3P"
+            and parsed.typed_ending == "lhom"
+            and parsed.typed_stem.endswith("i")
+        ):
+            penalty += 0.10
+        if (
+            parsed.spec.label == "IDO_3P"
+            and parsed.typed_ending in {"lom", "lhom"}
+            and parsed.typed_stem.endswith(("u", "hu"))
+            and direct_rank is None
+        ):
+            penalty += 0.32
+        if (
+            parsed.spec.label == "COMBINED_3SF_3P"
+            and parsed.typed_ending in {"ilhom", "ilom"}
+            and not parsed.typed_stem.endswith("il")
+        ):
+            penalty += 0.48
+            if len(self.spellchecker._letter_tokens(parsed.typed_stem)) < 3:
+                penalty += 0.30
+        if (
+            parsed.spec.label == "COMBINED_3SM_3SM"
+            and parsed.typed_ending == "ulu"
+            and candidate.root_class == "HOLLOW"
+            and candidate.rule_id in {"DEFAULT_ADD", "COMBINED_3SM_EC_TO_IC"}
+        ):
+            penalty += 0.18
+        if (
+            parsed.spec.kind == "IDO"
+            and candidate.rule_id == "DEFAULT_ADD"
+            and candidate.base.endswith("'")
+            and candidate.suffix_display.startswith("-l")
+        ):
+            penalty += 0.10
+        if parsed.spec.label == "DO_3SM" and candidate.rule_id.endswith("DROP_V"):
+            penalty += 0.18
+        if parsed.spec.label.startswith("COMBINED_3P_") and candidate.rule_id == "DEFAULT_ADD":
+            base_graphemes = self.spellchecker._graphemes(candidate.base)
+            if (
+                len(base_graphemes) >= 2
+                and base_graphemes[-2] == "e"
+                and base_graphemes[-1].isalpha()
+                and base_graphemes[-1] not in self.spellchecker.VOWELS
+            ):
+                penalty += 0.16
+        if (
+            parsed.typed_stem.endswith("ij")
+            and candidate.root == "għtj"
+            and candidate.form_class == "F2"
+        ):
+            penalty += 0.12
+        if (
+            parsed.spec.label.startswith("COMBINED_3P_")
+            and candidate.rule_id == "COMBINED_3P_EC_TO_IC"
+            and candidate.root_class == "HOLLOW"
+        ):
+            penalty += 0.34
+        if candidate.rule_id == "IECEC_TO_ECIC" and candidate.tense == "PERF" and candidate.person == "3P":
+            penalty += 0.22
+        if candidate.rule_id == "IDO_L_FORMS_DOUBLE_C_ADD_I":
+            typed_stem_graphemes = self.spellchecker._graphemes(parsed.typed_stem)
+            typed_has_final_double = (
+                len(typed_stem_graphemes) >= 2
+                and typed_stem_graphemes[-1] == typed_stem_graphemes[-2]
+            )
+            if not typed_has_final_double:
+                penalty += 0.16
+        if (
+            parsed.spec.kind == "IDO"
+            and candidate.rule_id == "DEFAULT_ADD"
+            and self.rules.ends_vowel_consonant(candidate.base)
+            and not candidate.base.endswith("'")
+        ):
+            penalty += 0.35
+        if (
+            candidate.tense == "PERF"
+            and candidate.person == "3P"
+            and not parsed.typed_stem.endswith(("u", "w"))
+        ):
+            penalty += 0.35
+        if (
+            parsed.spec.kind == "DO_IDO"
+            and candidate.suffix_label.startswith("COMBINED_3SF_")
+            and not parsed.typed_ending.startswith(("h", "ħ"))
+            and ("h" in candidate.surface[len(parsed.typed_stem):] or "ħ" in candidate.surface[len(parsed.typed_stem):])
+        ):
+            penalty += 0.35
+        penalty += self._untyped_letter_penalty(typed_surface, candidate.surface)
+        penalty += self._internal_vowel_omission_penalty(parsed.typed_stem, candidate.base)
+        if candidate.surface == typed_surface:
+            penalty += 0.35
+            if all(ord(ch) < 128 for ch in candidate.surface):
+                penalty += 0.18
+        return penalty
+
+    def canonical_stem_skeleton(self, word: str) -> str:
+        """Return consonant skeleton stripping silent graphemes għ, h, and apostrophe."""
+        graphemes = self._graphemes(self._normalize(word))
+        silent = {"għ", "h", "'"}
+        consonants = [
+            g for g in graphemes
+            if g not in self.spellchecker.VOWELS and g.isalpha() and g not in silent
+        ]
+        collapsed: list[str] = []
+        for token in consonants:
+            if not collapsed or collapsed[-1] != token:
+                collapsed.append(token)
+        return "".join(collapsed)
+
+    def _alignment_operations(self, source: str, target: str) -> list[tuple[str, str, int]]:
+        """Return minimum-edit operations as (kind, token, source_index)."""
+        left = self.spellchecker._graphemes(source)
+        right = self.spellchecker._graphemes(target)
+        rows, columns = len(left) + 1, len(right) + 1
+        distance = [[0] * columns for _ in range(rows)]
+        for row in range(rows):
+            distance[row][0] = row
+        for column in range(columns):
+            distance[0][column] = column
+        for row in range(1, rows):
+            for column in range(1, columns):
+                distance[row][column] = min(
+                    distance[row - 1][column] + 1,
+                    distance[row][column - 1] + 1,
+                    distance[row - 1][column - 1] + (left[row - 1] != right[column - 1]),
+                )
+        operations: list[tuple[str, str, int]] = []
+        row, column = len(left), len(right)
+        while row or column:
+            if row and column and distance[row][column] == distance[row - 1][column - 1] + (left[row - 1] != right[column - 1]):
+                if left[row - 1] != right[column - 1]:
+                    operations.append(("substitute", right[column - 1], row - 1))
+                row -= 1
+                column -= 1
+            elif column and distance[row][column] == distance[row][column - 1] + 1:
+                operations.append(("insert", right[column - 1], row))
+                column -= 1
+            else:
+                operations.append(("delete", left[row - 1], row - 1))
+                row -= 1
+        operations.reverse()
+        return operations
+
+    def _untyped_letter_penalty(self, typed: str, candidate: str) -> float:
+        silent = {"għ", "h", "ħ", "q"}
+        return sum(
+            0.25
+            for kind, token, _index in self._alignment_operations(typed, candidate)
+            if kind == "insert"
+            and token.isalpha()
+            and token not in silent
+        )
+
+    def _internal_vowel_omission_penalty(self, typed_stem: str, candidate_base: str) -> float:
+        stem_length = len(self.spellchecker._graphemes(typed_stem))
+        return sum(
+            0.18
+            for kind, token, source_index in self._alignment_operations(typed_stem, candidate_base)
+            if kind == "delete"
+            and token in self.spellchecker.VOWELS
+            and source_index < stem_length - 1
+        )
+
+    def _aw_to_ghu_base_filter(
+        self,
+        rows: list[tuple[object, GeneratedSuffixCandidate, ParsedSuffix, float]],
+    ) -> list[tuple[object, GeneratedSuffixCandidate, ParsedSuffix, float]]:
+        preferred_bases: set[str] = set()
+        for _row, _candidate, parsed, _penalty in rows:
+            if not parsed.typed_stem.endswith("aw"):
+                continue
+            if self.verb_index.word_records(parsed.typed_stem):
+                continue
+            g = self._graphemes(parsed.typed_stem)
+            if len(g) < 2 or g[-2:] != ["a", "w"]:
+                continue
+            recovered = self._from_graphemes(g[:-2] + ["għ", "u"])
+            for record in self.verb_index.word_records(recovered):
+                if record.is_perf and record.person == "3P":
+                    preferred_bases.add(record.word)
+        if not preferred_bases:
+            return rows
+        filtered = [row for row in rows if row[1].base in preferred_bases]
+        return filtered or rows
+    
+    def correct_suffix(self, word: str, *, score_limit: float = 0.46) -> str | None:
+        normalized = self._normalize(word)
+        if not normalized:
+            return None
+        has_negative_x = normalized.endswith("x") and len(normalized) > 1
+        suffix_body = normalized[:-1] if has_negative_x else normalized
+        suffix_tail = "x" if has_negative_x else ""
+    
+    def correct_suffix(self, word: str, *, score_limit: float = 0.46) -> str | None:
+        normalized = self._normalize(word)
+        if not normalized:
+            return None
+        has_negative_x = normalized.endswith("x") and len(normalized) > 1
+        suffix_body = normalized[:-1] if has_negative_x else normalized
+        suffix_tail = "x" if has_negative_x else ""
+        if suffix_body.endswith("gh"):
+            return None
+        parses = self.parse_possible_suffixes(suffix_body)
+        if not parses:
+            return None
+        rows: list[tuple[object, GeneratedSuffixCandidate, ParsedSuffix, float]] = []
+        for parsed in parses:
+            for candidate in self._generated_candidates_for_parse(parsed):
+                if not self._allows_literal_hha_recovery(suffix_body, candidate):
+                    continue
+                if not self._allows_weak_suffix_recovery(candidate, parsed):
+                    continue
+                for lookup in self.spellchecker._strict_lookup_variants(candidate.surface):
+                    if suffix_body == lookup and lookup != candidate.surface:
+                        return lookup + suffix_tail
+                row = self._score_candidate(suffix_body, candidate.surface, "generated_suffix_parser")
+                rows.append((row, candidate, parsed, self._ranking_penalty(candidate, parsed)))
+        rows = self._aw_to_ghu_base_filter(rows)
+        rows.sort(key=lambda item: (item[0].score + item[3], item[0].edit_distance, item[2].priority, item[1].surface, item[1].rule_id))
+        if not rows or rows[0][0].score > score_limit:
+            return None
+        return rows[0][1].surface + suffix_tail
+
+    def suggest_suffixes(
+        self,
+        word: str,
+        *,
+        limit: int = 5,
+        score_limit: float = 0.50,
+    ) -> list[str]:
+        normalized = self._normalize(word)
+        if not normalized:
+            return []
+
+        has_negative_x = normalized.endswith("x") and len(normalized) > 1
+        suffix_body = normalized[:-1] if has_negative_x else normalized
+        suffix_tail = "x" if has_negative_x else ""
+        if suffix_body.endswith("gh"):
+            return []
+        parses = self.parse_possible_suffixes(suffix_body)
+
+        if not parses:
+            return []
+
+        rows: list[tuple[object, GeneratedSuffixCandidate, ParsedSuffix, float]] = []
+        for parsed in parses:
+            for candidate in self._generated_candidates_for_parse(parsed):
+                if not self._allows_literal_hha_recovery(suffix_body, candidate):
+                    continue
+                if not self._allows_weak_suffix_recovery(candidate, parsed):
+                    continue
+                row = self._score_candidate(
+                    suffix_body,
+                    candidate.surface,
+                    "generated_suffix_suggest",
+                )
+                rows.append((row, candidate, parsed, self._ranking_penalty(candidate, parsed)))
+        rows = self._aw_to_ghu_base_filter(rows)
+
+        exact_skeleton_bases: set[str] = set()
+        for parsed in parses:
+            typed_skel = self.canonical_stem_skeleton(parsed.typed_stem)
+            if not typed_skel:
+                continue
+            for guess in self._parse_specific_guesses(parsed):
+                if self.canonical_stem_skeleton(guess) == typed_skel:
+                    for rec in self.verb_index.word_records(guess):
+                        exact_skeleton_bases.add(rec.word)
+
+        if exact_skeleton_bases:
+            filtered_rows = [
+                r for r in rows
+                if r[1].base in exact_skeleton_bases
+            ]
+            if filtered_rows:
+                rows = filtered_rows
+
+        rows.sort(key=lambda item: (
+            item[0].score + item[3],
+            item[0].edit_distance,
+            item[2].priority,
+            item[1].surface,
+            item[1].rule_id,
+        ))
+
+        max_distance = max(2, self.spellchecker._max_distance(suffix_body))
+        suggestions: list[str] = []
+
+        def add(candidate: str) -> None:
+            candidate = self._normalize(candidate)
+            if candidate and candidate not in suggestions:
+                suggestions.append(candidate)
+
+        for row, candidate, parsed, _penalty in rows:
+            if row.score > score_limit or row.edit_distance > max_distance + 3:
+                continue
+            if self._suggestion_adds_untyped_final_h(candidate, parsed):
+                continue
+
+            if parsed.spec.kind == "DO_IDO" or row.edit_distance <= max_distance + 1:
+                add(candidate.surface + suffix_tail)
+
+            if len(suggestions) >= limit:
+                break
+
+        return suggestions
+
+    def candidates_for_surface(
+        self,
+        word: str,
+        *,
+        limit: int = 8,
+    ) -> list[GeneratedSuffixCandidate]:
+        normalized = self._normalize(word)
+        if not normalized:
+            return []
+
+        has_negative_x = normalized.endswith("x") and len(normalized) > 1
+        suffix_body = normalized[:-1] if has_negative_x else normalized
+        if suffix_body.endswith("gh"):
+            return []
+        parses = self.parse_possible_suffixes(suffix_body)
+        if not parses:
+            return []
+
+        matches: list[GeneratedSuffixCandidate] = []
+        seen: set[tuple[str, str, str]] = set()
+
+        for parsed in parses:
+            for candidate in self._generated_candidates_for_parse(parsed):
+                if candidate.surface != suffix_body:
+                    continue
+
+                key = (candidate.surface, candidate.base, candidate.raw_tag)
+                if key in seen:
+                    continue
+
+                matches.append(candidate)
+                seen.add(key)
+
+                if len(matches) >= limit:
+                    return matches
+
+        return matches
+
+    def correct_lhom(self, word: str) -> str | None:
+        if not self._looks_suffix_like(word):
+            return None
+        return self.correct_suffix(word)
+
+    def debug_lhom(self, word: str, limit: int = 10) -> dict:
+        return self.debug_suffix(word, limit=limit)

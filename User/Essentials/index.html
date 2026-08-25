@@ -1,0 +1,4050 @@
+<!DOCTYPE html>
+<html lang="mt">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Maltese Spell Checker</title>
+    <meta name="google-site-verification" content="-xem-kDXEyTnr1-wugERHU-Cocl4MPsEB-VA5MxLsOo" />
+
+    <style>
+        :root {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: #18202a;
+            --accent: #bd1137;
+            --ribbon-accent: #bd1137;
+            --ribbon-accent-hover: #bd1137;
+            --button-accent: #eb4f1f;
+            --button-accent-hover: #d83e10;
+            --accent-hover: #bd1137;
+            --accent-soft: #efe0e4;
+        }
+
+        html {
+            background: #f5f7fb;
+            overflow-x: hidden;
+        }
+
+        body {
+            box-sizing: border-box;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fb;
+            overflow-x: hidden;
+        }
+
+        main {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 28px 32px 32px;
+            box-sizing: border-box;
+        }
+
+        .brand-ribbon {
+            background: var(--ribbon-accent);
+            color: white;
+            box-shadow: 0 4px 16px rgba(24, 32, 42, 0.12);
+        }
+
+        .brand-ribbon-inner {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 10px 32px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .brand-name {
+            font-weight: 800;
+            letter-spacing: 0;
+            font-size: 1.15rem;
+            line-height: 1.2;
+        }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .top-bar button,
+        .top-bar .help-link {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 34px;
+            min-height: 34px;
+            border: 1px solid rgba(255, 255, 255, 0.42);
+            border-radius: 999px;
+            padding: 7px 12px;
+            background: rgba(255, 255, 255, 0.16);
+            color: white;
+            font-size: 0.9rem;
+            font-weight: 700;
+            line-height: 1;
+            text-decoration: none;
+            box-sizing: border-box;
+            white-space: nowrap;
+        }
+
+        .top-bar button:hover,
+        .top-bar .help-link:hover {
+            background: rgba(255, 255, 255, 0.24);
+        }
+
+        .top-bar button.secondary {
+            background: rgba(255, 255, 255, 0.16);
+            color: white;
+        }
+
+        .help-link .help-icon {
+            margin-right: 8px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.1rem;
+            height: 1.1rem;
+            border: 1px solid currentColor;
+            border-radius: 50%;
+            font-size: 0.74rem;
+            font-weight: 800;
+            line-height: 1;
+            flex: 0 0 auto;
+        }
+
+        .help-link .help-label {
+            line-height: 1;
+        }
+
+        .title-block {
+            margin-bottom: 12px;
+        }
+
+        .title-line {
+            display: flex;
+            align-items: baseline;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .title-line h1 {
+            margin: 0;
+        }
+
+        .subtitle {
+            margin-top: 0;
+            color: #5d6875;
+        }
+
+        .usage-note {
+            margin: 20px 0 0;
+            color: #687586;
+            font-size: 0.95rem;
+            line-height: 1.45;
+        }
+
+        .instruction-note {
+            margin: 14px 0 0;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .alpha-note {
+            margin: 0;
+            color: #8a94a3;
+            font-size: 0.88rem;
+            font-style: italic;
+            line-height: 1.3;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #dfe5ee;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 24px rgba(24, 32, 42, 0.06);
+            margin-top: 18px;
+        }
+
+        .sources-note {
+            margin: 14px 0 0;
+            color: #687586;
+            font-size: 0.9rem;
+            line-height: 1.45;
+            white-space: pre-line;
+        }
+
+        label {
+            display: block;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        textarea,
+        input {
+            box-sizing: border-box;
+            width: 100%;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font: inherit;
+            padding: 12px;
+            background: #fbfdff;
+        }
+
+        textarea {
+            min-height: 190px;
+            resize: none;
+            line-height: 1.45;
+        }
+
+        textarea[readonly] {
+            background: #f8fafc;
+        }
+
+        .button-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-top: 12px;
+        }
+
+        .settings-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            color: #46515f;
+            font-weight: 600;
+        }
+
+        .settings-row label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .settings-row input {
+            width: auto;
+            accent-color: #f97316;
+        }
+
+        .buttons-left,
+        .buttons-right {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .buttons-left {
+            justify-content: flex-start;
+        }
+
+        .buttons-right {
+            justify-content: flex-end;
+        }
+
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 10px 16px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            background: var(--button-accent);
+            color: white;
+        }
+
+        button.secondary {
+            background: #e7eef8;
+            color: #18202a;
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: 0.55;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .status {
+            margin-top: 10px;
+            color: #5d6875;
+            min-height: 1.4em;
+        }
+
+        .error {
+            color: #b42318;
+        }
+
+        .success {
+            color: #027a48;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            max-height: 420px;
+            overflow: auto;
+        }
+
+        .result-box {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 190px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            font: inherit;
+            padding: 12px;
+            background: #f8fafc;
+            line-height: 1.7;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .result-shell {
+            position: relative;
+        }
+
+        .result-shell .result-box {
+            padding-bottom: 42px;
+        }
+
+        .result-editor {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 190px;
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            line-height: 1.7;
+            background: #f8fafc;
+            overflow-wrap: anywhere;
+            outline: none;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .output-edit-toggle {
+            position: absolute;
+            right: 8px;
+            bottom: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: white;
+            color: #64748b;
+            font-size: 0.9rem;
+            font-weight: bold;
+            line-height: 1;
+            z-index: 6;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        .output-edit-toggle:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        .result-shell.editing .output-edit-toggle {
+            background: #e5e7eb;
+            border-color: #cbd5e1;
+            color: #334155;
+        }
+
+        .output-format-tab {
+            position: absolute;
+            right: 42px;
+            bottom: 10px;
+            height: 30px;
+            display: none;
+            align-items: center;
+            gap: 3px;
+            padding: 0 5px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #f1f5f9;
+            box-shadow: 0 4px 12px rgba(24, 32, 42, 0.08);
+            z-index: 5;
+            box-sizing: border-box;
+        }
+
+        .result-shell.editing .output-format-tab {
+            display: inline-flex;
+        }
+
+        .output-format-tab button {
+            width: 22px;
+            height: 22px;
+            min-width: unset;
+            min-height: unset;
+            padding: 0;
+            border-radius: 4px;
+            background: transparent;
+            color: #18202a;
+            font-size: 0.9rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: none;
+            cursor: pointer;
+        }
+
+        .output-format-tab button:hover {
+            background: #f1f5f9;
+        }
+
+        .output-format-tab button.active {
+            background: #d1d5db;
+            color: #111827;
+        }
+
+        /* Modal Backdrop/Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Modal Box */
+        .modal-content {
+            background: white;
+            border: 1px solid #dfe5ee;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 550px;
+            padding: 16px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(0.95);
+            transition: transform 0.25s ease;
+            box-sizing: border-box;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1);
+        }
+
+        body.dark-mode .modal-content {
+            background: #1e293b;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+
+        /* Modal Header */
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            border-bottom: 1px solid #cbd5e1;
+            padding-bottom: 8px;
+        }
+
+        body.dark-mode .modal-header {
+            border-color: #334155;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.25rem;
+            font-weight: 800;
+        }
+
+        .close-modal-btn {
+            background: transparent;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #64748b;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+        }
+
+        .close-modal-btn:hover {
+            color: var(--accent);
+        }
+
+        /* 
+         * =========================================================================
+         * DEVELOPER NOTES: EMAIL MODAL & SCREENSHOT STYLING
+         * =========================================================================
+         * This section defines styles for the Help/Email popover and screenshot functionality:
+         * - .modal-overlay & .modal-content: Layout and backdrop blur of the popover card.
+         * - .screenshot-btn: Two-column layout containing a square symbol side (.plus-box)
+         *   and adjacent justified wrapping text side (.btn-text).
+         * - .screenshot-preview & .remove-screenshot-btn: Style of the minimized attached
+         *   thumbnail inside the message box wrapper (.textarea-wrapper).
+         * - .lightbox-overlay & .lightbox-content: Fullscreen display modal of the attached screenshot.
+         */
+        .modal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .form-group label {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: #475569;
+            margin-bottom: 0;
+        }
+
+        body.dark-mode .form-group label {
+            color: #cbd5e1;
+        }
+
+        .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            margin-top: 2px;
+        }
+
+        .form-actions-right {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .form-actions-right button {
+            min-width: 100px;
+            height: 38px;
+        }
+
+        .screenshot-btn {
+            height: 44px;
+            width: auto;
+            background-color: #f8fafc;
+            border: 1px solid #cbd5e1;
+            color: #0f172a;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            /* flexbox layout splits button into two columns */
+            padding: 0;
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            box-sizing: border-box;
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .screenshot-btn:hover {
+            background-color: #f1f5f9;
+            border-color: #94a3b8;
+        }
+
+        body.dark-mode .screenshot-btn {
+            background-color: #1e293b;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .screenshot-btn:hover {
+            background-color: #334155;
+            border-color: #64748b;
+        }
+
+        /* Column 1: Square symbol side (height matches width) */
+        .screenshot-btn .plus-box {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            /* square aspect ratio relative to button height */
+            height: 42px;
+            border-right: 1px solid #cbd5e1;
+            background: #ffffff;
+            font-size: 16px;
+            font-weight: bold;
+            box-sizing: border-box;
+            color: #0f172a;
+        }
+
+        body.dark-mode .screenshot-btn .plus-box {
+            border-right-color: #475569;
+            background: #0f172a;
+            color: #f8fafc;
+        }
+
+        /* Column 2: Adjacent text side with width to force wrap after 'screenshot/skritratt' */
+        .screenshot-btn .btn-text {
+            width: 90px;
+            /* limited width forces line break after first line */
+            padding: 2px 8px;
+            text-align: left;
+            text-justify: inter-word;
+            text-align-last: left;
+            line-height: 1.25;
+            box-sizing: border-box;
+        }
+
+        .textarea-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .screenshot-preview {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            width: 60px;
+            height: 60px;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            overflow: hidden;
+            background: #f8fafc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        body.dark-mode .screenshot-preview {
+            background: #0f172a;
+            border-color: #475569;
+        }
+
+        .screenshot-preview:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .screenshot-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .remove-screenshot-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: rgba(15, 23, 42, 0.7);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            min-width: 16px;
+            max-width: 16px;
+            min-height: 0;
+            max-height: 16px;
+            flex: 0 0 16px;
+            font-size: 10px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            box-sizing: border-box;
+            z-index: 12;
+        }
+
+        .remove-screenshot-btn:hover {
+            background: rgba(239, 68, 68, 0.9);
+        }
+
+        /* Lightbox Overlay */
+        .lightbox-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s ease, visibility 0.25s ease;
+        }
+
+        .lightbox-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+        }
+
+        .lightbox-content img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 8px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+            border: 2px solid white;
+        }
+
+        .close-lightbox-btn {
+            position: absolute;
+            top: -40px;
+            right: 0;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 32px;
+            cursor: pointer;
+        }
+
+        body.dark-mode .output-format-tab {
+            background: #0f172a;
+            border-color: #475569;
+        }
+
+        body.dark-mode .output-format-tab button {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .output-format-tab button:hover {
+            background: #475569;
+        }
+
+        .result-box:empty::before {
+            content: attr(data-placeholder);
+            color: #7b8794;
+        }
+
+        .result-box.loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-spinner {
+            width: 34px;
+            height: 34px;
+            border: 4px solid #dbe3ef;
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .ambiguous-word {
+            position: relative;
+            display: inline-block;
+            background: #fff3a3;
+            border-radius: 5px;
+            padding: 0 3px;
+            cursor: pointer;
+        }
+
+        .ambiguous-word::before {
+            content: "?";
+            position: absolute;
+            top: -0.75em;
+            left: -0.45em;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            background: #facc15;
+            color: #18202a;
+            font-size: 0.7em;
+            font-weight: 900;
+            line-height: 1em;
+            text-align: center;
+            border: 1px solid #d4a800;
+        }
+
+        .ambiguous-word.crucial-word {
+            background: #fed7aa;
+        }
+
+        .ambiguous-word.crucial-word::before {
+            content: "?";
+            background: var(--ribbon-accent);
+            color: white;
+            border-color: var(--button-accent-hover);
+        }
+
+        .english-word {
+            position: relative;
+            display: inline-block;
+            background: #bae6fd;
+            border-radius: 5px;
+            padding: 0 3px;
+            cursor: pointer;
+        }
+
+        .english-word::before {
+            content: "i";
+            position: absolute;
+            top: -0.75em;
+            left: -0.45em;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            background: #38bdf8;
+            color: white;
+            font-size: 0.7em;
+            font-weight: 900;
+            line-height: 1em;
+            text-align: center;
+            border: 1px solid #0284c7;
+        }
+
+        .place-word {
+            position: relative;
+            display: inline-block;
+            background: #bae6fd;
+            border-radius: 5px;
+            padding: 0 3px;
+            cursor: pointer;
+        }
+
+        .place-word::before {
+            content: "M";
+            position: absolute;
+            top: -0.75em;
+            left: -0.45em;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            background: #38bdf8;
+            color: white;
+            font-size: 0.7em;
+            font-weight: 900;
+            line-height: 1em;
+            text-align: center;
+            border: 1px solid #0284c7;
+        }
+
+        .unknown-word {
+            position: relative;
+            display: inline-block;
+            text-decoration-line: underline;
+            text-decoration-style: wavy;
+            text-decoration-color: #dc2626;
+            text-decoration-thickness: 1.5px;
+            text-underline-offset: 0.14em;
+            cursor: pointer;
+        }
+
+        .suggestion-coachmark {
+            position: fixed;
+            z-index: 1600;
+            width: max-content;
+            max-width: min(17rem, calc(100vw - 16px));
+            padding: 7px 9px;
+            border: 1px solid rgba(100, 116, 139, 0.35);
+            border-radius: 6px;
+            background: rgba(226, 232, 240, 0.96);
+            color: #475569;
+            box-shadow: 0 5px 16px rgba(15, 23, 42, 0.16);
+            font-size: 0.78rem;
+            font-style: italic;
+            line-height: 1.3;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+
+        .name-like-word {
+            border-bottom: 1px dotted #64748b;
+            padding-bottom: 0.02em;
+        }
+
+        .suggestion-popover {
+            display: none;
+            position: absolute;
+            z-index: 20;
+            left: 0;
+            top: 1.8em;
+            width: max-content;
+            max-width: min(20rem, 90vw);
+            background: white;
+            border: 1px solid #d6b600;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(24, 32, 42, 0.18);
+            padding: 10px;
+            color: #18202a;
+            white-space: normal;
+            box-sizing: border-box;
+            overflow-wrap: anywhere;
+        }
+
+        .english-word .suggestion-popover,
+        .place-word .suggestion-popover {
+            border-color: #0284c7;
+        }
+
+        .unknown-word .suggestion-popover {
+            border-color: #94a3b8;
+        }
+
+        .ambiguous-word.open .suggestion-popover,
+        .english-word.open .suggestion-popover,
+        .place-word.open .suggestion-popover,
+        .unknown-word.open .suggestion-popover,
+        .unknown-word:hover .suggestion-popover,
+        .unknown-word:focus-within .suggestion-popover {
+            display: block;
+        }
+
+
+        .suggestion-row {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr);
+            align-items: start;
+            column-gap: 8px;
+            width: 100%;
+            padding: 7px 8px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            color: #18202a;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .suggestion-row:hover {
+            background: #fff3a3;
+        }
+
+        .english-note-action {
+            color: #0284c7;
+            font-style: italic;
+            font-weight: 700;
+        }
+
+        .crucial-word .suggestion-row:hover {
+            background: #fed7aa;
+        }
+
+        .suggestion-row strong {
+            white-space: nowrap;
+        }
+
+        .suggestion-row .suggestion-meaning {
+            display: inline;
+            white-space: normal;
+            overflow-wrap: anywhere;
+        }
+
+        .suggestion-row.info-row {
+            cursor: default;
+        }
+
+        .suggestion-row.info-row:hover {
+            background: transparent;
+        }
+
+        .suggestion-row.info-row .suggestion-meaning {
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        .unrecognized-report-row {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 4px;
+            padding: 7px 8px;
+            color: #64748b;
+            font-size: 0.86rem;
+            font-style: italic;
+        }
+
+        .unrecognized-report-button {
+            border: 1px solid var(--ribbon-accent);
+            border-radius: 5px;
+            background: rgba(190, 18, 60, 0.08);
+            color: var(--ribbon-accent);
+            padding: 2px 5px;
+            font: inherit;
+            font-style: italic;
+            font-weight: 800;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .unrecognized-report-button:hover {
+            background: var(--ribbon-accent);
+            color: white;
+        }
+
+        .email-body-editor {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 190px;
+            max-height: 50vh;
+            overflow-y: auto;
+            resize: vertical;
+            border: 1px solid #cbd5e1;
+            border-radius: 12px;
+            padding: 12px;
+            padding-bottom: 78px;
+            background: #fbfdff;
+            font: inherit;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+        }
+
+        .email-body-editor:empty::before {
+            content: attr(data-placeholder);
+            color: #94a3b8;
+            pointer-events: none;
+        }
+
+        .email-body-editor[aria-disabled="true"] {
+            opacity: 0.72;
+            cursor: wait;
+        }
+
+        .report-helper-text {
+            margin: 6px 2px 0;
+            color: #94a3b8;
+            font-size: 0.9em;
+            font-style: italic;
+            line-height: 1.4;
+            pointer-events: none;
+            user-select: none;
+        }
+
+        .correction-timer {
+            display: inline-block;
+            margin-left: 8px;
+            color: #64748b;
+            font-size: 0.9em;
+            font-weight: 600;
+        }
+
+        .dev-tools {
+            display: none;
+            margin-bottom: 18px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .dev-tools-row {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .edit-distance-options {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .edit-distance-option {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 0;
+            font-weight: 600;
+            line-height: 1;
+        }
+
+        .edit-distance-option input {
+            width: auto;
+            margin: 0;
+            padding: 0;
+            accent-color: #f97316;
+        }
+
+        .mode-buttons {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .mode-buttons button {
+            background: #f0f4ff;
+            color: #3b4a6b;
+            border: 1.5px solid #c7d3f0;
+            transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+        }
+
+        .mode-buttons button:hover {
+            background: #e0e9ff;
+            border-color: #a0b4e8;
+            transform: translateY(-1px);
+        }
+
+        .mode-buttons button.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            border-color: #7c3aed;
+            box-shadow: 0 0 12px rgba(124, 58, 237, 0.45);
+        }
+
+        body.dark-mode .mode-buttons button {
+            background: #1e2a45;
+            color: #93b4ff;
+            border-color: #2e3f6a;
+        }
+
+        body.dark-mode .mode-buttons button:hover {
+            background: #253154;
+            border-color: #4a63a8;
+        }
+
+        body.dark-mode .mode-buttons button.active {
+            background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%);
+            color: white;
+            border-color: #a855f7;
+            box-shadow: 0 0 14px rgba(168, 85, 247, 0.5);
+        }
+
+        /* Equal-height, resizable editors only on wide landscape surfaces. */
+        @media screen and (min-width: 900px) and (orientation: landscape) {
+
+            textarea,
+            .result-box,
+            .result-editor {
+                height: 240px;
+                min-height: 190px;
+                overflow-y: auto;
+                resize: vertical;
+            }
+        }
+
+        @media (max-width: 800px) {
+            body {
+                padding: 0;
+            }
+
+            main {
+                padding: 18px;
+            }
+
+            .brand-ribbon-inner {
+                padding: 10px 18px;
+                align-items: flex-start;
+                justify-content: flex-end;
+            }
+
+            .brand-name {
+                flex: 0 0 100%;
+                font-size: 1.28rem;
+            }
+
+            .top-bar {
+                width: 100%;
+                justify-content: flex-end;
+                gap: 8px;
+            }
+
+            .top-bar button,
+            .top-bar .help-link {
+                height: 32px;
+                min-height: 32px;
+                padding: 6px 10px;
+                font-size: 0.86rem;
+            }
+
+            .button-row {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                gap: 8px 12px;
+                align-items: stretch;
+            }
+
+            .buttons-left,
+            .buttons-right {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                min-width: 0;
+            }
+
+            .button-row button {
+                width: 100%;
+                min-width: 0;
+                padding: 8px 8px;
+                font-size: 0.78rem;
+                line-height: 1.1;
+                white-space: nowrap;
+                letter-spacing: 0;
+            }
+
+            .form-actions {
+                gap: 10px;
+                align-items: center;
+            }
+
+            .screenshot-btn {
+                height: 38px;
+                padding: 0 14px;
+                min-width: max-content;
+                justify-content: center;
+            }
+
+            .screenshot-btn .plus-box {
+                display: none;
+            }
+
+            .screenshot-btn .btn-text {
+                width: auto;
+                padding: 0;
+                white-space: nowrap;
+                line-height: 1;
+                text-align: center;
+                text-align-last: center;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        body.dark-mode {
+            background: #0f172a;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .panel {
+            background: #1e293b;
+            border-color: #334155;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+
+        body.dark-mode textarea,
+        body.dark-mode input {
+            background: #0f172a;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode textarea[readonly] {
+            background: #1e293b;
+        }
+
+        body.dark-mode button.secondary {
+            background: #334155;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .top-bar .help-link {
+            background: #334155;
+            color: #f8fafc;
+            border-color: #475569;
+        }
+
+        body.dark-mode .top-bar .help-link:hover {
+            background: #475569;
+        }
+
+        body.dark-mode .subtitle,
+        body.dark-mode .usage-note,
+        body.dark-mode .settings-row,
+        body.dark-mode .correction-timer,
+        body.dark-mode .status {
+            color: #94a3b8;
+        }
+
+        body.dark-mode .result-box {
+            background: #1e293b;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .result-editor {
+            background: #1e293b;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .output-edit-toggle {
+            background: #1e293b;
+            border-color: #475569;
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .output-edit-toggle:hover {
+            background: #334155;
+        }
+
+        body.dark-mode .output-format-tab {
+            background: #1e293b;
+            border-color: #475569;
+        }
+
+        body.dark-mode .output-format-tab button {
+            color: #f8fafc;
+            background: transparent;
+        }
+
+        body.dark-mode .output-format-tab button:hover {
+            background: #334155;
+        }
+
+        body.dark-mode .result-box:empty::before {
+            color: #64748b;
+        }
+
+        body.dark-mode .loading-spinner {
+            border-color: #334155;
+            border-top-color: var(--accent-soft);
+        }
+
+        body.dark-mode .suggestion-popover {
+            background: #1e293b;
+            color: #f8fafc;
+            border-color: #ca8a04;
+        }
+
+        body.dark-mode .english-word .suggestion-popover {
+            border-color: #0369a1;
+        }
+
+        body.dark-mode .suggestion-row {
+            color: #f8fafc;
+        }
+
+        body.dark-mode .suggestion-row:hover {
+            background: #713f12;
+        }
+
+        body.dark-mode .crucial-word .suggestion-row:hover {
+            background: #9a3412;
+        }
+
+        body.dark-mode .ambiguous-word {
+            background: #713f12;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .ambiguous-word::before {
+            background: #ca8a04;
+            color: #0f172a;
+            border-color: #a16207;
+        }
+
+        body.dark-mode .ambiguous-word.crucial-word {
+            background: #9a3412;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .ambiguous-word.crucial-word::before {
+            background: #ea580c;
+            color: white;
+            border-color: #c2410c;
+        }
+
+        body.dark-mode .english-word,
+        body.dark-mode .place-word {
+            background: #0c4a6e;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .unknown-word {
+            text-decoration-color: #f87171;
+        }
+
+        body.dark-mode .english-word::before,
+        body.dark-mode .place-word::before {
+            background: #0284c7;
+            color: white;
+            border-color: #0369a1;
+        }
+
+        body.dark-mode .unknown-word .suggestion-popover {
+            border-color: #475569;
+        }
+
+        body.dark-mode .suggestion-coachmark {
+            border-color: rgba(148, 163, 184, 0.45);
+            background: rgba(51, 65, 85, 0.97);
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .unrecognized-report-row,
+        body.dark-mode .report-helper-text {
+            color: #cbd5e1;
+        }
+
+        body.dark-mode .email-body-editor {
+            background: #0f172a;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .suggestion-row.info-row .suggestion-meaning {
+            color: #cbd5e1;
+        }
+
+        .dictionary-tool-launcher-row {
+            display: flex;
+            justify-content: flex-end;
+            min-height: 34px;
+            margin: -18px 0 2px;
+        }
+
+        .dictionary-tool-launcher {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            padding: 0;
+            border-radius: 6px;
+            border: 1px solid #cbd5e1;
+            background: #ffffff;
+            color: #334155;
+            font-size: 1.25rem;
+            line-height: 1;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.1);
+        }
+
+        .dictionary-tool-content {
+            max-width: 760px;
+            max-height: min(82vh, 760px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dictionary-structure-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 8px 0 12px;
+        }
+
+        .dictionary-structure-slots {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex: 1 1 300px;
+        }
+
+        .dictionary-structure-slot {
+            width: 44px;
+            height: 42px;
+            padding: 4px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #0f172a;
+            text-align: center;
+            font: inherit;
+            font-weight: 700;
+            box-sizing: border-box;
+        }
+
+        .dictionary-structure-icon {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            padding: 0;
+            border-radius: 6px;
+            font-size: 1.15rem;
+            line-height: 1;
+        }
+
+        .dictionary-structure-help,
+        .dictionary-structure-status {
+            margin: 0;
+            color: #64748b;
+            font-size: 0.88rem;
+        }
+
+        .dictionary-structure-results {
+            margin-top: 10px;
+            border: 1px solid #dfe5ee;
+            border-radius: 6px;
+            overflow-y: auto;
+            min-height: 140px;
+            max-height: 480px;
+            background: #ffffff;
+        }
+
+        .dictionary-structure-result {
+            display: grid;
+            grid-template-columns: minmax(120px, 0.8fr) minmax(180px, 2fr);
+            gap: 16px;
+            padding: 9px 12px;
+            border-bottom: 1px solid #e8edf3;
+            align-items: start;
+        }
+
+        .dictionary-structure-result:last-child {
+            border-bottom: 0;
+        }
+
+        .dictionary-structure-word {
+            font-weight: 750;
+            overflow-wrap: anywhere;
+        }
+
+        .dictionary-structure-meaning {
+            color: #475569;
+            overflow-wrap: anywhere;
+        }
+
+        body.dark-mode .dictionary-tool-launcher,
+        body.dark-mode .dictionary-structure-slot,
+        body.dark-mode .dictionary-structure-results {
+            background: #0f172a;
+            border-color: #475569;
+            color: #f8fafc;
+        }
+
+        body.dark-mode .dictionary-structure-result {
+            border-color: #334155;
+        }
+
+        body.dark-mode .dictionary-structure-help,
+        body.dark-mode .dictionary-structure-status,
+        body.dark-mode .dictionary-structure-meaning {
+            color: #cbd5e1;
+        }
+
+        @media (max-width: 640px) {
+            .dictionary-tool-launcher-row {
+                margin-top: -8px;
+            }
+
+            .dictionary-tool-content {
+                max-height: 88vh;
+            }
+
+            .dictionary-structure-result {
+                grid-template-columns: 1fr;
+                gap: 3px;
+            }
+        }
+
+        body.dark-mode pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            border: 1px solid #334155;
+        }
+
+        body.dark-mode label {
+            color: #e2e8f0;
+        }
+
+        body.dark-mode #labelEditDistance {
+            color: #60a5fa !important;
+        }
+
+        /* .pastizzi physics and rendering handled entirely by devtoy.js */
+    </style>
+</head>
+
+<body>
+    <header class="brand-ribbon">
+        <div class="brand-ribbon-inner">
+            <div id="brandName" class="brand-name">Ikteb Malti Tajjeb</div>
+            <div class="top-bar">
+                <a id="helpLink" class="help-link" href="mailto:cekkjaturmalti@gmail.com">
+                    <span class="help-icon" aria-hidden="true">?</span>
+                    <span class="help-label">Help</span>
+                </a>
+                <button id="darkModeToggle" class="secondary" type="button">Dark Mode</button>
+                <button id="langToggle" class="secondary" type="button">Swiċċja għall-Malti</button>
+            </div>
+        </div>
+    </header>
+    <main>
+        <div id="dictionaryToolLauncherRow" class="dictionary-tool-launcher-row hidden">
+            <button id="dictionaryToolLauncher" class="dictionary-tool-launcher" type="button"
+                aria-label="Open dictionary structure search" title="Dictionary structure search">+</button>
+        </div>
+        <div class="title-block">
+            <div class="title-line">
+                <h1 id="mainTitle">Maltese Spell Checker</h1>
+                <p id="alphaNote" class="alpha-note">Beta 0.1.0</p>
+            </div>
+            <p id="mainSubtitle" class="subtitle"></p>
+            <p id="usageNote" class="usage-note instruction-note">
+                Reminder: write names with a capital letter, and put English words or phrases in inverted commas.
+            </p>
+        </div>
+
+
+        <section class="panel">
+            <div class="grid">
+                <div>
+                    <label id="labelInput" for="textInput">Input text</label>
+                    <textarea id="textInput" spellcheck="false" placeholder="Paste Maltese here..."></textarea>
+                    <p id="betaPrivacyNotice" class="beta-privacy-note"
+                        style="margin-top: 6px; font-size: 0.82rem; color: #718096; font-style: italic;"></p>
+                </div>
+
+                <div>
+                    <label id="labelResults">
+                        <span id="labelResultsText">Corrected text</span>
+                        <span id="correctionTimer" class="correction-timer"></span>
+                    </label>
+                    <div id="resultShell" class="result-shell">
+                        <div id="results" class="result-box" data-placeholder="Results will appear here."
+                            aria-live="polite"></div>
+                        <div id="outputFormatTab" class="output-format-tab hidden" aria-label="Text formatting">
+                            <button id="formatBold" type="button" aria-label="Bold"><strong>B</strong></button>
+                            <button id="formatItalic" type="button" aria-label="Italic"><em>I</em></button>
+                            <button id="formatUnderline" type="button" aria-label="Underline"><u>U</u></button>
+                        </div>
+                        <div id="resultEditor" class="result-editor hidden" contenteditable="true" role="textbox"
+                            aria-multiline="true" aria-label="Edit corrected text"></div>
+                        <button id="outputEditToggle" class="output-edit-toggle" type="button" aria-expanded="false"
+                            aria-controls="resultEditor">T</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row">
+                <div class="buttons-left">
+                    <button id="checkButton" type="button">Check spelling</button>
+                    <button id="clearButton" class="secondary" type="button">Clear</button>
+                </div>
+
+                <div class="buttons-right">
+                    <button id="showSuggestionsButton" class="secondary" type="button">Show suggestions</button>
+                    <button id="copyButton" class="secondary" type="button">Copy result</button>
+                </div>
+            </div>
+
+            <div class="settings-row">
+                <label for="alwaysShowCrucialSuggestions">
+                    <input id="alwaysShowCrucialSuggestions" type="checkbox" />
+                    <span id="labelAlwaysShowCrucial">Always show crucial suggestions</span>
+                </label>
+            </div>
+
+            <div class="settings-row">
+                <label for="allowEnglishSuggestions">
+                    <input id="allowEnglishSuggestions" type="checkbox" />
+                    <span id="labelAllowEnglishSuggestions">Allow English suggestions</span>
+                </label>
+            </div>
+
+            <div id="status" class="status">Checking server...</div>
+            <p id="Notice" class="usage-note">
+                Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are
+                underway to increase the quality of outputted corrected text as per expected standards. Since it is
+                still in the testing phase, users and especially learners, are advised to use this tool with caution for
+                now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com. Thank you for
+                helping in improving Maltese digital tools!
+            </p>
+
+        </section>
+
+        <section id="devPanel" class="panel hidden">
+            <div id="editDistanceContainer" class="dev-tools">
+                <div class="dev-tools-row">
+                    <div>
+                        <label id="labelEditDistance" for="editDistance1">Edit distance tolerance</label>
+                        <div class="edit-distance-options">
+                            <label class="edit-distance-option">
+                                <input id="editDistance1" type="radio" name="editDistance" value="1" checked>
+                                <span id="labelEditDistance1">1 tick</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="2">
+                                <span id="labelEditDistance2">2 ticks</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="3">
+                                <span id="labelEditDistance3">3 ticks</span>
+                            </label>
+                            <label class="edit-distance-option">
+                                <input type="radio" name="editDistance" value="4">
+                                <span id="labelEditDistance4">4 ticks</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mode-buttons">
+                        <button id="pastizziModeButton" type="button">🥟 Waqqa' l-pastizzi</button>
+                        <button id="fireworksButton" type="button">🎆 Festa llejla</button>
+                        <button id="partyModeButton" type="button">🎉 Ġib il-party</button>
+                        <button id="gravityModeButton" type="button">⬇ Gravity</button>
+                    </div>
+                </div>
+            </div>
+
+            <label id="labelDebug" for="wordInput">Single-word suggestions/debug</label>
+            <input id="wordInput" placeholder="Enter a Maltese word..." />
+
+            <div class="buttons">
+                <button id="suggestButton" class="secondary" type="button">Suggest word</button>
+                <button id="debugButton" class="secondary" type="button">Debug word</button>
+            </div>
+            <pre id="debugOutput">Debug output will appear here.</pre>
+        </section>
+        <p id="sourcesNote" class="sources-note">
+            Sources and References:
+            Verbs: verb.mt
+            Other: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)
+        </p>
+    </main>
+
+    <div id="dictionaryToolModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-content dictionary-tool-content" role="dialog" aria-modal="true"
+            aria-labelledby="dictionaryToolTitle">
+            <div class="modal-header">
+                <h2 id="dictionaryToolTitle">Fittex Struttura / Structure Search</h2>
+                <button id="closeDictionaryTool" class="close-modal-btn" type="button"
+                    aria-label="Close dictionary structure search">&times;</button>
+            </div>
+            <p class="dictionary-structure-help">Daħħal ittra, għ, ie, K għal konsonanti, jew V għal vokali.</p>
+            <div class="dictionary-structure-controls">
+                <div id="dictionaryStructureSlots" class="dictionary-structure-slots"></div>
+                <button id="removeDictionarySlot" class="secondary dictionary-structure-icon" type="button"
+                    aria-label="Remove last box" title="Remove last box">−</button>
+                <button id="addDictionarySlot" class="secondary dictionary-structure-icon" type="button"
+                    aria-label="Add another box" title="Add another box">+</button>
+                <button id="searchDictionaryStructure" type="button">Fittex / Search</button>
+            </div>
+            <p id="dictionaryStructureStatus" class="dictionary-structure-status" aria-live="polite"></p>
+            <div id="dictionaryStructureResults" class="dictionary-structure-results" aria-live="polite"></div>
+        </div>
+    </div>
+
+    <!-- 
+      =========================================================================
+      DEVELOPER NOTES: EMAIL MODAL HTML STRUCTURE & ATTACHMENTS
+      =========================================================================
+      - Form inputs for To, Subject, and Message.
+      - Textarea wrapped inside .textarea-wrapper to absolute position the minimized screenshot thumbnail preview.
+      - .form-actions holds takeScreenshot on the left and form control buttons on the right.
+    -->
+    <!-- Email Modal Overlay -->
+    <div id="emailModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Ibgħat Email / Send Email</h2>
+                <button id="closeModal" class="close-modal-btn" type="button" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="emailForm" class="modal-form">
+                <div class="form-group">
+                    <label for="emailTo">Għal / To:</label>
+                    <input type="email" id="emailTo" value="cekkjaturmalti@gmail.com" readonly />
+                </div>
+                <div class="form-group">
+                    <label for="emailSubject">Suġġett / Subject:</label>
+                    <input type="text" id="emailSubject" required
+                        placeholder="Ikteb is-suġġett hawn / Write subject here" />
+                </div>
+                <div class="form-group">
+                    <label for="emailBody">Messaġġ / Message:</label>
+                    <div class="textarea-wrapper">
+                        <div id="emailBody" class="email-body-editor" contenteditable="true"
+                            role="textbox" aria-multiline="true"
+                            data-placeholder="Ikteb il-messaġġ tiegħek... / Write your message..."></div>
+                        <div id="screenshotPreview" class="screenshot-preview hidden">
+                            <img id="screenshotThumb" src="" alt="Screenshot" />
+                            <button type="button" id="removeScreenshot" class="remove-screenshot-btn">&times;</button>
+                        </div>
+                    </div>
+                    <div id="emailReportHelper" class="report-helper-text hidden" aria-hidden="true"></div>
+                </div>
+                <div id="emailModalStatus" class="status"></div>
+                <div class="form-actions">
+                    <button type="button" id="takeScreenshot" class="screenshot-btn">
+                        <span class="plus-box">+</span>
+                        <span class="btn-text">Ħu skritratt<br>tal-paġna</span>
+                    </button>
+                    <div class="form-actions-right">
+                        <button type="button" id="cancelEmail" class="secondary">Ikkanċella / Cancel</button>
+                        <button type="submit" id="sendEmail">Ibgħat / Send</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Screenshot Lightbox Overlay -->
+    <div id="screenshotLightbox" class="lightbox-overlay">
+        <div class="lightbox-content">
+            <img id="lightboxImage" src="" alt="Expanded Screenshot" />
+            <button type="button" id="closeLightbox" class="close-lightbox-btn">&times;</button>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="/devtoy.js"></script>
+    <script>
+        // These config variables will be replaced dynamically by the backend in app.py
+        const ENABLE_DEV_TOOLS = "REPLACE_ME_ENABLE_DEV_TOOLS" === "True";
+        const SHOW_STATUS_MESSAGES = "REPLACE_ME_SHOW_STATUS_MESSAGES" === "True";
+        const SHOW_EDIT_DISTANCE_SETTINGS = true;
+        const EDIT_DISTANCE_TOLERANCE = 2;
+        const ENABLE_PASTIZZI_MODE = false;
+        const SHOW_PASTIZZI_DEVTOOLS_BUTTON = true;
+        const SHOW_FIREWORKS_DEVTOOLS_BUTTON = true;
+        const SHOW_PARTY_DEVTOOLS_BUTTON = true;
+        const SHOW_GRAVITY_DEVTOOLS_BUTTON = true;
+        const SHOW_DICTIONARY_STRUCTURE_TOOL = true;
+        const API_BASE = window.location.origin;
+        const ENABLE_CORRECTION_TIMER = true;
+        const SHOW_ALPHA_NOTE = true;
+        const SHOW_SOURCES_NOTE = true;
+
+        const elements = {
+            brandName: document.getElementById("brandName"),
+            darkModeToggle: document.getElementById("darkModeToggle"),
+            langToggle: document.getElementById("langToggle"),
+            helpLink: document.getElementById("helpLink"),
+            mainTitle: document.getElementById("mainTitle"),
+            alphaNote: document.getElementById("alphaNote"),
+            mainSubtitle: document.getElementById("mainSubtitle"),
+            usageNote: document.getElementById("usageNote"),
+            Notice: document.getElementById("Notice"),
+            labelInput: document.getElementById("labelInput"),
+            textInput: document.getElementById("textInput"),
+            betaPrivacyNotice: document.getElementById("betaPrivacyNotice"),
+            labelResults: document.getElementById("labelResults"),
+            labelResultsText: document.getElementById("labelResultsText"),
+            correctionTimer: document.getElementById("correctionTimer"),
+            resultShell: document.getElementById("resultShell"),
+            results: document.getElementById("results"),
+            resultEditor: document.getElementById("resultEditor"),
+            outputFormatTab: document.getElementById("outputFormatTab"),
+            outputEditToggle: document.getElementById("outputEditToggle"),
+            formatBold: document.getElementById("formatBold"),
+            formatItalic: document.getElementById("formatItalic"),
+            formatUnderline: document.getElementById("formatUnderline"),
+            checkButton: document.getElementById("checkButton"),
+            showSuggestionsButton: document.getElementById("showSuggestionsButton"),
+            copyButton: document.getElementById("copyButton"),
+            clearButton: document.getElementById("clearButton"),
+            alwaysShowCrucialSuggestions: document.getElementById("alwaysShowCrucialSuggestions"),
+            labelAlwaysShowCrucial: document.getElementById("labelAlwaysShowCrucial"),
+            allowEnglishSuggestions: document.getElementById("allowEnglishSuggestions"),
+            labelAllowEnglishSuggestions: document.getElementById("labelAllowEnglishSuggestions"),
+            status: document.getElementById("status"),
+            labelDebug: document.getElementById("labelDebug"),
+            wordInput: document.getElementById("wordInput"),
+            suggestButton: document.getElementById("suggestButton"),
+            debugButton: document.getElementById("debugButton"),
+            debugOutput: document.getElementById("debugOutput"),
+            editDistanceContainer: document.getElementById("editDistanceContainer"),
+            devPanel: document.getElementById("devPanel"),
+            labelEditDistance: document.getElementById("labelEditDistance"),
+            labelEditDistance1: document.getElementById("labelEditDistance1"),
+            labelEditDistance2: document.getElementById("labelEditDistance2"),
+            labelEditDistance3: document.getElementById("labelEditDistance3"),
+            labelEditDistance4: document.getElementById("labelEditDistance4"),
+            pastizziModeButton: document.getElementById("pastizziModeButton"),
+            fireworksButton: document.getElementById("fireworksButton"),
+            partyModeButton: document.getElementById("partyModeButton"),
+            gravityModeButton: document.getElementById("gravityModeButton"),
+            sourcesNote: document.getElementById("sourcesNote"),
+        };
+
+        const translations = {
+            en: {
+                htmlLang: "en",
+                brandName: "Ikteb Malti Tajjeb",
+                helpLabel: "Send a Message",
+                helpLabelMobile: "Message",
+                editOutputOpen: "Edit corrected text",
+                editOutputClose: "Close editor",
+                toggleBtn: '<img src="https://flagcdn.com/w20/mt.png" alt="MT" style="width:18px; margin-right:6px; vertical-align:-2px;"> Aqleb għall-Malti',
+                toggleBtnMobile: '<img src="https://flagcdn.com/w20/mt.png" alt="MT" style="width:18px; margin-right:6px; vertical-align:-2px;"> Malti',
+                darkModeBtn: "🌙 Change to Dark Mode",
+                darkModeBtnMobile: "🌙 Dark Mode",
+                lightModeBtn: "☀️ Change to Light Mode",
+                lightModeBtnMobile: "☀️ Light Mode",
+                title: "Maltese Spell Checker",
+                alphaNote: "Beta 0.1.0",
+                Notice: "Beta 0.1.0 Notice: This is an experimental, community-driven prototype. More fixes and updates are underway to increase the quality of the site to match language standards. Since this is still the testing phase, users and especially learners, are advised to use this tool with caution for now. Please report wrong corrections and other findings to cekkjaturmalti@gmail.com or pressing the Send a Message button. Thank you for helping in improving Maltese digital tools!",
+                subtitle: "",
+                usageNote: "Note: for better results, capitalize names and write english words in inverted commas (ex.: John mar jixtri 'sandwich') .",
+                sourcesNote: "Sources and References:\nVerbs: verb.mt\nOther: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
+                labelInput: "Input text",
+                labelResults: "Corrected text",
+                checkBtn: "Check spelling",
+                copyBtn: "Copy result",
+                showSuggestionsOn: "Don't show suggestions",
+                showSuggestionsOnMobile: "Suggestions On",
+                showSuggestionsOff: "Show suggestions",
+                showSuggestionsOffMobile: "Suggestions Off",
+                alwaysShowCrucial: "Always show crucial suggestions",
+                allowEnglishSuggestions: "Allow English suggestions",
+                showStatusMessages: "Show status messages",
+                clearBtn: "Clear",
+                labelDebug: "Single-word suggestions/debug",
+                suggestBtn: "Suggest word",
+                debugBtn: "Debug word",
+                editDistanceLabel: "Edit distance tolerance",
+                editDistance1: "1 tick",
+                editDistance2: "2 ticks",
+                editDistance3: "3 ticks",
+                editDistance4: "4 ticks",
+                pastizziModeOn: "🥟 Pastizzi rain",
+                pastizziModeOff: "🥟 Pastizzi rain",
+                fireworksButton: "🎆 Fireworks",
+                partyModeOn: "🛑 Stop the party",
+                partyModeOff: "🎉 Start the party",
+                gravityModeOn: "🛑 Stop gravity",
+                gravityModeOff: "⬇ Gravity",
+                placeholderInput: "Paste Maltese here...",
+                placeholderResults: "Results will appear here.",
+                placeholderWord: "Enter a Maltese word...",
+                debugDefault: "Debug output will appear here.",
+                writeTextFirst: "Write something first.",
+                writeWordFirst: "Write a word first.",
+                checking: "Checking...",
+                copied: "Result copied.",
+                cleared: "Cleared.",
+                correctionsApplied: "Corrections applied.",
+                noChanges: "No changes needed.",
+                serverChecking: "Checking server...",
+                serverReady: "Ready. Loaded {words} words and {paradigms} paradigms.",
+                serverError: "Could not reach the Flask server. Run python app.py, then open http://127.0.0.1:5000/.",
+                unrecognizedWord: "This word could not be recognized.",
+                unrecognizedPrompt: "This word was unrecognized. Do you wish to",
+                unrecognizedReportAction: "report it?",
+                reportSubject: "Unrecognized word: {word}",
+                reportBody: "I wrote down this word but it was not recognized by the spellchecker: {word}.",
+                reportHelper: "You may describe the word to explain better why it should have been recognized, is it a name? If not what does the word mean?",
+                suggestionCoachmarkOpen: "Press to show suggestions",
+                suggestionCoachmarkChoose: "Choose the word you wanted to use",
+                suggestionCoachmarkMaltese: "Press the Maltese suggestion if you wish to use it",
+                emailModalTitle: "Send Email",
+                emailToLabel: "To:",
+                emailSubjectLabel: "Subject:",
+                emailSubjectPlaceholder: "Write subject here",
+                emailBodyLabel: "Message:",
+                emailBodyPlaceholder: "Write your message...",
+                emailCancelBtn: "Cancel",
+                emailSendBtn: "Send",
+                emailScreenshotBtn: "Take a screenshot<br>of the page",
+                emailScreenshotBtnMobile: "Take screenshot",
+                emailStatusSending: "Sending...",
+                emailStatusSent: "Email sent successfully!",
+                emailStatusError: "The message could not be sent. Please try again.",
+                /*betaPrivacyNotice: "Beta notice: Submitted text and generated corrections may be stored temporarily to evaluate and improve the spellchecker. Please do not submit confidential or sensitive information.*/
+            },
+
+            mt: {
+                htmlLang: "mt",
+                brandName: "Ikteb Malti Tajjeb",
+                helpLabel: "Ibgħat Messaġġ",
+                helpLabelMobile: "Messaġġ",
+                editOutputOpen: "Editja t-test ikkoreġut",
+                editOutputClose: "Agħlaq l-editur",
+                toggleBtn: '<img src="https://flagcdn.com/w20/gb.png" alt="GB" style="width:18px; margin-right:6px; vertical-align: 0px;"> Switch to English',
+                toggleBtnMobile: '<img src="https://flagcdn.com/w20/gb.png" alt="GB" style="width:18px; margin-right:6px; vertical-align: 0px;"> English',
+                darkModeBtn: "🌙 Aqleb għall-Mudlam",
+                darkModeBtnMobile: "🌙 Mudlam",
+                lightModeBtn: "☀️ Aqleb għall-Mudwal",
+                lightModeBtnMobile: "☀️ Dawl",
+                title: "Ċekkjatur tal-Malti",
+                alphaNote: "Beta 0.1.0",
+                Notice: "Avviż dwar Beta 0.1.0: Dan huwa prototip esperimentali u mmexxi mill-komunità. Aktar aġġornamenti huma fil-progress biex tiżdied il-kwalità tas-sit biex tkun tista' tilħaq standards mistennija minn għodda diġitali tal-lingwa. Peress li dan għadu il-fażi ta' ttestjar, utenti u speċjalment nies li għadhom qed jitgħallmu l-lingwa huma avżati biex jużaw is-sit b'attenzjoni. Jekk jogħġbok irraporta żbalji u problemi simili fuq cekkjaturmalti@gmail.com jew billi tagħfas il-buttuna Ibgħat Messaġġ. Grazzi talli qed tgħin fit-titjib ta' għodod diġitali għall-Malti!",
+                subtitle: "",
+                usageNote: "Nota: għal riżultati aħjar, ikteb ismijiet bl-ewwel ittra kbira u itfa' kliem Ingliż bejn il-virgoletti (eż.: John mar jixtri 'sandwich') ",
+                sourcesNote: "Sorsi u Referenzi:\nVerbi: verb.mt\nKliem Ieħor: Wiktionary.com, Ġabra.mt, Kelmet il-Malti 2017 (Kaptan Pawlu Bugeja)",
+                labelInput: "Test oriġinali",
+                labelResults: "Test ikkoreġut",
+                checkBtn: "Iċċekkja l-ortografija",
+                copyBtn: "Ikkopja l-korezzjoni",
+                showSuggestionsOn: "Turix suġġerimenti",
+                showSuggestionsOff: "Uri suġġerimenti",
+                alwaysShowCrucial: "Dejjem uri suġġerimenti kruċjali",
+                allowEnglishSuggestions: "Uri suġġerimenti bl-Ingliż",
+                showStatusMessages: "Uri messaġġi tal-istatus",
+                clearBtn: "Ħassar kollox",
+                labelDebug: "Suġġerimenti għal kelma partikolari",
+                suggestBtn: "Issuġġerixxi kelma",
+                debugBtn: "Għamel debugging tal-kelma",
+                editDistanceLabel: "Tolleranza tad-distanza tal-editjar",
+                editDistance1: "grad 1",
+                editDistance2: "grad 2",
+                editDistance3: "grad 3",
+                editDistance4: "grad 4",
+                pastizziModeOn: "🥟 Waqqa' l-pastizzi",
+                pastizziModeOff: "🥟 Waqqa' l-pastizzi",
+                fireworksButton: "🎆 Festa llejla",
+                partyModeOn: "🛑 Waqqaf il-party",
+                partyModeOff: "🎉 Ġib il-party",
+                gravityModeOn: "🛑 Gravità",
+                gravityModeOff: "⬇ Gravità",
+                placeholderInput: "Itfa' test bil-Malti hawn...",
+                placeholderResults: "Ir-riżultat se jidher hawn.",
+                placeholderWord: "Itfa' kelma Maltija...",
+                debugDefault: "Ir-riżultat tad-debugging jidher hawn.",
+                writeTextFirst: "L-ewwel ikteb xi ħaġa.",
+                writeWordFirst: "L-ewwel ikteb kelma.",
+                checking: "Tibdil fil-progress...",
+                copied: "Ir-riżultat ġie kkopjat.",
+                cleared: "It-test ġie mħassar.",
+                correctionsApplied: "Il-korrezzjonijiet ġew applikati.",
+                noChanges: "M'hemmx bżonn bidliet.",
+                serverChecking: "Qed jiġi ċċekkjat is-server...",
+                serverReady: "Bil-lest.  {words} kliem u {paradigms} mudelli ġew illowdjati.",
+                serverError: "Is-server tal-Flask ma qabadx. Ikteb python app.py, imbagħad iftaħ http://127.0.0.1:5000/.",
+                unrecognizedWord: "Din il-kelma ma setgħetx tingħaraf.",
+                unrecognizedPrompt: "Din il-kelma ma setgħetx tingħaraf. Tixtieq",
+                unrecognizedReportAction: "tirraportaha?",
+                reportSubject: "Kelma mhux rikonoxxuta: {word}",
+                reportBody: "Ktibt din il-kelma imma ma setgħetx tingħaraf miċ-ċekkjatur: {word}.",
+                reportHelper: "Tista' wkoll tiddeskrivi l-kelma biex tispjega għaliex ma ngħarfitx, x'tifsira għandha? Jew dan xi isem?",
+                suggestionCoachmarkOpen: "Agħfas hawn biex tara s-suġġerimenti",
+                suggestionCoachmarkChoose: "Agħżel il-kelma li ridt tikteb",
+                suggestionCoachmarkMaltese: "Agħfas fuq is-suġġeriment Malti jekk tixtieq tużah",
+                emailModalTitle: "Ibgħat Email",
+                emailToLabel: "Għal:",
+                emailSubjectLabel: "Suġġett:",
+                emailSubjectPlaceholder: "Ikteb is-suġġett hawn",
+                emailBodyLabel: "Messaġġ:",
+                emailBodyPlaceholder: "Ikteb il-messaġġ tiegħek...",
+                emailCancelBtn: "Lura",
+                emailSendBtn: "Ibgħat",
+                emailScreenshotBtn: "Ħu skritratt<br>tal-paġna",
+                emailScreenshotBtnMobile: "Ħu skritratt",
+                emailStatusSending: "Qed jintbagħat...",
+                emailStatusSent: "L-email intbagħtet b'suċċess!",
+                emailStatusError: "Il-messaġġ ma setax jintbagħat. Erġa' pprova.",
+                /*betaPrivacyNotice: "Avviż beta: It-test sottomess u l-korrezzjonijiet iġġenerati jistgħu jinħażnu temporanjament biex jevalwaw u jtejbu ċ-ċekkjatur. Jekk jogħġbok tissottomettix informazzjoni kunfidenzjali jew sensittiva.*/
+            }
+        };
+
+        let currentLang = localStorage.getItem("spellcheckerLang") || "en";
+        let currentLogId = null;
+
+        let showSuggestions = localStorage.getItem("showSuggestions") !== "false";
+        let alwaysShowCrucialSuggestions = localStorage.getItem("alwaysShowCrucialSuggestions") !== "false";
+        let allowEnglishSuggestions = localStorage.getItem("allowEnglishSuggestions") !== "false";
+        let latestTokens = [];
+        let latestCorrectedText = "";
+        let latestCorrectedHtml = "";
+        let outputEditing = false;
+        let outputEditorDirty = false;
+        let pastizziMode = false;
+        let pastizziInterval = null;
+        let partyMode = false;
+        let devToy = null;
+        let suggestionCoachmarkUsed = false;
+        let suggestionCoachmarkAnchor = null;
+        let suggestionCoachmarkElement = null;
+        let pendingReportedWord = "";
+
+        let lastStatus = {
+            key: "serverChecking",
+            type: "",
+            data: {}
+        };
+
+        let healthInfo = {
+            loaded: false,
+            words: 0,
+            paradigms: 0
+        };
+
+        function t(key, data = {}) {
+            let text = translations[currentLang][key] || key;
+
+            for (const [name, value] of Object.entries(data)) {
+                text = text.replace(`{${name}}`, value);
+            }
+
+            return text;
+        }
+
+        function setStatusByKey(key, type = "", data = {}) {
+            lastStatus = { key, type, data };
+            elements.status.textContent = t(key, data);
+            elements.status.className = `status ${type}`.trim();
+            updateStatusVisibility();
+        }
+
+        function setRawStatus(message, type = "") {
+            lastStatus = { key: null, type, data: {}, raw: message };
+            elements.status.textContent = message;
+            elements.status.className = `status ${type}`.trim();
+            updateStatusVisibility();
+        }
+
+        function updateStatusVisibility() {
+            const shouldShow = SHOW_STATUS_MESSAGES || lastStatus.type === "error";
+            elements.status.classList.toggle("hidden", !shouldShow);
+        }
+
+        function updateDevPanelVisibility() {
+            elements.devPanel.classList.toggle("hidden", !ENABLE_DEV_TOOLS);
+        }
+
+        function updateOptionalNotesVisibility() {
+            elements.alphaNote.classList.toggle("hidden", !SHOW_ALPHA_NOTE);
+            elements.sourcesNote.classList.toggle("hidden", !SHOW_SOURCES_NOTE);
+        }
+
+        function isMobileLayout() {
+            return window.matchMedia("(max-width: 800px)").matches;
+        }
+
+        function responsiveLabel(key) {
+            const labels = translations[currentLang];
+            const mobileKey = `${key}Mobile`;
+            return isMobileLayout() && labels[mobileKey] ? labels[mobileKey] : labels[key];
+        }
+
+        function topBarLabel(key) {
+            return responsiveLabel(key);
+        }
+
+        function updateTopBarLabels() {
+            const isDark = document.body.classList.contains("dark-mode");
+            elements.langToggle.innerHTML = topBarLabel("toggleBtn");
+            elements.helpLink.innerHTML = `<span class="help-icon" aria-hidden="true">?</span><span class="help-label">${topBarLabel("helpLabel")}</span>`;
+            elements.darkModeToggle.textContent = isDark
+                ? topBarLabel("lightModeBtn")
+                : topBarLabel("darkModeBtn");
+        }
+
+        function updateActionButtonLabels() {
+            elements.checkButton.textContent = t("checkBtn");
+            elements.copyButton.textContent = t("copyBtn");
+            elements.clearButton.textContent = t("clearBtn");
+            updateShowSuggestionsButton();
+        }
+
+        function updateResponsiveLabels() {
+            updateTopBarLabels();
+            updateActionButtonLabels();
+            const screenshotLabel = document.querySelector("#takeScreenshot .btn-text");
+            if (screenshotLabel) {
+                screenshotLabel.innerHTML = responsiveLabel("emailScreenshotBtn");
+            }
+        }
+
+        function setOutputLoading(loading) {
+            if (loading) {
+                setOutputEditing(false, { preserveText: true });
+            }
+            elements.results.classList.toggle("loading", loading);
+            if (loading) {
+                elements.results.innerHTML = '<span class="loading-spinner" aria-hidden="true"></span>';
+            }
+        }
+
+        function setOutputEditing(enabled, options = {}) {
+            const preserveText = Boolean(options.preserveText);
+
+            if (!enabled && outputEditing && !preserveText) {
+                latestCorrectedText = elements.resultEditor.innerText;
+                latestCorrectedHtml = elements.resultEditor.innerHTML;
+                if (outputEditorDirty) {
+                    latestTokens = [];
+                }
+            }
+
+            outputEditing = Boolean(enabled);
+            elements.resultShell.classList.toggle("editing", outputEditing);
+            elements.results.classList.toggle("hidden", outputEditing);
+            elements.resultEditor.classList.toggle("hidden", !outputEditing);
+            elements.outputFormatTab.classList.toggle("hidden", !outputEditing);
+            elements.outputEditToggle.setAttribute("aria-expanded", String(outputEditing));
+
+            const labels = translations[currentLang];
+            const title = outputEditing ? labels.editOutputClose : labels.editOutputOpen;
+            elements.outputEditToggle.title = title;
+            elements.outputEditToggle.setAttribute("aria-label", title);
+            elements.outputEditToggle.textContent = "T";
+
+            if (outputEditing) {
+                outputEditorDirty = false;
+                if (latestCorrectedHtml) {
+                    elements.resultEditor.innerHTML = latestCorrectedHtml;
+                } else {
+                    elements.resultEditor.innerText = latestCorrectedText;
+                }
+                requestAnimationFrame(() => {
+                    elements.resultEditor.focus();
+                    updateOutputFormatButtonStates();
+                });
+                return;
+            }
+
+            elements.formatBold.classList.remove("active");
+            elements.formatItalic.classList.remove("active");
+            elements.formatUnderline.classList.remove("active");
+
+            if (!preserveText) {
+                renderCorrectedText(latestTokens, latestCorrectedText);
+            }
+        }
+
+        function setButtonsDisabled(disabled) {
+            elements.checkButton.disabled = disabled;
+            elements.suggestButton.disabled = disabled;
+            elements.debugButton.disabled = disabled;
+        }
+
+        function applyLanguage() {
+            const labels = translations[currentLang];
+
+            document.documentElement.lang = labels.htmlLang;
+
+            elements.brandName.textContent = labels.brandName;
+            elements.outputEditToggle.title = outputEditing ? labels.editOutputClose : labels.editOutputOpen;
+            elements.outputEditToggle.setAttribute("aria-label", elements.outputEditToggle.title);
+            elements.mainTitle.textContent = labels.title;
+            elements.alphaNote.textContent = labels.alphaNote;
+            elements.mainSubtitle.textContent = labels.subtitle;
+            elements.usageNote.textContent = labels.usageNote;
+            /*if (elements.betaPrivacyNotice) {
+                elements.betaPrivacyNotice.textContent = labels.betaPrivacyNotice;
+            }*/
+            elements.Notice.textContent = labels.Notice;
+            elements.sourcesNote.textContent = labels.sourcesNote;
+
+            elements.labelInput.textContent = labels.labelInput;
+            elements.labelResultsText.textContent = labels.labelResults;
+            elements.labelDebug.textContent = labels.labelDebug;
+            elements.labelEditDistance.textContent = labels.editDistanceLabel;
+            elements.labelEditDistance1.textContent = labels.editDistance1;
+            elements.labelEditDistance2.textContent = labels.editDistance2;
+            elements.labelEditDistance3.textContent = labels.editDistance3;
+            elements.labelEditDistance4.textContent = labels.editDistance4;
+
+            elements.labelAlwaysShowCrucial.textContent = labels.alwaysShowCrucial;
+            elements.labelAllowEnglishSuggestions.textContent = labels.allowEnglishSuggestions;
+            elements.suggestButton.textContent = labels.suggestBtn;
+            elements.debugButton.textContent = labels.debugBtn;
+
+            updateResponsiveLabels();
+            updateDevPanelVisibility();
+            updateOptionalNotesVisibility();
+            if (devToy) {
+                devToy.updateModeButtons();
+            } else {
+                updateModeButtons();
+            }
+
+            elements.textInput.placeholder = labels.placeholderInput;
+            elements.results.dataset.placeholder = labels.placeholderResults;
+            elements.wordInput.placeholder = labels.placeholderWord;
+
+            // Translate email modal
+            document.querySelector("#emailModal h2").textContent = labels.emailModalTitle;
+            document.querySelector("label[for='emailTo']").textContent = labels.emailToLabel;
+            document.querySelector("label[for='emailSubject']").textContent = labels.emailSubjectLabel;
+            document.getElementById("emailSubject").placeholder = labels.emailSubjectPlaceholder;
+            document.querySelector("label[for='emailBody']").textContent = labels.emailBodyLabel;
+            document.getElementById("emailBody").dataset.placeholder = labels.emailBodyPlaceholder;
+            document.getElementById("cancelEmail").textContent = labels.emailCancelBtn;
+            document.getElementById("sendEmail").textContent = labels.emailSendBtn;
+
+            if (
+                elements.debugOutput.textContent === translations.en.debugDefault ||
+                elements.debugOutput.textContent === translations.mt.debugDefault
+            ) {
+                elements.debugOutput.textContent = labels.debugDefault;
+            }
+
+            if (lastStatus.key) {
+                elements.status.textContent = t(lastStatus.key, lastStatus.data);
+                elements.status.className = `status ${lastStatus.type}`.trim();
+            } else if (lastStatus.raw) {
+                elements.status.textContent = lastStatus.raw;
+                elements.status.className = `status ${lastStatus.type}`.trim();
+            }
+            updateStatusVisibility();
+
+            if (SHOW_EDIT_DISTANCE_SETTINGS) {
+                elements.editDistanceContainer.style.display = 'block';
+            }
+        }
+
+        function getEditDistanceTolerance() {
+            if (ENABLE_DEV_TOOLS) {
+                const selected = document.querySelector('input[name="editDistance"]:checked');
+                return selected ? parseInt(selected.value, 10) : EDIT_DISTANCE_TOLERANCE;
+            }
+            return EDIT_DISTANCE_TOLERANCE;
+        }
+
+        async function postJson(path, body) {
+            const response = await fetch(`${API_BASE}${path}`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(body)
+            });
+
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.error || `Request failed with status ${response.status}`);
+            }
+
+            return data;
+        }
+
+        async function checkHealth() {
+            setButtonsDisabled(true);
+            setStatusByKey("serverChecking");
+
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+
+                if (!response.ok || !data.ok) {
+                    throw new Error("Server is not ready.");
+                }
+
+                healthInfo = {
+                    loaded: true,
+                    words: data.dictionary_words,
+                    paradigms: data.paradigms
+                };
+
+                setButtonsDisabled(false);
+                setStatusByKey("serverReady", "success", {
+                    words: healthInfo.words,
+                    paradigms: healthInfo.paradigms
+                });
+            } catch (error) {
+                healthInfo = {
+                    loaded: false,
+                    words: 0,
+                    paradigms: 0
+                };
+
+                setButtonsDisabled(true);
+                setStatusByKey("serverError", "error");
+            }
+        }
+
+
+        const PERSON_TAGS = new Set([
+            "1S", "2S", "3SM", "3SF", "1P", "2P", "3P",
+            "12S", "12P"
+        ]);
+
+        const SIMPLE_POS_TAG_RE = /^(?:SINGNOUN(?:M|F|FM)?|PLUNOUN|PAUCNOUN|COLLNOUN|DUALNOUN|SINGADJM|SINGADJF|PLUADJ|SINGADJM\+SINGNOUN|ADVERB(?:-\d(?:S|P|SM|SF))?|PRON(?:-\d(?:S|P|SM|SF))?)$/i;
+
+        function cleanMeaningText(value) {
+            return String(value || "")
+                .replace(/\s+/g, " ")
+                .replace(/^[\s:;,\-]+|[\s:;,]+$/g, "")
+                .trim();
+        }
+
+        function extractMeaningFromDictionaryPayload(payload) {
+            /*
+             * Accepted examples:
+             *   SINGNOUNM-abacus
+             *   SINGADJM-ugly
+             *   T-ksr-PERF-3SM-to break or divert
+             *   T-ksr-PERF-3SM-to not break or not divert-N
+             *   kiser/T-ksr-PERF-3SM-to break or divert
+             *
+             * A negative verb's final N is a grammatical marker, not its meaning.
+             * Meanings may themselves contain hyphens, so this parser finds the
+             * end of the morphological tag rather than taking only one dash-part.
+             */
+            let raw = String(payload || "").trim();
+            if (!raw) {
+                return "";
+            }
+
+            if (raw.includes("/")) {
+                raw = raw.slice(raw.indexOf("/") + 1);
+            }
+
+            const negative = /-N$/i.test(raw);
+            if (negative) {
+                raw = raw.replace(/-N$/i, "");
+            }
+
+            const parts = raw.split("-");
+            if (parts.length < 2) {
+                return "";
+            }
+
+            // Nouns, adjectives, adverbs and pronouns:
+            // meaning begins immediately after the POS tag.
+            for (let i = 0; i < parts.length; i += 1) {
+                if (SIMPLE_POS_TAG_RE.test(parts[i])) {
+                    return cleanMeaningText(parts.slice(i + 1).join("-"));
+                }
+            }
+
+            // Verbs: meaning begins immediately after the person tag.
+            // This supports both:
+            //   T-root-TENSE-PERSON-meaning
+            // and
+            //   FORM-T-root-TENSE-PERSON-meaning
+            for (let i = 0; i < parts.length; i += 1) {
+                if (PERSON_TAGS.has(parts[i].toUpperCase())) {
+                    return cleanMeaningText(parts.slice(i + 1).join("-"));
+                }
+            }
+
+            // Compatibility fallback requested by the dictionary convention:
+            // last field normally; penultimate field when the original ended -N.
+            const originalParts = String(payload || "").split("-");
+            const fallbackIndex = /-N$/i.test(String(payload || ""))
+                ? originalParts.length - 2
+                : originalParts.length - 1;
+
+            return cleanMeaningText(originalParts[fallbackIndex] || "");
+        }
+
+        function getChoiceWord(choice) {
+            if (typeof choice === "string") {
+                return choice;
+            }
+
+            return choice.word
+                || choice.corrected
+                || choice.candidate
+                || choice.surface
+                || "";
+        }
+
+        function getChoiceMeaning(choice) {
+            if (!choice || typeof choice === "string") {
+                return "";
+            }
+
+            const directMeaning = cleanMeaningText(
+                choice.meaning
+                || choice.gloss
+                || choice.definition
+                || ""
+            );
+
+            if (directMeaning) {
+                return directMeaning;
+            }
+
+            const possiblePayloads = [
+                choice.entry,
+                choice.dictionary_entry,
+                choice.raw_entry,
+                choice.full_tag,
+                choice.raw_tag,
+                choice.tag,
+            ];
+
+            if (Array.isArray(choice.tags)) {
+                possiblePayloads.push(choice.tags.join("-"));
+            } else if (choice.tags) {
+                possiblePayloads.push(choice.tags);
+            }
+
+            for (const payload of possiblePayloads) {
+                const meaning = extractMeaningFromDictionaryPayload(payload);
+                if (meaning) {
+                    return meaning;
+                }
+            }
+
+            return "";
+        }
+
+        function createSuggestionPopover(choices, tokenIndex) {
+            const popover = document.createElement("span");
+            popover.className = "suggestion-popover";
+
+            for (const choice of choices) {
+                const row = document.createElement("button");
+                row.type = "button";
+                row.className = "suggestion-row";
+
+                const choiceWord = getChoiceWord(choice);
+                const choiceMeaning = getChoiceMeaning(choice);
+
+                const word = document.createElement("strong");
+                word.textContent = choiceWord;
+
+                const meaning = document.createElement("span");
+                meaning.className = "suggestion-meaning";
+                meaning.textContent = choiceMeaning ? `: ${choiceMeaning}` : "";
+
+                row.appendChild(word);
+                if (choiceMeaning) {
+                    row.appendChild(meaning);
+                }
+
+                row.addEventListener("click", (event) => {
+                    event.stopPropagation();
+                    chooseSuggestion(tokenIndex, choiceWord);
+                });
+
+                popover.appendChild(row);
+            }
+
+            return popover;
+        }
+
+        function createUnrecognizedPopover(token) {
+            const popover = document.createElement("span");
+            popover.className = "suggestion-popover";
+
+            const row = document.createElement("span");
+            row.className = "unrecognized-report-row";
+            row.append(document.createTextNode(`${t("unrecognizedPrompt")} `));
+
+            const reportButton = document.createElement("button");
+            reportButton.type = "button";
+            reportButton.className = "unrecognized-report-button";
+            reportButton.textContent = t("unrecognizedReportAction");
+            reportButton.addEventListener("click", async (event) => {
+                event.preventDefault();
+                event.stopPropagation();
+                reportButton.disabled = true;
+                await beginUnrecognizedReport(token);
+                reportButton.disabled = false;
+            });
+
+            row.appendChild(reportButton);
+            popover.appendChild(row);
+            return popover;
+        }
+
+        function dismissSuggestionCoachmark() {
+            if (suggestionCoachmarkElement) {
+                suggestionCoachmarkElement.remove();
+            }
+            suggestionCoachmarkElement = null;
+            suggestionCoachmarkAnchor = null;
+        }
+
+        function positionSuggestionCoachmark(anchor, afterPopover = false) {
+            if (!suggestionCoachmarkElement || !anchor) {
+                return;
+            }
+
+            const popover = anchor.querySelector(".suggestion-popover");
+            const source = afterPopover && popover && anchor.classList.contains("open")
+                ? popover
+                : anchor;
+            const sourceRect = source.getBoundingClientRect();
+            const margin = 8;
+
+            suggestionCoachmarkElement.style.left = `${sourceRect.left}px`;
+            suggestionCoachmarkElement.style.top = `${sourceRect.bottom + 6}px`;
+            const coachmarkRect = suggestionCoachmarkElement.getBoundingClientRect();
+            const left = Math.max(
+                margin,
+                Math.min(
+                    sourceRect.left,
+                    window.innerWidth - coachmarkRect.width - margin
+                )
+            );
+            let top = sourceRect.bottom + 6;
+            if (top + coachmarkRect.height > window.innerHeight - margin) {
+                top = Math.max(margin, sourceRect.top - coachmarkRect.height - 6);
+            }
+            suggestionCoachmarkElement.style.left = `${left}px`;
+            suggestionCoachmarkElement.style.top = `${top}px`;
+        }
+
+        function showSuggestionCoachmark(anchor, key, afterPopover = false) {
+            dismissSuggestionCoachmark();
+            const coachmark = document.createElement("div");
+            coachmark.className = "suggestion-coachmark";
+            coachmark.textContent = t(key);
+            document.body.appendChild(coachmark);
+            suggestionCoachmarkElement = coachmark;
+            suggestionCoachmarkAnchor = anchor;
+            positionSuggestionCoachmark(anchor, afterPopover);
+        }
+
+        function maybeShowFirstSuggestionCoachmark() {
+            if (suggestionCoachmarkUsed) {
+                return;
+            }
+            const firstSuggestion = elements.results.querySelector(
+                ".ambiguous-word, .english-word, .place-word"
+            );
+            if (!firstSuggestion) {
+                return;
+            }
+            suggestionCoachmarkUsed = true;
+            showSuggestionCoachmark(
+                firstSuggestion,
+                "suggestionCoachmarkOpen",
+                false
+            );
+        }
+
+        function closeOpenPopovers(except = null) {
+            if (except === null) {
+                dismissSuggestionCoachmark();
+            }
+            document
+                .querySelectorAll(
+                    ".ambiguous-word.open, .english-word.open, .place-word.open, .unknown-word.open"
+                )
+                .forEach((item) => {
+                    if (item !== except) {
+                        item.classList.remove("open");
+                        const popover = item.querySelector(".suggestion-popover");
+                        if (popover) {
+                            popover.style.position = "";
+                            popover.style.left = "";
+                            popover.style.right = "";
+                            popover.style.top = "";
+                            popover.style.transform = "";
+                            popover.style.maxHeight = "";
+                            popover.style.overflowY = "";
+                        }
+                    }
+                });
+        }
+
+        function positionPopoverWithinViewport(anchor) {
+            const popover = anchor.querySelector(".suggestion-popover");
+            if (!popover) {
+                return;
+            }
+
+            const anchorRect = anchor.getBoundingClientRect();
+            popover.style.position = "fixed";
+            popover.style.left = `${anchorRect.left}px`;
+            popover.style.right = "auto";
+            popover.style.top = `${anchorRect.bottom + 4}px`;
+            popover.style.transform = "translateX(0)";
+            popover.style.maxHeight = `calc(100vh - 16px)`;
+            popover.style.overflowY = "auto";
+
+            const margin = 8;
+            const rect = popover.getBoundingClientRect();
+            let shift = 0;
+
+            if (rect.right > window.innerWidth - margin) {
+                shift -= rect.right - (window.innerWidth - margin);
+            }
+            if (rect.left + shift < margin) {
+                shift += margin - (rect.left + shift);
+            }
+
+            popover.style.transform = `translateX(${shift}px)`;
+
+            const shiftedRect = popover.getBoundingClientRect();
+            if (shiftedRect.bottom > window.innerHeight - margin) {
+                const above = anchorRect.top - shiftedRect.height - 4;
+                popover.style.top = `${Math.max(margin, above)}px`;
+            }
+        }
+
+        function openInteractivePopover(span) {
+            const willOpen = !span.classList.contains("open");
+            closeOpenPopovers(span);
+            span.classList.toggle("open");
+            if (span.classList.contains("open")) {
+                requestAnimationFrame(() => {
+                    positionPopoverWithinViewport(span);
+                    if (willOpen && span === suggestionCoachmarkAnchor) {
+                        const coachmarkKey = (
+                            span.classList.contains("english-word")
+                            || span.classList.contains("place-word")
+                        )
+                            ? "suggestionCoachmarkMaltese"
+                            : "suggestionCoachmarkChoose";
+                        showSuggestionCoachmark(span, coachmarkKey, true);
+                    }
+                });
+            }
+        }
+
+        function renderCorrectedText(tokens, fallbackText = "") {
+            elements.results.classList.remove("loading");
+            elements.results.innerHTML = "";
+
+            if (!tokens || tokens.length === 0) {
+                if (latestCorrectedHtml) {
+                    elements.results.innerHTML = latestCorrectedHtml;
+                } else {
+                    elements.results.textContent = fallbackText;
+                }
+                return;
+            }
+
+            tokens.forEach((token, tokenIndex) => {
+                if (token.type === "text") {
+                    elements.results.appendChild(
+                        document.createTextNode(token.text)
+                    );
+                    return;
+                }
+
+                if (token.type === "english_phrase" || token.type === "maltese_usage") {
+                    if (
+                        allowEnglishSuggestions
+                        && token.maltese_suggestion
+                        && (Array.isArray(token.maltese_suggestion) ? token.maltese_suggestion.length > 0 : true)
+                    ) {
+                        const span = document.createElement("span");
+                        span.className = "english-word";
+                        span.tabIndex = 0;
+
+                        const wordText = document.createElement("span");
+                        wordText.textContent = token.corrected;
+                        span.appendChild(wordText);
+
+                        const popover = document.createElement("span");
+                        popover.className = "suggestion-popover";
+
+                        const suggestionsList = Array.isArray(token.maltese_suggestion) ? token.maltese_suggestion : [token.maltese_suggestion];
+                        const originalWord = token.inner_text || token.original.replace(/^['\u2018\u2019]+|['\u2018\u2019]+$/g, "");
+
+                        if (token.corrected !== originalWord && suggestionsList.includes(token.corrected)) {
+                            const row = document.createElement("button");
+                            row.type = "button";
+                            row.className = "suggestion-row";
+                            row.innerHTML = `<span>Biddel lura f'<strong>${originalWord}</strong></span>`;
+
+                            row.addEventListener("click", (event) => {
+                                event.stopPropagation();
+                                chooseSuggestion(tokenIndex, originalWord);
+                            });
+                            popover.appendChild(row);
+                        } else {
+                            if (token.english_note && suggestionsList.length > 0) {
+                                const row = document.createElement("button");
+                                row.type = "button";
+                                row.className = "suggestion-row";
+
+                                const word = document.createElement("strong");
+                                word.textContent = originalWord;
+
+                                const note = document.createElement("span");
+                                note.className = "suggestion-meaning english-note-action";
+                                note.textContent = `: ${token.english_note}`;
+
+                                row.appendChild(word);
+                                row.appendChild(note);
+
+                                row.addEventListener("click", (event) => {
+                                    event.stopPropagation();
+                                    chooseSuggestion(tokenIndex, suggestionsList[0]);
+                                });
+
+                                popover.appendChild(row);
+                            }
+
+                            suggestionsList.forEach(sugg => {
+                                const row = document.createElement("button");
+                                row.type = "button";
+                                row.className = "suggestion-row";
+                                row.innerHTML = `<span>Bil-Malti nistgħu ngħidu: <strong>${sugg}</strong></span>`;
+
+                                row.addEventListener("click", (event) => {
+                                    event.stopPropagation();
+                                    chooseSuggestion(tokenIndex, sugg);
+                                });
+
+                                popover.appendChild(row);
+                            });
+                        }
+
+
+                        span.appendChild(popover);
+
+                        span.addEventListener("click", (event) => {
+                            event.stopPropagation();
+                            openInteractivePopover(span);
+                        });
+
+                        elements.results.appendChild(span);
+                    } else {
+                        elements.results.appendChild(
+                            document.createTextNode(token.corrected)
+                        );
+                    }
+                    return;
+                }
+
+                if (
+                    token.place_translation
+                    && allowEnglishSuggestions
+                    && Array.isArray(token.choices)
+                    && token.choices.length > 0
+                ) {
+                    const span = document.createElement("span");
+                    span.className = "place-word name-like-word";
+                    span.tabIndex = 0;
+
+                    const wordText = document.createElement("span");
+                    wordText.textContent = token.corrected;
+                    span.appendChild(wordText);
+
+                    const popover = document.createElement("span");
+                    popover.className = "suggestion-popover";
+                    token.choices.forEach((choice) => {
+                        const row = document.createElement("button");
+                        row.type = "button";
+                        row.className = "suggestion-row";
+
+                        const label = document.createElement("span");
+                        label.append("Bil-Malti nistgħu ngħidu: ");
+                        const word = document.createElement("strong");
+                        word.textContent = getChoiceWord(choice);
+                        label.appendChild(word);
+                        row.appendChild(label);
+
+                        row.addEventListener("click", (event) => {
+                            event.stopPropagation();
+                            chooseSuggestion(
+                                tokenIndex,
+                                getChoiceWord(choice)
+                            );
+                        });
+                        popover.appendChild(row);
+                    });
+                    span.appendChild(popover);
+
+                    span.addEventListener("click", (event) => {
+                        event.stopPropagation();
+                        openInteractivePopover(span);
+                    });
+
+                    elements.results.appendChild(span);
+                    return;
+                }
+
+                const corrected = token.corrected || token.text || "";
+                const isCrucial = Boolean(token.crucial);
+                const isNameLike = Boolean(token.name_like);
+                const shouldShowSuggestions = showSuggestions
+                    || (isCrucial && alwaysShowCrucialSuggestions);
+
+                if (
+                    shouldShowSuggestions
+                    && token.ambiguous
+                    && token.choices
+                    && token.choices.length >= (isCrucial ? 1 : 2)
+                ) {
+                    const span = document.createElement("span");
+                    span.className = isCrucial
+                        ? "ambiguous-word crucial-word"
+                        : "ambiguous-word";
+                    if (isNameLike) {
+                        span.classList.add("name-like-word");
+                    }
+                    span.tabIndex = 0;
+
+                    const wordText = document.createElement("span");
+                    wordText.textContent = corrected;
+
+                    span.appendChild(wordText);
+
+                    span.appendChild(
+                        createSuggestionPopover(token.choices, tokenIndex)
+                    );
+
+                    span.addEventListener("click", (event) => {
+                        event.stopPropagation();
+                        openInteractivePopover(span);
+                    });
+
+                    elements.results.appendChild(span);
+                } else {
+                    if (token.unrecognized) {
+                        const span = document.createElement("span");
+                        span.className = "unknown-word";
+                        if (isNameLike) {
+                            span.classList.add("name-like-word");
+                        }
+                        span.tabIndex = 0;
+
+                        const wordText = document.createElement("span");
+                        wordText.textContent = corrected;
+                        span.appendChild(wordText);
+                        span.appendChild(
+                            createUnrecognizedPopover(token)
+                        );
+
+                        span.addEventListener("click", (event) => {
+                            event.stopPropagation();
+                            openInteractivePopover(span);
+                        });
+                        span.addEventListener("mouseenter", () => {
+                            closeOpenPopovers(span);
+                            span.classList.add("open");
+                            requestAnimationFrame(() => positionPopoverWithinViewport(span));
+                        });
+                        span.addEventListener("mouseleave", () => {
+                            span.classList.remove("open");
+                        });
+
+                        elements.results.appendChild(span);
+                    } else if (isNameLike) {
+                        const span = document.createElement("span");
+                        span.className = "name-like-word";
+                        span.textContent = corrected;
+                        elements.results.appendChild(span);
+                    } else {
+                        elements.results.appendChild(
+                            document.createTextNode(corrected)
+                        );
+                    }
+                }
+            });
+
+            const renderedText = elements.results.textContent || "";
+            if (
+                fallbackText
+                && fallbackText.startsWith(renderedText)
+                && fallbackText.length > renderedText.length
+            ) {
+                elements.results.appendChild(
+                    document.createTextNode(fallbackText.slice(renderedText.length))
+                );
+            }
+        }
+
+        document.addEventListener("click", () => {
+            closeOpenPopovers();
+        });
+
+        function updateShowSuggestionsButton() {
+            const key = showSuggestions ? "showSuggestionsOn" : "showSuggestionsOff";
+            if (currentLang === "en" && isMobileLayout()) {
+                elements.showSuggestionsButton.textContent = t(`${key}Mobile`);
+                return;
+            }
+            elements.showSuggestionsButton.textContent = t(key);
+        }
+
+        function updateModeButtons() {
+            elements.pastizziModeButton.style.display =
+                ENABLE_PASTIZZI_MODE && SHOW_PASTIZZI_DEVTOOLS_BUTTON ? "" : "none";
+            elements.fireworksButton.style.display = SHOW_FIREWORKS_DEVTOOLS_BUTTON ? "" : "none";
+            elements.partyModeButton.style.display = SHOW_PARTY_DEVTOOLS_BUTTON ? "" : "none";
+            elements.gravityModeButton.style.display = SHOW_GRAVITY_DEVTOOLS_BUTTON ? "" : "none";
+
+            elements.pastizziModeButton.textContent = t("pastizziModeOff");
+            elements.fireworksButton.textContent = t("fireworksButton");
+            elements.partyModeButton.textContent = partyMode
+                ? t("partyModeOn")
+                : t("partyModeOff");
+            elements.gravityModeButton.textContent = t("gravityModeOff");
+
+            elements.pastizziModeButton.classList.remove("active");
+            elements.fireworksButton.classList.remove("active");
+            elements.partyModeButton.classList.toggle("active", partyMode);
+            elements.gravityModeButton.classList.remove("active");
+        }
+
+        function launchPastizzi(count = 50) {
+            if (!ENABLE_PASTIZZI_MODE) {
+                return;
+            }
+
+            for (let i = 0; i < count; i++) {
+                setTimeout(() => {
+                    const p = document.createElement("img");
+                    p.className = "pastizzi";
+                    p.src = "https://static.wixstatic.com/media/842b50_9882633c342b45869c996a2ec817c0f1~mv2.png/v1/fill/w_600,h_450,al_c,q_85,usm_0.66_1.00_0.01,enc_auto/pastizzi.png";
+                    p.style.left = Math.random() * 100 + "vw";
+                    p.style.width = Math.random() * 60 + 20 + "px";
+                    p.style.animationDuration = Math.random() * 4 + 2 + "s";
+                    const randomRotation = (Math.random() - 0.5) * 1440;
+                    p.style.setProperty("--end-rotation", `${randomRotation}deg`);
+                    document.body.appendChild(p);
+                    setTimeout(() => p.remove(), 7000);
+                }, Math.random() * 2000);
+            }
+        }
+
+        function togglePastizziMode() {
+            if (!ENABLE_PASTIZZI_MODE) {
+                return;
+            }
+
+            launchPastizzi();
+        }
+
+        function randomColor() {
+            return `hsl(${Math.floor(Math.random() * 360)} ${55 + Math.random() * 35}% ${35 + Math.random() * 45}%)`;
+        }
+
+        function rememberPartyStyle(element) {
+            if (element.dataset.partyStored === "1") {
+                return;
+            }
+
+            element.dataset.partyStored = "1";
+            element.dataset.partyColor = element.style.color || "";
+            element.dataset.partyBackgroundColor = element.style.backgroundColor || "";
+            element.dataset.partyBorderColor = element.style.borderColor || "";
+            element.dataset.partyBoxShadow = element.style.boxShadow || "";
+        }
+
+        function restorePartyStyle(element) {
+            if (element.dataset.partyStored !== "1") {
+                return;
+            }
+
+            element.style.color = element.dataset.partyColor || "";
+            element.style.backgroundColor = element.dataset.partyBackgroundColor || "";
+            element.style.borderColor = element.dataset.partyBorderColor || "";
+            element.style.boxShadow = element.dataset.partyBoxShadow || "";
+            delete element.dataset.partyStored;
+            delete element.dataset.partyColor;
+            delete element.dataset.partyBackgroundColor;
+            delete element.dataset.partyBorderColor;
+            delete element.dataset.partyBoxShadow;
+        }
+
+        function paintPartyGroup(selector, painter) {
+            document.querySelectorAll(selector).forEach((element) => {
+                rememberPartyStyle(element);
+                painter(element);
+            });
+        }
+
+        function setPartyMode(enabled) {
+            partyMode = enabled;
+
+            if (!enabled) {
+                document.querySelectorAll("[data-party-stored='1']").forEach(restorePartyStyle);
+                updateModeButtons();
+                return;
+            }
+
+            const pageText = randomColor();
+            rememberPartyStyle(document.body);
+            document.body.style.color = pageText;
+            document.body.style.backgroundColor = randomColor();
+
+            paintPartyGroup(".panel", (element) => {
+                element.style.backgroundColor = randomColor();
+                element.style.borderColor = randomColor();
+                element.style.color = randomColor();
+                element.style.boxShadow = `0 8px 24px ${randomColor()}`;
+            });
+
+            paintPartyGroup("textarea, input, .result-box, pre, .suggestion-popover", (element) => {
+                element.style.backgroundColor = randomColor();
+                element.style.borderColor = randomColor();
+                element.style.color = randomColor();
+            });
+
+            paintPartyGroup("button", (element) => {
+                element.style.backgroundColor = randomColor();
+                element.style.borderColor = randomColor();
+                element.style.color = randomColor();
+            });
+
+            paintPartyGroup("h1, p, label, .status, .correction-timer", (element) => {
+                element.style.color = randomColor();
+            });
+
+            paintPartyGroup(".ambiguous-word, .english-word, .place-word", (element) => {
+                element.style.backgroundColor = randomColor();
+                element.style.color = randomColor();
+            });
+
+            updateModeButtons();
+        }
+
+        function togglePartyMode() {
+            setPartyMode(!partyMode);
+        }
+
+        function setCorrectionTimer(milliseconds = null) {
+            if (!ENABLE_CORRECTION_TIMER) {
+                elements.correctionTimer.textContent = "";
+                elements.correctionTimer.style.display = "none";
+                return;
+            }
+
+            elements.correctionTimer.style.display = "";
+
+            if (milliseconds === null) {
+                elements.correctionTimer.textContent = "";
+                return;
+            }
+
+            const seconds = milliseconds / 1000;
+            elements.correctionTimer.textContent = `(${seconds.toFixed(3)}s)`;
+        }
+
+        function rebuildCorrectedTextFromTokens(tokens) {
+            return tokens.map((token) => {
+                if (token.type === "text") {
+                    return token.text || "";
+                }
+
+                return token.corrected || "";
+            }).join("");
+        }
+
+        async function chooseSuggestion(tokenIndex, chosenWord) {
+            dismissSuggestionCoachmark();
+            if (!latestTokens[tokenIndex]) {
+                return;
+            }
+
+            const tokenObj = latestTokens[tokenIndex];
+            const originalToken = tokenObj.corrected || tokenObj.text || "";
+
+            let suggestionsList = [];
+            if (Array.isArray(tokenObj.choices)) {
+                suggestionsList = tokenObj.choices.map(c => getChoiceWord(c)).filter(Boolean);
+            }
+
+            if (originalToken === chosenWord) {
+                return; // Prevent duplicate log if user clicks the currently selected word again
+            }
+
+            latestTokens[tokenIndex].corrected = chosenWord;
+
+            const isEnglishReplacement =
+                (tokenObj.type === "english_phrase" || tokenObj.type === "maltese_usage")
+                && Array.isArray(tokenObj.maltese_suggestion)
+                && tokenObj.maltese_suggestion.includes(chosenWord);
+
+            if (isEnglishReplacement) {
+                const provisionalText = rebuildCorrectedTextFromTokens(latestTokens);
+                try {
+                    const data = await postJson("/check-text", {
+                        text: provisionalText,
+                        edit_distance_tolerance: getEditDistanceTolerance()
+                    });
+                    latestTokens = data.tokens || [];
+                    latestCorrectedText = data.corrected_text || provisionalText;
+                    latestCorrectedHtml = "";
+                    renderCorrectedText(latestTokens, latestCorrectedText);
+                } catch (_error) {
+                    latestCorrectedText = provisionalText;
+                    latestCorrectedHtml = "";
+                    renderCorrectedText(latestTokens, latestCorrectedText);
+                }
+                return;
+            }
+
+            const chosenChoice = Array.isArray(tokenObj.choices)
+                ? tokenObj.choices.find(choice => getChoiceWord(choice) === chosenWord)
+                : null;
+            if (
+                chosenChoice
+                && Object.prototype.hasOwnProperty.call(chosenChoice, "separator_after")
+            ) {
+                const nextToken = latestTokens[tokenIndex + 1];
+                if (nextToken && nextToken.type === "text") {
+                    nextToken.text = String(chosenChoice.separator_after);
+                }
+            }
+
+            // A suggestion ending in a hyphen must join directly to the next word.
+            // Example: "għall- problema" becomes "għall-problema".
+            if (chosenWord.endsWith("-")) {
+                const nextToken = latestTokens[tokenIndex + 1];
+
+                if (
+                    nextToken
+                    && nextToken.type === "text"
+                    && typeof nextToken.text === "string"
+                ) {
+                    nextToken.text = nextToken.text.replace(/^[ \t]+/, "");
+                }
+            }
+
+            latestCorrectedText = rebuildCorrectedTextFromTokens(latestTokens);
+            latestCorrectedHtml = "";
+
+            renderCorrectedText(latestTokens, latestCorrectedText);
+
+            if (currentLogId) {
+                const eventId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ("evt_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9));
+                postJson("/log-suggestion-choice", {
+                    log_id: currentLogId,
+                    event_id: eventId,
+                    token: originalToken,
+                    suggestions: suggestionsList,
+                    chosen: chosenWord,
+                    final_output: latestCorrectedText
+                }).catch(() => { });
+            }
+        }
+
+        async function checkText() {
+            const text = elements.textInput.value;
+
+            if (!text.trim()) {
+                setStatusByKey("writeTextFirst", "error");
+                return;
+            }
+
+            elements.checkButton.disabled = true;
+            setStatusByKey("checking");
+            setCorrectionTimer(null);
+            setOutputLoading(true);
+            const timerStartedAt = performance.now();
+
+            try {
+                const edit_distance_tolerance = getEditDistanceTolerance();
+                const data = await postJson("/check-text", { text, edit_distance_tolerance });
+
+                currentLogId = data.log_id || null;
+                latestTokens = data.tokens || [];
+                latestCorrectedText = data.corrected_text || "";
+                latestCorrectedHtml = "";
+
+                renderCorrectedText(latestTokens, latestCorrectedText);
+                requestAnimationFrame(maybeShowFirstSuggestionCoachmark);
+                setCorrectionTimer(performance.now() - timerStartedAt);
+
+                setStatusByKey(
+                    data.changed ? "correctionsApplied" : "noChanges",
+                    "success"
+                );
+            } catch (error) {
+                currentLogId = null;
+                elements.results.classList.remove("loading");
+                elements.results.innerHTML = "";
+                setRawStatus(error.message, "error");
+            } finally {
+                elements.checkButton.disabled = false;
+            }
+        }
+
+        async function suggestWord() {
+            const word = elements.wordInput.value.trim();
+
+            if (!word) {
+                elements.debugOutput.textContent = t("writeWordFirst");
+                return;
+            }
+
+            try {
+                const edit_distance_tolerance = getEditDistanceTolerance();
+                const data = await postJson("/suggest-word", { word, edit_distance_tolerance });
+                elements.debugOutput.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                elements.debugOutput.textContent = error.message;
+            }
+        }
+
+        async function debugWord() {
+            const word = elements.wordInput.value.trim();
+
+            if (!word) {
+                elements.debugOutput.textContent = t("writeWordFirst");
+                return;
+            }
+
+            try {
+                const edit_distance_tolerance = getEditDistanceTolerance();
+                const data = await postJson("/debug-word", { word, edit_distance_tolerance });
+                elements.debugOutput.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                elements.debugOutput.textContent = error.message;
+            }
+        }
+
+        async function copyResult() {
+            if (outputEditing) {
+                latestCorrectedText = elements.resultEditor.innerText;
+                latestCorrectedHtml = elements.resultEditor.innerHTML;
+            }
+            if (!latestCorrectedText) {
+                return;
+            }
+
+            try {
+                await navigator.clipboard.writeText(latestCorrectedText);
+                setStatusByKey("copied", "success");
+            } catch (error) {
+                setRawStatus("Could not copy result.", "error");
+            }
+        }
+
+        function clearAll() {
+            setOutputEditing(false, { preserveText: true });
+            currentLogId = null;
+            elements.textInput.value = "";
+            elements.results.classList.remove("loading");
+            elements.results.innerHTML = "";
+            elements.resultEditor.innerHTML = "";
+            elements.outputFormatTab.classList.add("hidden");
+            latestTokens = [];
+            latestCorrectedText = "";
+            latestCorrectedHtml = "";
+            outputEditorDirty = false;
+            elements.wordInput.value = "";
+            elements.debugOutput.textContent = t("debugDefault");
+            setCorrectionTimer(null);
+            setStatusByKey("cleared");
+        }
+
+        elements.langToggle.addEventListener("click", () => {
+            currentLang = currentLang === "en" ? "mt" : "en";
+            localStorage.setItem("spellcheckerLang", currentLang);
+            applyLanguage();
+        });
+
+        elements.darkModeToggle.addEventListener("click", () => {
+            document.body.classList.toggle("dark-mode");
+            const isDark = document.body.classList.contains("dark-mode");
+            localStorage.setItem("darkMode", isDark ? "1" : "0");
+            updateResponsiveLabels();
+        });
+
+        window.addEventListener("resize", updateResponsiveLabels);
+
+        elements.showSuggestionsButton.addEventListener("click", () => {
+            showSuggestions = !showSuggestions;
+            localStorage.setItem("showSuggestions", String(showSuggestions));
+            updateShowSuggestionsButton();
+            renderCorrectedText(latestTokens, latestCorrectedText);
+        });
+
+        elements.alwaysShowCrucialSuggestions.addEventListener("change", () => {
+            alwaysShowCrucialSuggestions = elements.alwaysShowCrucialSuggestions.checked;
+            localStorage.setItem(
+                "alwaysShowCrucialSuggestions",
+                String(alwaysShowCrucialSuggestions)
+            );
+            renderCorrectedText(latestTokens, latestCorrectedText);
+        });
+
+        elements.allowEnglishSuggestions.addEventListener("change", () => {
+            allowEnglishSuggestions = elements.allowEnglishSuggestions.checked;
+            localStorage.setItem("allowEnglishSuggestions", String(allowEnglishSuggestions));
+            renderCorrectedText(latestTokens, latestCorrectedText);
+        });
+
+        elements.outputEditToggle.addEventListener("click", () => {
+            setOutputEditing(!outputEditing);
+        });
+
+        const allowedFormatInputTypes = new Set([
+            "formatBold",
+            "formatItalic",
+            "formatUnderline",
+        ]);
+
+        function isReadOnlyEditorShortcut(event) {
+            if (!(event.ctrlKey || event.metaKey)) {
+                return false;
+            }
+            return ["a", "b", "c", "i", "u"].includes(event.key.toLowerCase());
+        }
+
+        elements.resultEditor.addEventListener("beforeinput", (event) => {
+            if (!allowedFormatInputTypes.has(event.inputType)) {
+                event.preventDefault();
+            }
+        });
+
+        elements.resultEditor.addEventListener("keydown", (event) => {
+            if (isReadOnlyEditorShortcut(event)) {
+                return;
+            }
+            if (
+                event.key.length === 1
+                || ["Backspace", "Delete", "Enter"].includes(event.key)
+            ) {
+                event.preventDefault();
+            }
+        });
+
+        elements.resultEditor.addEventListener("paste", (event) => event.preventDefault());
+        elements.resultEditor.addEventListener("drop", (event) => event.preventDefault());
+        elements.resultEditor.addEventListener("cut", (event) => event.preventDefault());
+
+        elements.resultEditor.addEventListener("input", () => {
+            outputEditorDirty = true;
+            latestTokens = [];
+            latestCorrectedText = elements.resultEditor.innerText;
+            latestCorrectedHtml = elements.resultEditor.innerHTML;
+        });
+
+        function applyOutputFormatting(command) {
+            if (!outputEditing) {
+                return;
+            }
+
+            elements.resultEditor.focus();
+            document.execCommand(command, false, null);
+            outputEditorDirty = true;
+            latestTokens = [];
+            latestCorrectedText = elements.resultEditor.innerText;
+            latestCorrectedHtml = elements.resultEditor.innerHTML;
+            updateOutputFormatButtonStates();
+            elements.resultEditor.focus();
+        }
+
+        function updateOutputFormatButtonStates() {
+            if (!outputEditing) {
+                return;
+            }
+            elements.formatBold.classList.toggle("active", document.queryCommandState("bold"));
+            elements.formatItalic.classList.toggle("active", document.queryCommandState("italic"));
+            elements.formatUnderline.classList.toggle("active", document.queryCommandState("underline"));
+        }
+
+        elements.formatBold.addEventListener("click", () => applyOutputFormatting("bold"));
+        elements.formatItalic.addEventListener("click", () => applyOutputFormatting("italic"));
+        elements.formatUnderline.addEventListener("click", () => applyOutputFormatting("underline"));
+
+        elements.resultEditor.addEventListener("keyup", () => {
+            latestCorrectedText = elements.resultEditor.innerText;
+            latestCorrectedHtml = elements.resultEditor.innerHTML;
+            updateOutputFormatButtonStates();
+        });
+
+        elements.resultEditor.addEventListener("mouseup", updateOutputFormatButtonStates);
+        elements.resultEditor.addEventListener("focus", updateOutputFormatButtonStates);
+
+        // =========================================================================
+        // DEVELOPER NOTES: HELP MODAL & SCREENSHOT FUNCTIONAL LOGIC
+        // =========================================================================
+        // - openEmailModal / hideEmailModal: Handlers for showing/hiding popover. Restores draft on open.
+        // - saveDraft / loadDraft / clearDraft: Handles localStorage persistence of subject, message, and attached image.
+        // - capturePageScreenshot: Utilizes html2canvas library to capture the screen, with ignoreElements passed
+        //   to exclude the modal overlays from being visible in the screenshot without triggering flickering.
+        // - Event listeners on screenshot preview click (triggers lightbox), remove button (clears attachment),
+        //   and text input change (auto-saves draft).
+
+        const emailModal = document.getElementById("emailModal");
+        const emailForm = document.getElementById("emailForm");
+        const closeModal = document.getElementById("closeModal");
+        const cancelEmail = document.getElementById("cancelEmail");
+        const emailModalStatus = document.getElementById("emailModalStatus");
+        const emailBodyEditor = document.getElementById("emailBody");
+        const emailReportHelper = document.getElementById("emailReportHelper");
+
+        // Screenshot Elements
+        const takeScreenshotBtn = document.getElementById("takeScreenshot");
+        const screenshotPreview = document.getElementById("screenshotPreview");
+        const screenshotThumb = document.getElementById("screenshotThumb");
+        const removeScreenshotBtn = document.getElementById("removeScreenshot");
+        const screenshotLightbox = document.getElementById("screenshotLightbox");
+        const lightboxImage = document.getElementById("lightboxImage");
+        const closeLightbox = document.getElementById("closeLightbox");
+
+        let attachedScreenshot = null;
+
+        function getEmailBodyText() {
+            return (emailBodyEditor.innerText || "").trim();
+        }
+
+        function setEmailBodyText(text) {
+            emailBodyEditor.textContent = text || "";
+            emailReportHelper.textContent = "";
+            emailReportHelper.classList.add("hidden");
+        }
+
+        function setEmailReportBody(message, helper) {
+            emailBodyEditor.textContent = message || "";
+            emailReportHelper.textContent = helper || "";
+            emailReportHelper.classList.toggle("hidden", !helper);
+        }
+
+        function splitLegacyReportDraft(body, reportedWord) {
+            const text = String(body || "");
+            if (!reportedWord) {
+                return { body: text, helper: "" };
+            }
+            const helperStarts = [
+                "\nYou may describe the word",
+                "\nTista' wkoll tiddeskrivi l-kelma"
+            ];
+            const helperIndex = helperStarts
+                .map(marker => text.indexOf(marker))
+                .filter(index => index >= 0)
+                .sort((a, b) => a - b)[0];
+            if (helperIndex === undefined) {
+                return { body: text, helper: "" };
+            }
+            return {
+                body: text.slice(0, helperIndex).trim(),
+                helper: t("reportHelper")
+            };
+        }
+
+        function resetEmailFormContent() {
+            emailForm.reset();
+            setEmailBodyText("");
+            pendingReportedWord = "";
+        }
+
+        function setEmailFormDisabled(disabled) {
+            emailForm
+                .querySelectorAll("input, button")
+                .forEach((element) => {
+                    element.disabled = disabled;
+                });
+            emailBodyEditor.contentEditable = disabled ? "false" : "true";
+            emailBodyEditor.setAttribute("aria-disabled", String(disabled));
+        }
+
+        function saveDraft() {
+            const draft = {
+                subject: document.getElementById("emailSubject").value,
+                body: getEmailBodyText(),
+                helper: emailReportHelper.textContent,
+                screenshot: attachedScreenshot,
+                reportedWord: pendingReportedWord
+            };
+            localStorage.setItem("cekkjatur_email_draft", JSON.stringify(draft));
+        }
+
+        function loadDraft() {
+            try {
+                const draftStr = localStorage.getItem("cekkjatur_email_draft");
+                if (draftStr) {
+                    const draft = JSON.parse(draftStr);
+                    const migrated = splitLegacyReportDraft(
+                        draft.body,
+                        draft.reportedWord
+                    );
+                    document.getElementById("emailSubject").value = draft.subject || "";
+                    if (draft.helper || migrated.helper) {
+                        setEmailReportBody(
+                            migrated.body,
+                            draft.helper || migrated.helper
+                        );
+                    } else {
+                        setEmailBodyText(migrated.body);
+                    }
+                    pendingReportedWord = draft.reportedWord || "";
+                    if (draft.screenshot) {
+                        attachedScreenshot = draft.screenshot;
+                        screenshotThumb.src = draft.screenshot;
+                        screenshotPreview.classList.remove("hidden");
+                    } else {
+                        attachedScreenshot = null;
+                        screenshotPreview.classList.add("hidden");
+                    }
+                }
+            } catch (e) {
+                console.error("Error loading draft", e);
+            }
+        }
+
+        function clearDraft() {
+            localStorage.removeItem("cekkjatur_email_draft");
+            attachedScreenshot = null;
+            screenshotPreview.classList.add("hidden");
+        }
+
+        async function compressScreenshotDataUrl(dataUrl) {
+            if (!dataUrl) {
+                return null;
+            }
+
+            const image = await new Promise((resolve, reject) => {
+                const candidate = new Image();
+                candidate.onload = () => resolve(candidate);
+                candidate.onerror = reject;
+                candidate.src = dataUrl;
+            });
+
+            const maxWidth = 1600;
+            const maxPixels = 4_000_000;
+            let scale = Math.min(
+                1,
+                maxWidth / image.naturalWidth,
+                Math.sqrt(maxPixels / (image.naturalWidth * image.naturalHeight))
+            );
+            let width = Math.max(1, Math.round(image.naturalWidth * scale));
+            let height = Math.max(1, Math.round(image.naturalHeight * scale));
+            let compressed = dataUrl;
+
+            for (let attempt = 0; attempt < 4; attempt += 1) {
+                const canvas = document.createElement("canvas");
+                canvas.width = width;
+                canvas.height = height;
+                const context = canvas.getContext("2d");
+                context.fillStyle = document.body.classList.contains("dark-mode")
+                    ? "#0f172a"
+                    : "#ffffff";
+                context.fillRect(0, 0, width, height);
+                context.drawImage(image, 0, 0, width, height);
+                compressed = canvas.toDataURL(
+                    "image/jpeg",
+                    attempt === 0 ? 0.78 : 0.62
+                );
+                if (compressed.length <= 2_600_000) {
+                    break;
+                }
+                width = Math.max(1, Math.round(width * 0.78));
+                height = Math.max(1, Math.round(height * 0.78));
+            }
+
+            return compressed;
+        }
+
+        async function capturePageScreenshot() {
+            let dataUrl = null;
+            try {
+                if (typeof html2canvas !== "undefined") {
+                    const canvas = await html2canvas(document.body, {
+                        useCORS: true,
+                        logging: false,
+                        allowTaint: true,
+                        ignoreElements: (element) => {
+                            return element.id === "emailModal" || element.id === "screenshotLightbox" || element.classList.contains("modal-overlay") || element.classList.contains("lightbox-overlay");
+                        }
+                    });
+                    dataUrl = canvas.toDataURL("image/png");
+                }
+            } catch (e) {
+                console.warn("html2canvas failed, using fallback", e);
+            }
+
+            if (!dataUrl) {
+                const canvas = document.createElement("canvas");
+                canvas.width = 800;
+                canvas.height = 600;
+                const ctx = canvas.getContext("2d");
+
+                const grad = ctx.createLinearGradient(0, 0, 0, 600);
+                grad.addColorStop(0, "#f8fafc");
+                grad.addColorStop(1, "#e2e8f0");
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, 0, 800, 600);
+
+                ctx.fillStyle = "#eb4f1f";
+                ctx.fillRect(0, 0, 800, 60);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "bold 20px system-ui";
+                ctx.fillText("Ċekkjatur tal-Kitba", 30, 38);
+
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(30, 90, 740, 200);
+                ctx.strokeStyle = "#cbd5e1";
+                ctx.lineWidth = 2;
+                ctx.strokeRect(30, 90, 740, 200);
+
+                ctx.fillStyle = "#334155";
+                ctx.font = "16px system-ui";
+                const textVal = elements.textInput.value || "Test Malti...";
+                const lines = textVal.split("\n").slice(0, 5);
+                let y = 130;
+                for (const line of lines) {
+                    ctx.fillText(line.substring(0, 70), 50, y);
+                    y += 30;
+                }
+
+                ctx.fillStyle = "#f1f5f9";
+                ctx.fillRect(30, 320, 740, 200);
+                ctx.strokeRect(30, 320, 740, 200);
+
+                ctx.fillStyle = "#475569";
+                ctx.font = "italic 16px system-ui";
+                ctx.fillText("Output preview...", 50, 360);
+
+                dataUrl = canvas.toDataURL("image/png");
+            }
+
+            try {
+                return await compressScreenshotDataUrl(dataUrl);
+            } catch (error) {
+                console.warn("Screenshot compression failed", error);
+                return dataUrl;
+            }
+        }
+
+        function openEmailModal(options = {}) {
+            emailModalStatus.className = "status";
+            emailModalStatus.textContent = "";
+            setEmailFormDisabled(false);
+
+            if (options.prefill) {
+                clearDraft();
+                resetEmailFormContent();
+                document.getElementById("emailSubject").value = options.subject || "";
+                setEmailReportBody(options.message || "", options.helper || "");
+                pendingReportedWord = options.reportedWord || "";
+                attachedScreenshot = options.screenshot || null;
+                if (attachedScreenshot) {
+                    screenshotThumb.src = attachedScreenshot;
+                    screenshotPreview.classList.remove("hidden");
+                } else {
+                    screenshotPreview.classList.add("hidden");
+                }
+            } else {
+                const draftStr = localStorage.getItem("cekkjatur_email_draft");
+                if (draftStr) {
+                    loadDraft();
+                } else {
+                    resetEmailFormContent();
+                    attachedScreenshot = null;
+                    screenshotPreview.classList.add("hidden");
+                }
+            }
+            document.getElementById("emailTo").value = "cekkjaturmalti@gmail.com";
+
+            emailModal.classList.add("active");
+            emailModal.classList.remove("hidden");
+            document.getElementById("emailSubject").focus();
+        }
+
+        async function beginUnrecognizedReport(token) {
+            const word = String(
+                token.original || token.corrected || token.text || ""
+            ).trim();
+            closeOpenPopovers();
+            dismissSuggestionCoachmark();
+
+            const screenshot = await capturePageScreenshot();
+            openEmailModal({
+                prefill: true,
+                subject: t("reportSubject", { word }),
+                message: t("reportBody", { word }),
+                helper: t("reportHelper"),
+                reportedWord: word,
+                screenshot
+            });
+            saveDraft();
+        }
+
+        function hideEmailModal() {
+            emailModal.classList.remove("active");
+            setTimeout(() => {
+                if (!emailModal.classList.contains("active")) {
+                    emailModal.classList.add("hidden");
+                }
+            }, 250);
+        }
+
+        closeModal.addEventListener("click", hideEmailModal);
+        cancelEmail.addEventListener("click", hideEmailModal);
+        emailModal.addEventListener("click", (event) => {
+            if (event.target === emailModal) {
+                hideEmailModal();
+            }
+        });
+
+        // Draft auto-saving input listeners
+        document.getElementById("emailSubject").addEventListener("input", saveDraft);
+        emailBodyEditor.addEventListener("input", saveDraft);
+
+        // Take Screenshot Button
+        takeScreenshotBtn.addEventListener("click", async () => {
+            takeScreenshotBtn.disabled = true;
+            const originalHTML = takeScreenshotBtn.querySelector(".btn-text").innerHTML;
+            takeScreenshotBtn.querySelector(".btn-text").textContent = currentLang === "mt" ? "Tiġbid fil-progress..." : "Capturing...";
+
+            const dataUrl = await capturePageScreenshot();
+            if (dataUrl) {
+                attachedScreenshot = dataUrl;
+                screenshotThumb.src = dataUrl;
+                screenshotPreview.classList.remove("hidden");
+                saveDraft();
+            }
+
+            takeScreenshotBtn.disabled = false;
+            takeScreenshotBtn.querySelector(".btn-text").innerHTML = originalHTML;
+        });
+
+        // Remove Screenshot Button
+        removeScreenshotBtn.addEventListener("click", (event) => {
+            event.stopPropagation();
+            attachedScreenshot = null;
+            screenshotPreview.classList.add("hidden");
+            saveDraft();
+        });
+
+        // Screenshot Preview Click (Lightbox)
+        screenshotPreview.addEventListener("click", (event) => {
+            if (event.target === removeScreenshotBtn) {
+                return;
+            }
+            if (attachedScreenshot) {
+                lightboxImage.src = attachedScreenshot;
+                screenshotLightbox.classList.add("active");
+            }
+        });
+
+        closeLightbox.addEventListener("click", () => {
+            screenshotLightbox.classList.remove("active");
+        });
+
+        screenshotLightbox.addEventListener("click", (event) => {
+            if (event.target === screenshotLightbox) {
+                screenshotLightbox.classList.remove("active");
+            }
+        });
+
+        emailForm.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const message = getEmailBodyText();
+            if (!message) {
+                emailBodyEditor.focus();
+                return;
+            }
+            setEmailFormDisabled(true);
+            emailModalStatus.className = "status";
+            emailModalStatus.textContent = t("emailStatusSending");
+            try {
+                const response = await fetch("/submit-feedback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: "cekkjaturmalti@gmail.com",
+                        subject: document.getElementById("emailSubject").value.trim(),
+                        message,
+                        screenshot: attachedScreenshot || "",
+                        language: currentLang,
+                        page_url: window.location.href,
+                        log_id: currentLogId || "",
+                        reported_word: pendingReportedWord
+                    })
+                });
+                const responseData = await response.json().catch(() => ({}));
+                if (!response.ok || !responseData.ok) {
+                    throw new Error(responseData.error || t("emailStatusError"));
+                }
+
+                emailModalStatus.className = "status success";
+                emailModalStatus.textContent = t("emailStatusSent");
+                clearDraft();
+                resetEmailFormContent();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                hideEmailModal();
+            } catch (error) {
+                emailModalStatus.className = "status error";
+                emailModalStatus.textContent = error.message || t("emailStatusError");
+            } finally {
+                setEmailFormDisabled(false);
+                document.getElementById("emailTo").readOnly = true;
+            }
+        });
+
+        const dictionaryToolLauncherRow = document.getElementById("dictionaryToolLauncherRow");
+        const dictionaryToolLauncher = document.getElementById("dictionaryToolLauncher");
+        const dictionaryToolModal = document.getElementById("dictionaryToolModal");
+        const closeDictionaryTool = document.getElementById("closeDictionaryTool");
+        const dictionaryStructureSlots = document.getElementById("dictionaryStructureSlots");
+        const addDictionarySlot = document.getElementById("addDictionarySlot");
+        const removeDictionarySlot = document.getElementById("removeDictionarySlot");
+        const searchDictionaryStructure = document.getElementById("searchDictionaryStructure");
+        const dictionaryStructureStatus = document.getElementById("dictionaryStructureStatus");
+        const dictionaryStructureResults = document.getElementById("dictionaryStructureResults");
+
+        function addStructureSlot(value = "") {
+            if (dictionaryStructureSlots.children.length >= 32) return;
+            const input = document.createElement("input");
+            input.type = "text";
+            input.maxLength = 2;
+            input.className = "dictionary-structure-slot";
+            input.value = value;
+            input.setAttribute("aria-label", `Structure position ${dictionaryStructureSlots.children.length + 1}`);
+            input.addEventListener("input", () => {
+                input.value = input.value.replace(/\s+/g, "").slice(0, 2);
+            });
+            input.addEventListener("keydown", (event) => {
+                if (event.key === "Enter") searchDictionaryPattern();
+            });
+            dictionaryStructureSlots.appendChild(input);
+            updateStructureSlotControls();
+            return input;
+        }
+
+        function updateStructureSlotControls() {
+            removeDictionarySlot.disabled = dictionaryStructureSlots.children.length <= 1;
+            addDictionarySlot.disabled = dictionaryStructureSlots.children.length >= 32;
+        }
+
+        function openDictionaryTool() {
+            dictionaryToolModal.classList.remove("hidden");
+            dictionaryToolModal.setAttribute("aria-hidden", "false");
+            requestAnimationFrame(() => {
+                dictionaryToolModal.classList.add("active");
+                dictionaryStructureSlots.querySelector("input")?.focus();
+            });
+        }
+
+        function hideDictionaryTool() {
+            dictionaryToolModal.classList.remove("active");
+            dictionaryToolModal.setAttribute("aria-hidden", "true");
+            setTimeout(() => {
+                if (!dictionaryToolModal.classList.contains("active")) {
+                    dictionaryToolModal.classList.add("hidden");
+                }
+            }, 250);
+        }
+
+        function renderDictionaryStructureResults(results) {
+            dictionaryStructureResults.innerHTML = "";
+            if (!results.length) {
+                const empty = document.createElement("div");
+                empty.className = "dictionary-structure-result";
+                empty.textContent = "Ma nstab l-ebda riżultat / No results found";
+                dictionaryStructureResults.appendChild(empty);
+                return;
+            }
+            results.forEach((result) => {
+                const row = document.createElement("div");
+                row.className = "dictionary-structure-result";
+                const word = document.createElement("span");
+                word.className = "dictionary-structure-word";
+                word.textContent = result.word;
+                const meaning = document.createElement("span");
+                meaning.className = "dictionary-structure-meaning";
+                meaning.textContent = result.meaning || "Meaning unavailable";
+                row.append(word, meaning);
+                dictionaryStructureResults.appendChild(row);
+            });
+        }
+
+        async function searchDictionaryPattern() {
+            const slots = Array.from(dictionaryStructureSlots.querySelectorAll("input"))
+                .map((input) => input.value.trim());
+            if (slots.some((slot) => !slot)) {
+                dictionaryStructureStatus.textContent = "Imla kull kaxxa / Fill every box";
+                return;
+            }
+            searchDictionaryStructure.disabled = true;
+            dictionaryStructureStatus.textContent = "Qed infittex... / Searching...";
+            try {
+                const data = await postJson("/dictionary-structure/search", { slots });
+                renderDictionaryStructureResults(data.results || []);
+                dictionaryStructureStatus.textContent = data.truncated
+                    ? `Total ta' entrati misjuba / Total entries found: ${data.total}. Qed jintwerew l-ewwel ${data.shown} / Showing the first ${data.shown}.`
+                    : `Total ta' entrati misjuba / Total entries found: ${data.total}`;
+            } catch (error) {
+                dictionaryStructureResults.innerHTML = "";
+                dictionaryStructureStatus.textContent = error.message || "Search failed";
+            } finally {
+                searchDictionaryStructure.disabled = false;
+            }
+        }
+
+        if (SHOW_DICTIONARY_STRUCTURE_TOOL) {
+            dictionaryToolLauncherRow.classList.remove("hidden");
+            ["", "", ""].forEach(addStructureSlot);
+            dictionaryToolLauncher.addEventListener("click", openDictionaryTool);
+            closeDictionaryTool.addEventListener("click", hideDictionaryTool);
+            dictionaryToolModal.addEventListener("click", (event) => {
+                if (event.target === dictionaryToolModal) hideDictionaryTool();
+            });
+            addDictionarySlot.addEventListener("click", () => addStructureSlot()?.focus());
+            removeDictionarySlot.addEventListener("click", () => {
+                if (dictionaryStructureSlots.children.length > 1) {
+                    dictionaryStructureSlots.lastElementChild.remove();
+                    updateStructureSlotControls();
+                }
+            });
+            searchDictionaryStructure.addEventListener("click", searchDictionaryPattern);
+        } else {
+            dictionaryToolLauncherRow.remove();
+            dictionaryToolModal.remove();
+        }
+
+        elements.helpLink.addEventListener("click", (event) => {
+            event.preventDefault();
+            openEmailModal();
+        });
+
+        elements.checkButton.addEventListener("click", checkText);
+        elements.copyButton.addEventListener("click", copyResult);
+        elements.clearButton.addEventListener("click", clearAll);
+        elements.suggestButton.addEventListener("click", suggestWord);
+        elements.debugButton.addEventListener("click", debugWord);
+        if (window.createDevToy) {
+            devToy = window.createDevToy({
+                elements,
+                t,
+                flags: {
+                    enablePastizziMode: ENABLE_PASTIZZI_MODE,
+                    showPastizziDevtoolsButton: SHOW_PASTIZZI_DEVTOOLS_BUTTON,
+                    showFireworksDevtoolsButton: SHOW_FIREWORKS_DEVTOOLS_BUTTON,
+                    showPartyDevtoolsButton: SHOW_PARTY_DEVTOOLS_BUTTON,
+                    showGravityDevtoolsButton: SHOW_GRAVITY_DEVTOOLS_BUTTON,
+                },
+            });
+            devToy.bind();
+        } else {
+            elements.pastizziModeButton.addEventListener("click", togglePastizziMode);
+            elements.fireworksButton.style.display = "none";
+            elements.partyModeButton.addEventListener("click", togglePartyMode);
+        }
+
+        updateShowSuggestionsButton();
+        updateModeButtons();
+        elements.alwaysShowCrucialSuggestions.checked = alwaysShowCrucialSuggestions;
+        elements.allowEnglishSuggestions.checked = allowEnglishSuggestions;
+        updateDevPanelVisibility();
+        updateStatusVisibility();
+        setCorrectionTimer(null);
+        applyLanguage();
+
+        if (localStorage.getItem("darkMode") === "1" || (!localStorage.getItem("darkMode") && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+            document.body.classList.add("dark-mode");
+            updateResponsiveLabels();
+        }
+        checkHealth();
+    </script>
+</body>
+
+</html>

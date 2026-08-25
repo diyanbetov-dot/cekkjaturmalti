@@ -1,0 +1,6 @@
+Failed primary single.dic entries from current evaluation
+=========================================================
+Total primary failures: 0
+Expected target still suggested: 0
+Expected target entirely missing: 0
+

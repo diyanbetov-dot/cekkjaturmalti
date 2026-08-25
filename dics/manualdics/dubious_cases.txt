@@ -1,0 +1,41 @@
+DUBIOUS CASES FOR MANUAL REVIEW
+
+These examples are deliberately excluded from single.dic and alt.dic. They
+either need sentence context, introduce article/preposition structure, or lack
+enough lexical evidence for a deterministic word-to-word correction.
+
+[Context-dependent noun, adjective, or numeral inflection]
+- baqar -> baqra
+- dik -> dawk
+- twil -> twila
+
+[Article, preposition, contraction, split, or join]
+- barja -> b'arja
+- lomm -> l-omm
+- fil-bahar -> fil-baħar
+- xandek -> x'għandek
+
+[Same-word spelling variants excluded from alternatives]
+- akbar -> akbar / ikbar
+- ukoll -> ukoll / wkoll
+- lehgitx -> lehġitx / leħġitx
+
+[Unsupported non-suffixed output]
+- gentili -> ġentili
+- ghami -> għami
+- originali -> oriġinali
+
+[Suffix material cannot be safely inferred from the isolated input]
+- baghthielhomlha -> bagħtithielhom
+- ktibtilhomlha -> ktibtilha
+- isejjah -> isejjaħlu
+
+[Valid input must not be forced to another lexical form]
+- jtini -> jagħtini
+
+[Reviewed decisions]
+- deru -> deru / dehru is retained: both outputs have dictionary evidence.
+- dar -> dar / dahar is retained: both are distinct dictionary words.
+- niehdu -> niehdu / nieħdu is retained: both are distinct dictionary forms.
+- aghar -> agħar is deterministic, while ghar -> għar / agħar is a separate
+  input ambiguity; these are not overlapping source entries.
